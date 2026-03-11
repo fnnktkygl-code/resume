@@ -49,9 +49,10 @@ export default function Security({ onBack }) {
           <section>
             <h2>4. External Integrations (AI)</h2>
             <p>
-              If AI features are invoked, data in transit to those third-party providers is encrypted end-to-end. 
-              We strictly vet providers that do not train their foundational models on API payload data, maintaining 
-              the confidentiality of your inputs.
+              Our AI features generate prompts that you manually copy and paste into an external AI tool of your choice.
+              <strong>No data is automatically sent from this application to any third-party service.</strong> The
+              application enforces a strict Content Security Policy with <code>connect-src 'none'</code>, which
+              blocks all outbound network requests at the browser level.
             </p>
           </section>
 

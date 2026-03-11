@@ -5,6 +5,7 @@
 
 import { safeUUID } from './constants';
 
+const KNOWN_SECTION_IDS = new Set(['summary', 'experience', 'education', 'skills', 'projects', 'certifications']);
 const PERSONAL_KEYS = ['name', 'tagline', 'email', 'phone', 'location', 'linkedin', 'website', 'github'];
 const PERSONAL_URL_KEYS = ['linkedin', 'website', 'github'];
 
@@ -122,10 +123,26 @@ function sanitizeCustomSection(section) {
   };
 }
 
+function sanitizeSectionOrder(order, customSections) {
+  if (!Array.isArray(order)) return undefined;
+  const validCustomIds = new Set(
+    Array.isArray(customSections) ? customSections.map(s => s?.id).filter(Boolean) : []
+  );
+  return order.filter(id =>
+    typeof id === 'string' && (KNOWN_SECTION_IDS.has(id) || validCustomIds.has(id))
+  );
+}
+
 export function sanitizeResumeData(raw) {
   if (!raw || typeof raw !== 'object') {
     throw new Error('Invalid resume data: expected an object');
   }
+
+  const customSections = Array.isArray(raw.customSections)
+    ? raw.customSections.map(sanitizeCustomSection).filter(Boolean)
+    : [];
+
+  const sectionOrder = sanitizeSectionOrder(raw.sectionOrder, customSections);
 
   return {
     personal: sanitizeObject(raw.personal, PERSONAL_KEYS, PERSONAL_URL_KEYS),
@@ -148,8 +165,7 @@ export function sanitizeResumeData(raw) {
     certifications: Array.isArray(raw.certifications)
       ? raw.certifications.map(sanitizeCertification).filter(Boolean)
       : [],
-    customSections: Array.isArray(raw.customSections)
-      ? raw.customSections.map(sanitizeCustomSection).filter(Boolean)
-      : [],
+    customSections,
+    ...(sectionOrder ? { sectionOrder } : {}),
   };
 }
