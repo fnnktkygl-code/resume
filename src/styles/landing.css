@@ -334,8 +334,7 @@
   flex-grow: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  margin-top: 24px;
+  align-items: flex-end; /* Sink image to the bottom instead of hanging in the middle */
   width: 100%;
 }
 
@@ -357,35 +356,40 @@
 
 .bento-img-custom {
   width: 85%;
-  max-width: 280px;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-  border: 1px solid var(--bento-border);
+  max-width: 320px;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -15px 40px rgba(0,0,0,0.3);
+  border: 8px solid #1c1c1e; /* Thick bezel for a phone mockup look */
   border-bottom: none;
-  transition: transform 0.4s ease;
+  transform: translateY(12px); /* Sink it so the corners look grounded */
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bento-box:hover .bento-img-custom {
-  transform: translateY(-8px);
+  transform: translateY(0); /* Pops up on hover */
 }
 
 .bento-img-offset {
   position: absolute;
-  top: -20px;
-  left: 45%;
-  width: 900px; /* Force strict width so it won't shrink */
-  height: auto;
-  border-radius: 16px;
-  box-shadow: -30px 30px 80px rgba(0,0,0,0.2);
+  top: 40px; 
+  right: -5%; 
+  width: 60%; 
+  height: 120%; /* Bleeds out the bottom */
+  object-fit: cover; /* Crucially ensures the image fills this offset box perfectly */
+  object-position: left top; /* Aligns to the editor on the left side of the desktop screenshot */
+  border-radius: 24px 0 0 0;
+  box-shadow: -20px 20px 60px rgba(0,0,0,0.4);
   border: 1px solid var(--bento-border);
-  transform: rotate(-3deg);
+  border-right: none;
+  border-bottom: none;
+  transform: rotate(-2.5deg);
   transform-origin: top left;
   z-index: 1;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bento-box:hover .bento-img-offset {
-  transform: rotate(-1.5deg) translateY(-8px) translateX(-10px);
+  transform: rotate(0deg) translateY(-8px) translateX(-8px);
 }
 
 /* Video inside mockup wrapper */
