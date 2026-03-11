@@ -985,22 +985,26 @@ input[type="range"] {
 }
 
 @media print {
-  html, body {
+  html, body, .app {
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
   }
-  body * { visibility: hidden !important; }
-  #resume-print,
-  #resume-print * { visibility: visible !important; }
+  .app > .skip-link,
+  .app > .header,
+  .app > .main,
+  .modal-overlay,
+  .mobile-preview-overlay {
+    display: none !important;
+  }
   #resume-print {
     display: block !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
     width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   #resume-print .resume-wrapper {
     border: none !important;
