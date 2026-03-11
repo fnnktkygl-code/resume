@@ -41,7 +41,7 @@ export const STEPS = [
 
 export function createEmptyExperience() {
   return {
-    id: crypto.randomUUID(),
+    id: safeUUID(),
     company: '',
     title: '',
     startMonth: '',
@@ -55,7 +55,7 @@ export function createEmptyExperience() {
 
 export function createEmptyEducation() {
   return {
-    id: crypto.randomUUID(),
+    id: safeUUID(),
     institution: '',
     degree: '',
     field: '',
@@ -66,7 +66,7 @@ export function createEmptyEducation() {
 
 export function createEmptyProject() {
   return {
-    id: crypto.randomUUID(),
+    id: safeUUID(),
     name: '',
     description: '',
     techStack: '',
@@ -77,7 +77,7 @@ export function createEmptyProject() {
 
 export function createEmptyCertification() {
   return {
-    id: crypto.randomUUID(),
+    id: safeUUID(),
     name: '',
     issuer: '',
     date: '',
@@ -85,9 +85,20 @@ export function createEmptyCertification() {
   };
 }
 
+export function safeUUID() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+}
+
 export function createEmptyCustomItem() {
   return {
-    id: crypto.randomUUID(),
+    id: safeUUID(),
     title: '',
     subtitle: '',
     date: '',
@@ -97,7 +108,7 @@ export function createEmptyCustomItem() {
 
 export function createEmptyCustomSection(label) {
   return {
-    id: `custom_${crypto.randomUUID()}`,
+    id: `custom_${safeUUID()}`,
     label: label,
     items: [createEmptyCustomItem()],
   };
