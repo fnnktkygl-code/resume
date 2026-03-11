@@ -470,30 +470,7 @@ export default function App() {
                 </div>
               </div>
 
-        {/* Section delete confirmation modal */}
-        {sectionToDelete && (
-          <div className="modal-overlay" role="dialog" aria-modal="true">
-            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
-                {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
-              </h2>
-              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
-                {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
-              </p>
-              <div className="modal-actions" style={{ justifyContent: 'center' }}>
-                <button className="btn-secondary" onClick={() => setSectionToDelete(null)}>{t('Cancel')}</button>
-                <button 
-                  className="btn-primary" 
-                  onClick={() => removeSection(sectionToDelete)} 
-                  style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
-                >
-                  {t('Confirm')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
               {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
               <div className="preview-export-bar">
                 <button 
@@ -728,6 +705,31 @@ export default function App() {
           <div className="save-toast" key={Date.now()}>
             <span className="save-dot" />
             ✓ {t('Saved')}
+          </div>
+        )}
+
+        {/* Section delete confirmation modal */}
+        {sectionToDelete && (
+          <div className="modal-overlay" role="dialog" aria-modal="true">
+            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
+              <h2 style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
+                {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
+              </h2>
+              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
+                {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
+              </p>
+              <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                <button className="btn-secondary" onClick={() => setSectionToDelete(null)}>{t('Cancel')}</button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => removeSection(sectionToDelete)} 
+                  style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
+                >
+                  {t('Confirm')}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
