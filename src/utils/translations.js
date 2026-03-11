@@ -129,7 +129,7 @@ export const TRANSLATIONS = {
 
     // AI Modal
     'AI Translation Assistant': 'AI Translation Assistant',
-    'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT, Claude, or your favorite AI.': 'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT, Claude, or your favorite AI.',
+    'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT, Claude, or your favorite AI.': 'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT or your favorite AI.',
     'Copied!': 'Copied!',
     'Copy Prompt': 'Copy Prompt',
     'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).': 'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).',
@@ -138,6 +138,7 @@ export const TRANSLATIONS = {
     // Layout
     'Font Size': 'Font Size',
     'Side Padding': 'Side Padding',
+
     'Line Height': 'Line Height',
     'Section Spacing': 'Section Spacing',
     'Item Spacing': 'Item Spacing',
@@ -311,7 +312,7 @@ export const TRANSLATIONS = {
 
     // AI Modal
     'AI Translation Assistant': 'Assistant de traduction IA',
-    'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT, Claude, or your favorite AI.': 'Confidentialité totale : vos données ne sortent pas du navigateur. Copiez le prompt ci-dessous pour traduire votre CV via IA.',
+    'We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT or your favorite AI.': 'Confidentialité totale : vos données ne sortent pas du navigateur. Copiez le prompt ci-dessous pour traduire votre CV via IA.',
     'Copied!': 'Copié !',
     'Copy Prompt': 'Copier le Prompt',
     'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).': 'Impossible de copier automatiquement. Sélectionnez le texte et copiez manuellement (Ctrl+C / Cmd+C).',

@@ -83,7 +83,7 @@ ${JSON.stringify(cloneData, null, 2)}
       <div className="modal-content" ref={modalRef} tabIndex={-1}>
         <h2 id="ai-modal-title">✨ {t('AI Translation Assistant')}</h2>
         <p>
-          {t('We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT, Claude, or your favorite AI.')}
+          {t('We prioritize your privacy by keeping your data entirely in your browser. To translate or optimize your CV, copy this specialized prompt and paste it into ChatGPT or your favorite AI.')}
         </p>
         
         <div className="prompt-box">

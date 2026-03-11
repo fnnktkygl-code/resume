@@ -42,7 +42,7 @@ export default function PrivacyPolicy({ onBack }) {
             <h2>3. Artificial Intelligence Features</h2>
             <p>
               Our AI-related features (such as AI Smart Bolding or translation prompts) work by generating a prompt
-              that you manually copy and paste into an external AI tool of your choice (e.g., ChatGPT, Claude).
+              that you manually copy and paste into an external AI tool of your choice (e.g., ChatGPT).
               <strong>No data is automatically transmitted from this application to any AI provider or external server.</strong> You
               remain in full control of what you share and with whom.
             </p>
