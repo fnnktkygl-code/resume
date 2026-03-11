@@ -22,12 +22,17 @@ export default function Landing({ onStart }) {
 
         <div className="landing-showcase">
           <img 
-            src="./assets/desktop_showcase.png" 
-            alt="ResuMe Desktop Experience" 
-            className="showcase-desktop"
+            src="./assets/desktop_features_showcase.png" 
+            alt="ResuMe Features" 
+            className="showcase-desktop-secondary"
           />
           <img 
-            src="./assets/mobile_showcase.png" 
+            src="./assets/desktop_showcase.png" 
+            alt="ResuMe Desktop Experience" 
+            className="showcase-desktop-main"
+          />
+          <img 
+            src="./assets/mobile_showcase_v2.png" 
             alt="ResuMe Mobile Experience" 
             className="showcase-mobile"
           />
