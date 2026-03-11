@@ -610,6 +610,19 @@ const landingStyles = `
     margin-top: 40px;
   }
   
+  .landing-footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 32px 20px;
+  }
+
+  .footer-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .footer-links {
     flex-wrap: wrap;
     justify-content: center;
