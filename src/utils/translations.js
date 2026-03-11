@@ -170,6 +170,7 @@ export const TRANSLATIONS = {
     'Are you sure?': 'Are you sure?',
     'This will erase all your resume data. This action cannot be undone.': 'This will erase all your resume data. This action cannot be undone.',
     'Cancel': 'Cancel',
+    'Confirm': 'Confirm',
     'Yes, clear everything': 'Yes, clear everything',
 
     // Misc UI
@@ -351,6 +352,7 @@ export const TRANSLATIONS = {
     'Are you sure?': 'Êtes-vous sûr ?',
     'This will erase all your resume data. This action cannot be undone.': 'Ceci supprimera toutes vos données de CV. Cette action est irréversible.',
     'Cancel': 'Annuler',
+    'Confirm': 'Confirmer',
     'Yes, clear everything': 'Oui, tout effacer',
 
     // Misc UI

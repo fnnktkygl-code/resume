@@ -101,6 +101,8 @@ export default function App() {
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+  const [exportConfig, setExportConfig] = useState({ type: '', title: '', message: '', action: null });
 
   
   const t = (key) => getTranslation(language, key);
@@ -419,9 +421,13 @@ export default function App() {
                   type="button"
                   className="btn-export" 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to PDF?'))) {
-                      setTimeout(() => window.print(), 100);
-                    }
+                    setExportConfig({
+                      type: 'pdf',
+                      title: t('Print / Save as PDF'),
+                      message: t('Export CV to PDF?'),
+                      action: () => setTimeout(() => window.print(), 100)
+                    });
+                    setShowExportConfirm(true);
                   }}
                 >
                   {t('Print / Save as PDF')}
@@ -430,13 +436,19 @@ export default function App() {
                   type="button"
                   className="btn-export" 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to Markdown?'))) {
-                      try {
-                        exportMarkdown(data);
-                      } catch (err) {
-                        alert('Export failed: ' + err.message);
+                    setExportConfig({
+                      type: 'markdown',
+                      title: t('Markdown'),
+                      message: t('Export CV to Markdown?'),
+                      action: () => {
+                        try {
+                          exportMarkdown(data);
+                        } catch (err) {
+                          alert('Export failed: ' + err.message);
+                        }
                       }
-                    }
+                    });
+                    setShowExportConfirm(true);
                   }}
                 >
                   {t('Markdown')}
@@ -445,13 +457,19 @@ export default function App() {
                   type="button"
                   className="btn-export" 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to JSON?'))) {
-                      try {
-                        exportJson(data);
-                      } catch (err) {
-                        alert('Export failed: ' + err.message);
+                    setExportConfig({
+                      type: 'json',
+                      title: t('Export JSON'),
+                      message: t('Export CV to JSON?'),
+                      action: () => {
+                        try {
+                          exportJson(data);
+                        } catch (err) {
+                          alert('Export failed: ' + err.message);
+                        }
                       }
-                    }
+                    });
+                    setShowExportConfirm(true);
                   }}
                 >
                   {t('Export JSON')}
@@ -493,14 +511,18 @@ export default function App() {
                   style={{ padding: '6px' }}
                 >⚙️</button>
                 <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
-                <button 
+                 <button 
                   type="button"
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to PDF?'))) {
-                      setTimeout(() => window.print(), 100);
-                    }
+                    setExportConfig({
+                      type: 'pdf',
+                      title: t('Print / Save as PDF'),
+                      message: t('Export CV to PDF?'),
+                      action: () => setTimeout(() => window.print(), 100)
+                    });
+                    setShowExportConfirm(true);
                   }} 
                   title={t('Print / Save as PDF')}
                 >
@@ -511,13 +533,19 @@ export default function App() {
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to Markdown?'))) {
-                      try {
-                        exportMarkdown(data);
-                      } catch (err) {
-                        alert('Export failed: ' + err.message);
+                    setExportConfig({
+                      type: 'markdown',
+                      title: t('Markdown'),
+                      message: t('Export CV to Markdown?'),
+                      action: () => {
+                        try {
+                          exportMarkdown(data);
+                        } catch (err) {
+                          alert('Export failed: ' + err.message);
+                        }
                       }
-                    }
+                    });
+                    setShowExportConfirm(true);
                   }} 
                   title={t('Markdown')}
                 >
@@ -528,13 +556,19 @@ export default function App() {
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
                   onClick={() => {
-                    if (window.confirm(t('Export CV to JSON?'))) {
-                      try {
-                        exportJson(data);
-                      } catch (err) {
-                        alert('Export failed: ' + err.message);
+                    setExportConfig({
+                      type: 'json',
+                      title: t('Export JSON'),
+                      message: t('Export CV to JSON?'),
+                      action: () => {
+                        try {
+                          exportJson(data);
+                        } catch (err) {
+                          alert('Export failed: ' + err.message);
+                        }
                       }
-                    }
+                    });
+                    setShowExportConfirm(true);
                   }} 
                   title={t('Export JSON')}
                 >
@@ -575,17 +609,28 @@ export default function App() {
           </div>
         )}
 
-        {/* Clear confirmation dialog */}
-        {showClearConfirm && (
-          <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="clear-confirm-title">
-            <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
-              <h2 id="clear-confirm-title" style={{ fontSize: '18px' }}>⚠️ {t('Are you sure?')}</h2>
-              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px' }}>
-                {t('This will erase all your resume data. This action cannot be undone.')}
+        {/* Export confirmation dialog */}
+        {showExportConfirm && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="export-confirm-title">
+            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
+              <h2 id="export-confirm-title" style={{ fontSize: '18px' }}>
+                {exportConfig.type === 'pdf' ? '🖨️' : exportConfig.type === 'markdown' ? '📄' : '💾'} {exportConfig.title}
+              </h2>
+              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
+                {exportConfig.message}
               </p>
-              <div className="modal-actions">
-                <button className="btn-secondary" onClick={() => setShowClearConfirm(false)}>{t('Cancel')}</button>
-                <button className="btn-danger" onClick={clearData} style={{ padding: '10px 20px', fontSize: '14px' }}>{t('Yes, clear everything')}</button>
+              <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                <button className="btn-secondary" onClick={() => setShowExportConfirm(false)}>{t('Cancel')}</button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => {
+                    setShowExportConfirm(false);
+                    if (exportConfig.action) exportConfig.action();
+                  }} 
+                  style={{ padding: '10px 24px', fontSize: '14px' }}
+                >
+                  {t('Confirm')}
+                </button>
               </div>
             </div>
           </div>
