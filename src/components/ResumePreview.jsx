@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
 
-function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder }) {
+function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove }) {
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
   const validExp = data.experience.filter(e => e.company || e.title);
@@ -115,12 +115,33 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       className: `draggable-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`,
     } : {};
 
+    const DragHandleWithActions = () => (
+      <div className="section-actions" aria-hidden="true">
+        <span className="drag-handle" title={language === 'fr' ? 'Faites glisser pour réordonner' : 'Drag to reorder'}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>
+            <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
+          </svg>
+        </span>
+        <button 
+          className="section-delete" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onSectionRemove(sectionId);
+          }}
+          title={language === 'fr' ? 'Supprimer' : 'Delete'}
+        >
+          ✕
+        </button>
+      </div>
+    );
+
     switch (sectionId) {
       case 'summary':
         if (!data.summary) return null;
         return (
           <div key="summary" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.summary}</div>
             <div>{data.summary}</div>
           </div>
@@ -129,7 +150,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (!validExp.length) return null;
         return (
           <div key="experience" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.experience}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
@@ -143,7 +164,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                     </span>
                   </div>
                   <div className="resume-title">{exp.title}</div>
-                  <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px` }}>
+                  <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
                     {exp.bullets.filter(Boolean).map((b, bi) => (
                       <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{b}</div>
                     ))}
@@ -157,7 +178,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (!validEdu.length) return null;
         return (
           <div key="education" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.education}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
@@ -180,7 +201,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (!hasSkills) return null;
         return (
           <div key="skills" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.skills}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
               {data.skills.technical && <div><strong>{h.technical}</strong> {data.skills.technical}</div>}
@@ -193,7 +214,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (!validProj.length) return null;
         return (
           <div key="projects" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.projects}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
@@ -216,7 +237,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (!validCert.length) return null;
         return (
           <div key="certifications" {...wrapProps}>
-            {isDraggable && <span className="drag-handle" aria-hidden="true">⠿</span>}
+            {isDraggable && <DragHandleWithActions />}
             <div className="resume-section-header">{h.certifications}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
               {validCert.map((c, i) => (
@@ -229,6 +250,33 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           </div>
         );
       default:
+        if (sectionId.startsWith('custom_')) {
+          const customSec = data.customSections?.find(s => s.id === sectionId);
+          if (!customSec || !customSec.items.length) return null;
+          const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description);
+          if (!validItems.length) return null;
+
+          return (
+            <div key={sectionId} {...wrapProps}>
+              {isDraggable && <DragHandleWithActions />}
+              <div className="resume-section-header">{customSec.label || 'Custom'}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+                {validItems.map((item, i) => (
+                  <div key={i}>
+                    <div className="resume-exp-header">
+                      {item.title && <span className="resume-company">{item.title}</span>}
+                      {item.date && <span className="resume-dates">{item.date}</span>}
+                    </div>
+                    {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                    {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                      {item.description}
+                    </div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
         return null;
     }
   };
@@ -258,7 +306,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           {template === 'modern' ? (
             <ModernTemplate data={data} layout={layout} language={language} />
           ) : (
-            <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', paddingLeft: onSectionReorder ? '28px' : '0' }}>
+            <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
               {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
               {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
               {hasContact && (

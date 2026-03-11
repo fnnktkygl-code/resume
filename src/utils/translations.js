@@ -7,17 +7,17 @@ export const TRANSLATIONS = {
     'Close': 'Close',
 
     // Header
-    'All data stays in your browser': '🔒 All data stays in your browser',
-    '1-Page Demo': '📄 1-Page Demo',
-    '2-Page Demo': '📑 2-Page Demo',
-    'Clear': '🗑️ Clear',
+    'All data stays in your browser': 'All data stays in your browser',
+    '1-Page Demo': '1-Page Demo',
+    '2-Page Demo': '2-Page Demo',
+    'Clear': 'Clear',
     'Saved': 'Saved',
-    'AI Translate': '✨ AI Translate',
+    'AI Translate': 'AI Translate',
     'Standard Fit': 'Standard Fit',
     'Compact Fit': 'Compact Fit',
     'Normal': 'Normal',
     'Compact': 'Compact',
-    'Layout Settings': '⚙️ Layout Settings',
+    'Layout Settings': 'Layout Settings',
     'Reset': 'Reset',
 
     // Sidebar Navigation
@@ -120,10 +120,10 @@ export const TRANSLATIONS = {
     // Preview
     'Your Resume is Ready': 'Your Resume is Ready',
     'Single-column, standardized headers, text-based bullets — optimized for ATS parsing, AI screening, and human readability.': 'Single-column, standardized headers, text-based bullets — optimized for ATS parsing, AI screening, and human readability.',
-    'Print / Save as PDF': '🖨️ Print / Save as PDF',
-    'Markdown': '📄 Markdown',
-    'Export JSON': '💾 Export JSON',
-    'Import JSON': '📂 Import JSON',
+    'Print / Save as PDF': 'Print / Save as PDF',
+    'Markdown': 'Markdown',
+    'Export JSON': 'Export JSON',
+    'Import JSON': 'Import JSON',
     'Best format for ATS': 'Best format for ATS',
     'Use "Print → Save as PDF" for a text-based PDF with perfect parsing. The JSON export lets you reimport your data later.': 'Use "Print → Save as PDF" for a text-based PDF with perfect parsing. The JSON export lets you reimport your data later.',
 
@@ -189,17 +189,17 @@ export const TRANSLATIONS = {
     'Close': 'Fermer',
 
     // Header
-    'All data stays in your browser': '🔒 Les données restent dans le navigateur',
-    '1-Page Demo': '📄 Démo 1 Page',
-    '2-Page Demo': '📑 Démo 2 Pages',
-    'Clear': '🗑️ Effacer',
+    'All data stays in your browser': 'Les données restent dans le navigateur',
+    '1-Page Demo': 'Démo 1 Page',
+    '2-Page Demo': 'Démo 2 Pages',
+    'Clear': 'Effacer',
     'Saved': 'Enregistré',
-    'AI Translate': '✨ Traduire par IA',
+    'AI Translate': 'Traduire par IA',
     'Standard Fit': 'Normal',
     'Compact Fit': 'Compact',
     'Normal': 'Normal',
     'Compact': 'Compact',
-    'Layout Settings': '⚙️ Paramètres de mise en page',
+    'Layout Settings': 'Paramètres de mise en page',
     'Reset': 'Réinitialiser',
 
     // Sidebar Navigation
@@ -302,10 +302,10 @@ export const TRANSLATIONS = {
     // Preview
     'Your Resume is Ready': 'Votre CV est prêt',
     'Single-column, standardized headers, text-based bullets — optimized for ATS parsing, AI screening, and human readability.': 'CV optimisé : colonne unique, titres standardisés et puces textuelles.',
-    'Print / Save as PDF': '🖨️ Imprimer / PDF',
-    'Markdown': '📄 Markdown',
-    'Export JSON': '💾 Exporter JSON',
-    'Import JSON': '📂 Importer JSON',
+    'Print / Save as PDF': 'Imprimer / PDF',
+    'Markdown': 'Markdown',
+    'Export JSON': 'Exporter JSON',
+    'Import JSON': 'Importer JSON',
     'Best format for ATS': 'Format optimal ATS',
     'Use "Print → Save as PDF" for a text-based PDF with perfect parsing. The JSON export lets you reimport your data later.': 'Utilisez "Imprimer → Enregistrer au format PDF" pour un résultat parfait.',
 

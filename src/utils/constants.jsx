@@ -2,13 +2,41 @@ export const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oc
 export const YEARS = Array.from({ length: 30 }, (_, i) => String(2026 - i));
 
 export const STEPS = [
-  { id: 'personal', label: 'Personal', icon: '👤' },
-  { id: 'summary', label: 'Summary', icon: '📝' },
-  { id: 'experience', label: 'Experience', icon: '💼' },
-  { id: 'education', label: 'Education', icon: '🎓' },
-  { id: 'skills', label: 'Skills', icon: '⚡' },
-  { id: 'projects', label: 'Projects', icon: '🚀' },
-  { id: 'certifications', label: 'Certs', icon: '🏆' },
+  { 
+    id: 'personal', 
+    label: 'Personal', 
+    icon: <i className="fi fi-rr-user" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'summary', 
+    label: 'Summary', 
+    icon: <i className="fi fi-rr-document" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'experience', 
+    label: 'Experience', 
+    icon: <i className="fi fi-rr-briefcase" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'education', 
+    label: 'Education', 
+    icon: <i className="fi fi-rr-graduation-cap" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'skills', 
+    label: 'Skills', 
+    icon: <i className="fi fi-rr-bulb" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'projects', 
+    label: 'Projects', 
+    icon: <i className="fi fi-rr-folder" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
+  { 
+    id: 'certifications', 
+    label: 'Certs', 
+    icon: <i className="fi fi-rr-diploma" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i> 
+  },
 ];
 
 export function createEmptyExperience() {
@@ -57,6 +85,24 @@ export function createEmptyCertification() {
   };
 }
 
+export function createEmptyCustomItem() {
+  return {
+    id: crypto.randomUUID(),
+    title: '',
+    subtitle: '',
+    date: '',
+    description: '',
+  };
+}
+
+export function createEmptyCustomSection(label) {
+  return {
+    id: `custom_${crypto.randomUUID()}`,
+    label: label,
+    items: [createEmptyCustomItem()],
+  };
+}
+
 // Keep backward-compat aliases
 export const EMPTY_EXPERIENCE = createEmptyExperience();
 export const EMPTY_EDUCATION = createEmptyEducation();
@@ -83,6 +129,7 @@ export const DEFAULT_DATA = {
   skills: { technical: '', soft: '', languages: '' },
   projects: [createEmptyProject()],
   certifications: [createEmptyCertification()],
+  customSections: [],
   sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'],
 };
 
