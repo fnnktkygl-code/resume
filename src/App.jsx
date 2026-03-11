@@ -61,7 +61,7 @@ function loadData() {
       };
     }
   } catch {}
-  return { ...DEFAULT_DATA, sectionOrder: DEFAULT_SECTION_ORDER };
+  return { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] };
 }
 
 function loadTheme() {
@@ -174,12 +174,13 @@ export default function App() {
   };
 
   const handleImport = useCallback((imported) => {
+    const defaultData = structuredClone(DEFAULT_DATA);
     setData({
-      ...DEFAULT_DATA,
+      ...defaultData,
       ...imported,
-      headings: { ...DEFAULT_DATA.headings, ...imported.headings },
-      personal: { ...DEFAULT_DATA.personal, ...imported.personal },
-      skills: { ...DEFAULT_DATA.skills, ...imported.skills },
+      headings: { ...defaultData.headings, ...imported.headings },
+      personal: { ...defaultData.personal, ...imported.personal },
+      skills: { ...defaultData.skills, ...imported.skills },
       projects: imported.projects || DEFAULT_DATA.projects,
       certifications: imported.certifications || DEFAULT_DATA.certifications,
       sectionOrder: imported.sectionOrder || DEFAULT_SECTION_ORDER,
@@ -187,7 +188,7 @@ export default function App() {
   }, []);
 
   const clearData = () => {
-    setData({ ...DEFAULT_DATA, sectionOrder: DEFAULT_SECTION_ORDER });
+    setData({ ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] });
     setStep(0);
     setShowClearConfirm(false);
   };
