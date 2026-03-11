@@ -100,6 +100,8 @@ export default function App() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
+
   
   const t = (key) => getTranslation(language, key);
 
@@ -443,13 +445,15 @@ export default function App() {
               <span className="preview-label">{t('Live Preview')}</span>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
-                  className={`template-btn ${template === 'standard' ? 'active' : ''}`}
-                  onClick={() => setTemplate('standard')}
-                >Standard</button>
-                <button
                   className={`template-btn ${template === 'modern' ? 'active' : ''}`}
                   onClick={() => setTemplate('modern')}
                 >Modern</button>
+                <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
+                <button 
+                  className={`control-btn ${isMobileLayoutOpen ? 'active' : ''}`}
+                  onClick={() => setIsMobileLayoutOpen(!isMobileLayoutOpen)}
+                  style={{ padding: '6px' }}
+                >⚙️</button>
                 <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
                 <button className="btn-demo" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to PDF?')) && window.print()} title={t('Print / Save as PDF')}>🖨️</button>
                 <button className="btn-demo" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to Markdown?')) && exportMarkdown(data)} title={t('Markdown')}>📄</button>
@@ -459,7 +463,12 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <div className="mobile-preview-body">
+            <div className="mobile-preview-body" style={{ flexDirection: 'column' }}>
+              {isMobileLayoutOpen && (
+                <div style={{ padding: '0 0 16px 0', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+                  <LayoutControls layout={layout} onChange={setLayout} />
+                </div>
+              )}
               <ResumePreview data={data} layout={layout} language={language} template={template} />
             </div>
           </div>
