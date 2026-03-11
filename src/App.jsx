@@ -59,7 +59,7 @@ function loadData() {
         skills: { ...DEFAULT_DATA.skills, ...sanitized.skills },
         projects: sanitized.projects || DEFAULT_DATA.projects,
         certifications: sanitized.certifications || DEFAULT_DATA.certifications,
-        sectionOrder: parsed.sectionOrder || DEFAULT_SECTION_ORDER,
+        sectionOrder: sanitized.sectionOrder || DEFAULT_SECTION_ORDER,
         customSections: sanitized.customSections || [],
       };
     }
@@ -726,13 +726,15 @@ export default function App() {
                   ✕ {t('Close')}
                 </button>
               </div>
-            </div>
-            <div className="mobile-preview-body" style={{ flexDirection: 'column' }}>
               {isMobileLayoutOpen && (
-                <div style={{ padding: '0 0 16px 0', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-                  <LayoutControls layout={layout} onChange={setLayout} />
+                <div style={{ padding: '12px 16px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
+                  <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+                    <LayoutControls layout={layout} onChange={setLayout} />
+                  </div>
                 </div>
               )}
+            </div>
+            <div className="mobile-preview-body" style={{ flexDirection: 'column' }}>
               <ResumePreview 
                 data={data} 
                 layout={layout} 
