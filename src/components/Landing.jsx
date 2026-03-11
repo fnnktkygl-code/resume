@@ -59,9 +59,12 @@ export default function Landing({ onStart }) {
 
           <div className="hero-showcase">
             <div className="showcase-glow"></div>
-            <img 
-              src="./assets/dark_mode__parameter_extended_view.png" 
-              alt="ResuMe Desktop Dark Mode" 
+            <video 
+              src="./assets/dark_mode_playing_with_parameters_desktop.mov" 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
               className="hero-image mask-hero"
             />
           </div>
@@ -82,7 +85,14 @@ export default function Landing({ onStart }) {
                 <p>Toggle sections, reorder freely, and see updates instantly without reload.</p>
               </div>
               <div className="bento-media-wrapper">
-                <img src="./assets/light_mode_desktop_parameter_collapsed_view.png" alt="Light Mode Desktop" className="bento-img-top" />
+                <video 
+                  src="./assets/light_mode_desktop_drag_add_remove_section.mov" 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                  className="bento-img-top" 
+                />
               </div>
             </div>
 
