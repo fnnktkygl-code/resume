@@ -555,7 +555,6 @@
 }
 
 /* Footer */
-/* Footer */
 .landing-footer {
   padding: 40px 20px;
   background: rgba(0, 0, 0, 0.2);
@@ -567,11 +566,20 @@
   backdrop-filter: blur(10px);
   gap: 32px;
   text-align: center;
+  flex-wrap: wrap;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   .landing-footer {
     flex-direction: row;
+    justify-content: center;
+    gap: 40px;
+    padding: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .landing-footer {
     justify-content: space-between;
     padding: 40px 80px;
     text-align: left;
