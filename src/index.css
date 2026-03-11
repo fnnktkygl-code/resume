@@ -277,8 +277,33 @@ body {
 
 .preview-controls {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.control-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-right: 2px;
+}
+
+.control-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .control-btn {
@@ -1235,8 +1260,8 @@ input[type="range"] {
 }
 
 .modern-sidebar {
-  background: #1B2A3A;
-  color: #E8ECF0;
+  background: #EDE9E3;
+  color: #3A3630;
   padding: 32px 20px;
   display: flex;
   flex-direction: column;
@@ -1244,23 +1269,31 @@ input[type="range"] {
 }
 
 [data-theme="dark"] .modern-sidebar {
-  background: #141E28;
+  background: #1E1E1C;
   color: #C8CDD2;
 }
 
 .modern-sidebar .resume-name {
   font-size: 14pt;
-  color: #fff;
+  color: #1A1917;
   text-align: left;
   margin-bottom: 2px;
   letter-spacing: 0.3px;
 }
 
+[data-theme="dark"] .modern-sidebar .resume-name {
+  color: #EDECE8;
+}
+
 .modern-sidebar .resume-tagline {
   font-size: 9pt;
-  color: rgba(255,255,255,0.7);
+  color: #6B6860;
   text-align: left;
   margin-bottom: 8px;
+}
+
+[data-theme="dark"] .modern-sidebar .resume-tagline {
+  color: rgba(255,255,255,0.7);
 }
 
 .modern-sidebar-section-title {
@@ -1268,24 +1301,37 @@ input[type="range"] {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: rgba(255,255,255,0.5);
-  border-bottom: 1px solid rgba(255,255,255,0.15);
+  color: #9C9889;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
   padding-bottom: 4px;
   margin-bottom: 6px;
+}
+
+[data-theme="dark"] .modern-sidebar-section-title {
+  color: rgba(255,255,255,0.5);
+  border-bottom-color: rgba(255,255,255,0.15);
 }
 
 .modern-sidebar-item {
   font-size: 8.5pt;
   line-height: 1.6;
-  color: #D0D5DA;
+  color: #4A4640;
   word-break: break-word;
 }
 
+[data-theme="dark"] .modern-sidebar-item {
+  color: #D0D5DA;
+}
+
 .modern-sidebar-item strong {
-  color: #fff;
+  color: #1A1917;
   display: block;
   font-size: 9pt;
   margin-bottom: 1px;
+}
+
+[data-theme="dark"] .modern-sidebar-item strong {
+  color: #fff;
 }
 
 .modern-main {
