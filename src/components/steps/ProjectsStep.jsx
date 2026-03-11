@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ProjectsStep({ data, onChange }) {
+export default function ProjectsStep({ data, onChange, onAIAssist }) {
   const { t } = useTranslation();
   const updateProj = (index, field, val) => {
     const updated = [...data];
@@ -57,6 +57,7 @@ export default function ProjectsStep({ data, onChange }) {
               <TextArea
                 value={proj.description}
                 onChange={(v) => updateProj(pi, 'description', v)}
+                onAIAssist={() => onAIAssist?.(proj.description)}
                 placeholder="Built a real-time analytics platform processing 1M+ events/day with sub-second dashboard updates."
                 rows={2}
               />
@@ -72,6 +73,7 @@ export default function ProjectsStep({ data, onChange }) {
                     <TextArea
                       value={hl}
                       onChange={(v) => updateHighlight(pi, hi, v)}
+                      onAIAssist={() => onAIAssist?.(hl)}
                       placeholder="Reduced data pipeline latency by 60% through query optimization"
                       rows={2}
                     />

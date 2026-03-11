@@ -5,14 +5,15 @@
 
 import { safeUUID } from './constants';
 
-const EXPECTED_KEYS = ['personal', 'headings', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 const PERSONAL_KEYS = ['name', 'tagline', 'email', 'phone', 'location', 'linkedin', 'website', 'github'];
 const PERSONAL_URL_KEYS = ['linkedin', 'website', 'github'];
 
+const domParser = typeof DOMParser !== 'undefined' ? new DOMParser() : null;
+
 function stripHtml(str) {
   if (typeof str !== 'string') return '';
-  if (typeof DOMParser !== 'undefined') {
-    const doc = new DOMParser().parseFromString(str, 'text/html');
+  if (domParser) {
+    const doc = domParser.parseFromString(str, 'text/html');
     return (doc.body.textContent || '').trim();
   }
   return str.replace(/<[^>]*>/g, '').trim();
@@ -101,6 +102,26 @@ function sanitizeCertification(cert) {
   };
 }
 
+function sanitizeCustomSection(section) {
+  if (!section || typeof section !== 'object') return null;
+  return {
+    id: section.id || `custom_${safeUUID()}`,
+    label: stripHtml(section.label || ''),
+    items: Array.isArray(section.items)
+      ? section.items.map(item => {
+          if (!item || typeof item !== 'object') return null;
+          return {
+            id: item.id || safeUUID(),
+            title: stripHtml(item.title || ''),
+            subtitle: stripHtml(item.subtitle || ''),
+            date: stripHtml(item.date || ''),
+            description: stripHtml(item.description || ''),
+          };
+        }).filter(Boolean)
+      : [],
+  };
+}
+
 export function sanitizeResumeData(raw) {
   if (!raw || typeof raw !== 'object') {
     throw new Error('Invalid resume data: expected an object');
@@ -126,6 +147,9 @@ export function sanitizeResumeData(raw) {
       : [],
     certifications: Array.isArray(raw.certifications)
       ? raw.certifications.map(sanitizeCertification).filter(Boolean)
+      : [],
+    customSections: Array.isArray(raw.customSections)
+      ? raw.customSections.map(sanitizeCustomSection).filter(Boolean)
       : [],
   };
 }
