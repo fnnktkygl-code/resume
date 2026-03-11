@@ -200,7 +200,9 @@ export default function App() {
     } else {
       demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES;
     }
-    setData(structuredClone(demoData));
+    const cloned = structuredClone(demoData);
+    if (!cloned.sectionOrder) cloned.sectionOrder = [...DEFAULT_SECTION_ORDER];
+    setData(cloned);
     setStep(0);
     setMobileMenuOpen(false);
   }, [language]);
