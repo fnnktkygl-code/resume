@@ -26,7 +26,7 @@ export default function LayoutControls({ layout, onChange }) {
         <button className="btn-secondary" onClick={resetLayout} style={{ padding: '4px 8px', fontSize: '11px' }}>{t('Reset Layout')}</button>
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label>{t('Font Size')}: {layout.fontSize}pt</label>
           <input type="range" min="8" max="14" step="0.5" value={layout.fontSize} onChange={(e) => handleUpdate('fontSize', Number(e.target.value))} />
