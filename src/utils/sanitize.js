@@ -3,6 +3,8 @@
  * Strips HTML tags from all string values and validates structure.
  */
 
+import { safeUUID } from './constants';
+
 const EXPECTED_KEYS = ['personal', 'headings', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 const PERSONAL_KEYS = ['name', 'tagline', 'email', 'phone', 'location', 'linkedin', 'website', 'github'];
 
@@ -32,7 +34,7 @@ function sanitizeObject(obj, allowedKeys) {
 function sanitizeExperience(exp) {
   if (!exp || typeof exp !== 'object') return null;
   return {
-    id: exp.id || crypto.randomUUID(),
+    id: exp.id || safeUUID(),
     company: stripHtml(exp.company || ''),
     title: stripHtml(exp.title || ''),
     startMonth: stripHtml(exp.startMonth || ''),
@@ -47,7 +49,7 @@ function sanitizeExperience(exp) {
 function sanitizeEducation(edu) {
   if (!edu || typeof edu !== 'object') return null;
   return {
-    id: edu.id || crypto.randomUUID(),
+    id: edu.id || safeUUID(),
     institution: stripHtml(edu.institution || ''),
     degree: stripHtml(edu.degree || ''),
     field: stripHtml(edu.field || ''),
@@ -59,7 +61,7 @@ function sanitizeEducation(edu) {
 function sanitizeProject(proj) {
   if (!proj || typeof proj !== 'object') return null;
   return {
-    id: proj.id || crypto.randomUUID(),
+    id: proj.id || safeUUID(),
     name: stripHtml(proj.name || ''),
     description: stripHtml(proj.description || ''),
     techStack: stripHtml(proj.techStack || ''),
@@ -71,7 +73,7 @@ function sanitizeProject(proj) {
 function sanitizeCertification(cert) {
   if (!cert || typeof cert !== 'object') return null;
   return {
-    id: cert.id || crypto.randomUUID(),
+    id: cert.id || safeUUID(),
     name: stripHtml(cert.name || ''),
     issuer: stripHtml(cert.issuer || ''),
     date: stripHtml(cert.date || ''),

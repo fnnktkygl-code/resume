@@ -379,6 +379,7 @@ export default function App() {
                     const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
                     setData({ ...data, customSections: mapped });
                   }} 
+                  onDelete={() => setSectionToDelete(currentId)}
                 />
               )}
 
