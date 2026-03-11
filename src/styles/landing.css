@@ -325,71 +325,31 @@
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  padding-top: 32px;
-}
-
-.bento-media-wrapper-custom {
-  position: relative;
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end; /* Sink image to the bottom instead of hanging in the middle */
+  align-items: center;
   width: 100%;
+  padding: 24px;
 }
 
-.bento-img-top {
-  width: 90%;
-  max-width: 800px;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+.bento-media-wrapper.align-right {
+  justify-content: flex-end;
+  padding: 24px 40px 24px 0;
+}
+
+.bento-img-contain {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   border: 1px solid var(--bento-border);
-  border-bottom: none;
-  object-fit: cover;
-  object-position: top;
+  object-fit: contain;
   transition: transform 0.4s ease;
 }
 
-.bento-box:hover .bento-img-top {
-  transform: translateY(-8px);
-}
-
-.bento-img-custom {
-  width: 85%;
-  max-width: 320px;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -15px 40px rgba(0,0,0,0.3);
-  border: 8px solid #1c1c1e; /* Thick bezel for a phone mockup look */
-  border-bottom: none;
-  transform: translateY(12px); /* Sink it so the corners look grounded */
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bento-box:hover .bento-img-custom {
-  transform: translateY(0); /* Pops up on hover */
-}
-
-.bento-img-offset {
-  position: absolute;
-  top: 40px; 
-  right: -5%; 
-  width: 60%; 
-  height: 120%; /* Bleeds out the bottom */
-  object-fit: cover; /* Crucially ensures the image fills this offset box perfectly */
-  object-position: left top; /* Aligns to the editor on the left side of the desktop screenshot */
-  border-radius: 24px 0 0 0;
-  box-shadow: -20px 20px 60px rgba(0,0,0,0.4);
-  border: 1px solid var(--bento-border);
-  border-right: none;
-  border-bottom: none;
-  transform: rotate(-2.5deg);
-  transform-origin: top left;
-  z-index: 1;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bento-box:hover .bento-img-offset {
-  transform: rotate(0deg) translateY(-8px) translateX(-8px);
+.bento-box:hover .bento-img-contain {
+  transform: translateY(-6px) scale(1.02);
 }
 
 /* Video inside mockup wrapper */
@@ -476,16 +436,10 @@
   .bx-medium { flex-direction: column; grid-column: span 2; grid-row: span 2; }
   
   .text-horizontal { width: 100%; padding-bottom: 0; }
-  .bento-img-offset { 
-    position: relative; 
-    top: auto; left: auto; 
-    transform: none !important; 
-    width: 90%; 
-    height: auto; 
-    margin: 40px auto 0;
-    border-radius: 12px 12px 0 0; 
-    border-bottom: none; 
-    display: block;
+  
+  .bento-media-wrapper.align-right {
+    justify-content: center;
+    padding: 24px;
   }
 }
 
