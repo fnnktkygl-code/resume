@@ -65,7 +65,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [hasContent, paddingY]);
+  }, [hasContent, paddingY, fontSize, lineHeight, paddingX, sectionSpacing, itemSpacing]);
 
   const pageWidth = 816;
   const pageHeight = 1056;
@@ -300,8 +300,8 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     : 'Start filling in your details to see your resume appear here';
 
   return (
-    <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%', overflow: printMode ? 'visible' : 'hidden' }}>
-      <div style={{ height: printMode ? 'auto' : `${pagesCount * pageHeight * scale}px`, overflow: printMode ? 'visible' : 'hidden', transition: 'height 0.2s ease-out' }}>
+    <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%' }}>
+      <div style={{ minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale}px`, transition: 'min-height 0.2s ease-out' }}>
         <div className="resume-page" style={resumePageStyles}>
           {template === 'modern' ? (
             <ModernTemplate data={data} layout={layout} language={language} />
