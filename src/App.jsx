@@ -415,9 +415,47 @@ export default function App() {
               </div>
               {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
               <div className="preview-export-bar">
-                <button className="btn-export" onClick={() => window.confirm(t('Export CV to PDF?')) && window.print()}>{t('Print / Save as PDF')}</button>
-                <button className="btn-export" onClick={() => window.confirm(t('Export CV to Markdown?')) && exportMarkdown(data)}>{t('Markdown')}</button>
-                <button className="btn-export" onClick={() => window.confirm(t('Export CV to JSON?')) && exportJson(data)}>{t('Export JSON')}</button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to PDF?'))) {
+                      setTimeout(() => window.print(), 100);
+                    }
+                  }}
+                >
+                  {t('Print / Save as PDF')}
+                </button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to Markdown?'))) {
+                      try {
+                        exportMarkdown(data);
+                      } catch (err) {
+                        alert('Export failed: ' + err.message);
+                      }
+                    }
+                  }}
+                >
+                  {t('Markdown')}
+                </button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to JSON?'))) {
+                      try {
+                        exportJson(data);
+                      } catch (err) {
+                        alert('Export failed: ' + err.message);
+                      }
+                    }
+                  }}
+                >
+                  {t('Export JSON')}
+                </button>
               </div>
               <ResumePreview 
                 data={data} 
@@ -455,9 +493,53 @@ export default function App() {
                   style={{ padding: '6px' }}
                 >⚙️</button>
                 <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
-                <button className="btn-export" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to PDF?')) && window.print()} title={t('Print / Save as PDF')}>🖨️</button>
-                <button className="btn-export" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to Markdown?')) && exportMarkdown(data)} title={t('Markdown')}>📄</button>
-                <button className="btn-export" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to JSON?')) && exportJson(data)} title={t('Export JSON')}>💾</button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to PDF?'))) {
+                      setTimeout(() => window.print(), 100);
+                    }
+                  }} 
+                  title={t('Print / Save as PDF')}
+                >
+                  🖨️
+                </button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to Markdown?'))) {
+                      try {
+                        exportMarkdown(data);
+                      } catch (err) {
+                        alert('Export failed: ' + err.message);
+                      }
+                    }
+                  }} 
+                  title={t('Markdown')}
+                >
+                  📄
+                </button>
+                <button 
+                  type="button"
+                  className="btn-export" 
+                  style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
+                  onClick={() => {
+                    if (window.confirm(t('Export CV to JSON?'))) {
+                      try {
+                        exportJson(data);
+                      } catch (err) {
+                        alert('Export failed: ' + err.message);
+                      }
+                    }
+                  }} 
+                  title={t('Export JSON')}
+                >
+                  💾
+                </button>
                 <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px', marginLeft: '4px' }}>
                   ✕ {t('Close')}
                 </button>
