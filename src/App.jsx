@@ -10,7 +10,7 @@ import EducationStep from './components/steps/EducationStep';
 import SkillsStep from './components/steps/SkillsStep';
 import ProjectsStep from './components/steps/ProjectsStep';
 import CertificationsStep from './components/steps/CertificationsStep';
-import PreviewStep from './components/steps/PreviewStep';
+import { exportMarkdown, exportJson, importJson } from './utils/exporters';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
@@ -131,8 +131,7 @@ export default function App() {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
-  const currentId = STEPS[step].id;
-  const isPreview = currentId === 'preview';
+  const currentId = STEPS[step]?.id;
 
   const handleImport = useCallback((imported) => {
     setData({
@@ -160,7 +159,7 @@ export default function App() {
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
     setData(prev => {
-      const isDemo1 = prev.personal.name === 'Sarah Chen' || prev.personal.name === 'Sarah Dubois';
+      const isDemo1 = prev.personal.name === 'Hoshi Fenneko';
       const isDemo2 = isDemo1 && prev.experience.length > 2;
       
       let nextData = prev;
@@ -326,7 +325,7 @@ export default function App() {
               {currentId === 'certifications' && (
                 <CertificationsStep data={data.certifications} onChange={(v) => setData({ ...data, certifications: v })} />
               )}
-              {currentId === 'preview' && <PreviewStep data={data} layout={layout} language={language} template={template} onImport={handleImport} />}
+
             </div>
 
             {/* Navigation */}
@@ -343,7 +342,6 @@ export default function App() {
           </div>
 
           {/* Right: Live Preview */}
-          {!isPreview && (
             <aside className="preview-panel" aria-label={t('Live Preview')}>
               <div className="preview-header">
                 <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
@@ -414,6 +412,11 @@ export default function App() {
                 </div>
               </div>
               {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
+              <div className="preview-export-bar">
+                <button className="btn-export" onClick={() => window.confirm(t('Export CV to PDF?')) && window.print()}>{t('Print / Save as PDF')}</button>
+                <button className="btn-export" onClick={() => window.confirm(t('Export CV to Markdown?')) && exportMarkdown(data)}>{t('Markdown')}</button>
+                <button className="btn-export" onClick={() => window.confirm(t('Export CV to JSON?')) && exportJson(data)}>{t('Export JSON')}</button>
+              </div>
               <ResumePreview 
                 data={data} 
                 layout={layout} 
@@ -423,18 +426,15 @@ export default function App() {
                 compact 
               />
             </aside>
-          )}
         </main>
 
         {/* Mobile Preview FAB — shown on ≤1024px */}
-        {!isPreview && (
-          <button 
-            className="mobile-preview-fab"
-            onClick={() => setShowMobilePreview(true)}
-          >
-            👁 {t('Preview')}
-          </button>
-        )}
+        <button 
+          className="mobile-preview-fab"
+          onClick={() => setShowMobilePreview(true)}
+        >
+          👁 {t('Preview')}
+        </button>
 
         {/* Mobile Preview Overlay */}
         {showMobilePreview && (
@@ -450,7 +450,11 @@ export default function App() {
                   className={`template-btn ${template === 'modern' ? 'active' : ''}`}
                   onClick={() => setTemplate('modern')}
                 >Modern</button>
-                <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px' }}>
+                <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
+                <button className="btn-demo" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to PDF?')) && window.print()} title={t('Print / Save as PDF')}>🖨️</button>
+                <button className="btn-demo" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to Markdown?')) && exportMarkdown(data)} title={t('Markdown')}>📄</button>
+                <button className="btn-demo" style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} onClick={() => window.confirm(t('Export CV to JSON?')) && exportJson(data)} title={t('Export JSON')}>💾</button>
+                <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px', marginLeft: '4px' }}>
                   ✕ {t('Close')}
                 </button>
               </div>
