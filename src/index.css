@@ -1132,9 +1132,11 @@ input[type="range"] {
 
 .mobile-preview-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }

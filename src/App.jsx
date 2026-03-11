@@ -581,19 +581,47 @@ export default function App() {
           <div className="mobile-preview-overlay">
             <div className="mobile-preview-header">
               <span className="preview-label">{t('Live Preview')}</span>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  className={`template-btn ${template === 'modern' ? 'active' : ''}`}
-                  onClick={() => setTemplate('modern')}
-                >Modern</button>
-                <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {/* Template picker */}
+                <div style={{ display: 'flex', gap: '2px', background: 'var(--color-surface-alt)', borderRadius: 'var(--radius-sm)', padding: '2px' }}>
+                  <button
+                    className={`template-btn ${template === 'standard' ? 'active' : ''}`}
+                    onClick={() => setTemplate('standard')}
+                    style={{ padding: '4px 8px', fontSize: '11px' }}
+                  >Standard</button>
+                  <button
+                    className={`template-btn ${template === 'modern' ? 'active' : ''}`}
+                    onClick={() => setTemplate('modern')}
+                    style={{ padding: '4px 8px', fontSize: '11px' }}
+                  >Modern</button>
+                </div>
+                <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
+                {/* Compact toggle */}
+                <button 
+                  className={`control-btn ${layout.isCompact ? 'active' : ''}`}
+                  onClick={() => setLayout(prev => ({
+                    ...prev,
+                    isCompact: !prev.isCompact,
+                    fontSize: prev.isCompact ? 10.5 : 9.5,
+                    paddingX: prev.isCompact ? 0.75 : 0.5,
+                    paddingY: prev.isCompact ? 0.75 : 0.5,
+                    lineHeight: prev.isCompact ? 1.45 : 1.25,
+                    sectionSpacing: prev.isCompact ? 10 : 4,
+                    itemSpacing: prev.isCompact ? 8 : 4
+                  }))}
+                  style={{ padding: '4px 8px', fontSize: '11px' }}
+                >
+                  📐 {layout.isCompact ? t('Normal') : t('Compact')}
+                </button>
+                {/* Layout settings */}
                 <button 
                   className={`control-btn ${isMobileLayoutOpen ? 'active' : ''}`}
                   onClick={() => setIsMobileLayoutOpen(!isMobileLayoutOpen)}
                   style={{ padding: '6px' }}
                 ><i className="fi fi-rr-settings"></i></button>
-                <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
-                 <button 
+                <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
+                {/* Export buttons */}
+                <button 
                   type="button"
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
@@ -659,7 +687,8 @@ export default function App() {
                 >
                   <i className="fi fi-rr-disk" style={{ fontSize: '1.1rem' }}></i>
                 </button>
-                <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px', marginLeft: '4px' }}>
+                <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
+                <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px' }}>
                   ✕ {t('Close')}
                 </button>
               </div>
