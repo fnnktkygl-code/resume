@@ -1,0 +1,109 @@
+/**
+ * Sanitize imported JSON resume data.
+ * Strips HTML tags from all string values and validates structure.
+ */
+
+const EXPECTED_KEYS = ['personal', 'headings', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
+const PERSONAL_KEYS = ['name', 'tagline', 'email', 'phone', 'location', 'linkedin', 'website', 'github'];
+
+function stripHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').trim();
+}
+
+function sanitizeString(val) {
+  if (typeof val === 'string') return stripHtml(val);
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val;
+  return '';
+}
+
+function sanitizeObject(obj, allowedKeys) {
+  if (!obj || typeof obj !== 'object') return {};
+  const result = {};
+  for (const key of allowedKeys) {
+    if (key in obj) {
+      result[key] = sanitizeString(obj[key]);
+    }
+  }
+  return result;
+}
+
+function sanitizeExperience(exp) {
+  if (!exp || typeof exp !== 'object') return null;
+  return {
+    id: exp.id || crypto.randomUUID(),
+    company: stripHtml(exp.company || ''),
+    title: stripHtml(exp.title || ''),
+    startMonth: stripHtml(exp.startMonth || ''),
+    startYear: stripHtml(exp.startYear || ''),
+    endMonth: stripHtml(exp.endMonth || ''),
+    endYear: stripHtml(exp.endYear || ''),
+    current: Boolean(exp.current),
+    bullets: Array.isArray(exp.bullets) ? exp.bullets.map(b => stripHtml(b || '')) : [''],
+  };
+}
+
+function sanitizeEducation(edu) {
+  if (!edu || typeof edu !== 'object') return null;
+  return {
+    id: edu.id || crypto.randomUUID(),
+    institution: stripHtml(edu.institution || ''),
+    degree: stripHtml(edu.degree || ''),
+    field: stripHtml(edu.field || ''),
+    startYear: stripHtml(edu.startYear || ''),
+    endYear: stripHtml(edu.endYear || ''),
+  };
+}
+
+function sanitizeProject(proj) {
+  if (!proj || typeof proj !== 'object') return null;
+  return {
+    id: proj.id || crypto.randomUUID(),
+    name: stripHtml(proj.name || ''),
+    description: stripHtml(proj.description || ''),
+    techStack: stripHtml(proj.techStack || ''),
+    link: stripHtml(proj.link || ''),
+    highlights: Array.isArray(proj.highlights) ? proj.highlights.map(h => stripHtml(h || '')) : [''],
+  };
+}
+
+function sanitizeCertification(cert) {
+  if (!cert || typeof cert !== 'object') return null;
+  return {
+    id: cert.id || crypto.randomUUID(),
+    name: stripHtml(cert.name || ''),
+    issuer: stripHtml(cert.issuer || ''),
+    date: stripHtml(cert.date || ''),
+    credentialUrl: stripHtml(cert.credentialUrl || ''),
+  };
+}
+
+export function sanitizeResumeData(raw) {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid resume data: expected an object');
+  }
+
+  return {
+    personal: sanitizeObject(raw.personal, PERSONAL_KEYS),
+    headings: raw.headings && typeof raw.headings === 'object'
+      ? Object.fromEntries(Object.entries(raw.headings).map(([k, v]) => [k, stripHtml(v)]))
+      : undefined,
+    summary: stripHtml(raw.summary || ''),
+    experience: Array.isArray(raw.experience)
+      ? raw.experience.map(sanitizeExperience).filter(Boolean)
+      : [],
+    education: Array.isArray(raw.education)
+      ? raw.education.map(sanitizeEducation).filter(Boolean)
+      : [],
+    skills: raw.skills && typeof raw.skills === 'object'
+      ? { technical: stripHtml(raw.skills.technical || ''), soft: stripHtml(raw.skills.soft || ''), languages: stripHtml(raw.skills.languages || '') }
+      : { technical: '', soft: '', languages: '' },
+    projects: Array.isArray(raw.projects)
+      ? raw.projects.map(sanitizeProject).filter(Boolean)
+      : [],
+    certifications: Array.isArray(raw.certifications)
+      ? raw.certifications.map(sanitizeCertification).filter(Boolean)
+      : [],
+  };
+}
