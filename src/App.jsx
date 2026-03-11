@@ -12,6 +12,7 @@ import ProjectsStep from './components/steps/ProjectsStep';
 import CertificationsStep from './components/steps/CertificationsStep';
 import CustomStep from './components/steps/CustomStep';
 import { exportMarkdown, exportJson, importJson } from './utils/exporters';
+import { sanitizeResumeData } from './utils/sanitize';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
@@ -49,15 +50,17 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      const sanitized = sanitizeResumeData(parsed);
       return {
         ...DEFAULT_DATA,
-        ...parsed,
-        headings: { ...DEFAULT_DATA.headings, ...parsed.headings },
-        personal: { ...DEFAULT_DATA.personal, ...parsed.personal },
-        skills: { ...DEFAULT_DATA.skills, ...parsed.skills },
-        projects: parsed.projects || DEFAULT_DATA.projects,
-        certifications: parsed.certifications || DEFAULT_DATA.certifications,
+        ...sanitized,
+        headings: { ...DEFAULT_DATA.headings, ...sanitized.headings },
+        personal: { ...DEFAULT_DATA.personal, ...sanitized.personal },
+        skills: { ...DEFAULT_DATA.skills, ...sanitized.skills },
+        projects: sanitized.projects || DEFAULT_DATA.projects,
+        certifications: sanitized.certifications || DEFAULT_DATA.certifications,
         sectionOrder: parsed.sectionOrder || DEFAULT_SECTION_ORDER,
+        customSections: parsed.customSections || [],
       };
     }
   } catch {}
