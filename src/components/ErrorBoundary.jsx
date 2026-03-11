@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontFamily: "'Inter', system-ui, sans-serif",
+          fontFamily: "'Inter Variable', 'Inter', system-ui, sans-serif",
           background: '#F7F6F3',
           padding: '24px',
         }}>

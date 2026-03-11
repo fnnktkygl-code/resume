@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea, Select } from '../ui/FormFields';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ExperienceStep({ data, onChange }) {
+export default function ExperienceStep({ data, onChange, onAIAssist }) {
   const { t } = useTranslation();
   const updateExp = (index, field, val) => {
     const updated = [...data];
@@ -90,6 +90,7 @@ export default function ExperienceStep({ data, onChange }) {
                       <TextArea
                         value={bullet}
                         onChange={(v) => updateBullet(ei, bi, v)}
+                        onAIAssist={() => onAIAssist?.(bullet)}
                         placeholder="Led migration of monolithic API to microservices, reducing deploy times by 70% and improving uptime to 99.95%"
                         rows={2}
                       />

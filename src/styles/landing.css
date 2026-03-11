@@ -1,43 +1,72 @@
 /* src/styles/landing.css - Apple-like Minimalist Premium Theme */
 
 :root {
-  --bento-bg: rgba(var(--color-text-rgb), 0.03);
-  --bento-border: rgba(var(--color-text-rgb), 0.08);
-  --hero-glow: rgba(0, 122, 255, 0.15); /* Sleek blue glow for Apple vibe */
+  /* Enforcing a sophisticated dark/adaptive palette for the landing page */
+  --landing-bg: #0a0a0c;
+  --landing-text: #fcfcfc;
+  --landing-text-secondary: #a1a1aa;
+  --landing-accent: #34d399;
+  /* Subtle green to match ATS ready badge */
+
+  --bento-bg: rgba(255, 255, 255, 0.03);
+  --bento-border: rgba(255, 255, 255, 0.08);
+  --bento-hover: rgba(255, 255, 255, 0.05);
+
+  --hero-glow: rgba(52, 211, 153, 0.15);
+  --hero-glow-alt: rgba(56, 189, 248, 0.15);
 }
 
 /* Animations */
-@keyframes fadeUpIn {
-  from { opacity: 0; transform: translateY(40px) scale(0.98); filter: blur(10px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-
-@keyframes floatSmooth {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-  100% { transform: translateY(0px); }
-}
-
 .animate-on-scroll {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(40px) scale(0.98);
+  filter: blur(4px);
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+    filter 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .animate-on-scroll.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.staggered-1 {
+  transition-delay: 0.0s;
+}
+
+.staggered-2 {
+  transition-delay: 0.1s;
+}
+
+.staggered-3 {
+  transition-delay: 0.2s;
+}
+
+.staggered-4 {
+  transition-delay: 0.3s;
 }
 
 /* Page Reset */
 .landing-page {
   min-height: 100vh;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--landing-bg);
+  color: var(--landing-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Typography Enhancements */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Glassmorphism Navigation */
@@ -51,88 +80,88 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   background: transparent;
   border-bottom: 1px solid transparent;
 }
 
 .landing-nav.nav-scrolled {
   padding: 16px 80px;
-  background: rgba(var(--color-bg-rgb), 0.75);
+  background: rgba(10, 10, 12, 0.6);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid var(--bento-border);
 }
 
 .landing-logo {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  color: var(--color-text);
+  color: var(--landing-text);
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
 .landing-logo span {
-  color: var(--color-accent);
+  color: var(--landing-accent);
 }
 
 .landing-cta-small {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--landing-text);
+  color: var(--landing-bg);
   border: none;
   border-radius: 40px;
   padding: 10px 24px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .landing-cta-small:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.landing-main {
-  padding-top: 100px;
+  transform: scale(1.04);
+  background: #ebebeb;
 }
 
 /* Hero Section */
+.landing-main {
+  padding-top: 120px;
+}
+
 .landing-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 100px 20px 0;
+  padding: 80px 20px 0;
   position: relative;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .hero-content {
-  max-width: 800px;
+  max-width: 840px;
   z-index: 10;
 }
 
 .landing-title {
-  font-size: clamp(56px, 8vw, 104px);
-  font-weight: 700;
-  letter-spacing: -3px;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
   line-height: 1.05;
-  margin-bottom: 32px;
-  color: var(--color-text);
+  margin-bottom: 24px;
+  color: var(--landing-text);
 }
 
 .landing-subtitle {
-  font-size: clamp(20px, 2.5vw, 26px);
-  color: var(--color-text-secondary);
-  margin-bottom: 48px;
-  line-height: 1.4;
+  font-size: clamp(18px, 2vw, 24px);
+  color: var(--landing-text-secondary);
+  margin-bottom: 40px;
+  line-height: 1.5;
   font-weight: 400;
-  letter-spacing: -0.3px;
-  max-width: 680px;
+  letter-spacing: -0.01em;
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -145,42 +174,44 @@
 }
 
 .landing-cta-primary {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--landing-text);
+  color: var(--landing-bg);
   border: none;
   border-radius: 40px;
-  padding: 18px 40px;
-  font-size: 18px;
+  padding: 16px 36px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
 }
 
 .landing-cta-primary.large {
-  padding: 24px 56px;
-  font-size: 22px;
+  padding: 20px 48px;
+  font-size: 20px;
 }
 
 .landing-cta-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  transform: scale(1.02);
+  box-shadow: 0 0 20px 0 rgba(255, 255, 255, 0.15);
+  background: #ebebeb;
 }
 
 .landing-cta-secondary {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--bento-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--landing-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 40px;
-  padding: 18px 40px;
-  font-size: 18px;
+  padding: 16px 36px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .landing-cta-secondary:hover {
-  background: var(--bento-bg);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* Hero Showcase Image */
@@ -188,43 +219,48 @@
   margin-top: 80px;
   position: relative;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1100px;
   display: flex;
   justify-content: center;
-  perspective: 1000px;
 }
 
 .showcase-glow {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 80%;
-  height: 60%;
-  background: radial-gradient(circle, var(--hero-glow) 0%, rgba(var(--color-bg-rgb), 0) 70%);
+  height: 80%;
+  background: radial-gradient(circle at 30% 50%, var(--hero-glow) 0%, transparent 50%),
+    radial-gradient(circle at 70% 50%, var(--hero-glow-alt) 0%, transparent 50%);
   filter: blur(80px);
   z-index: 0;
   pointer-events: none;
 }
 
-.hero-image {
+.hero-image-wrapper {
   width: 100%;
-  max-width: 1000px;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 40px 100px -20px rgba(0,0,0,0.4), 0 0 0 1px var(--bento-border);
-  border: 8px solid var(--color-surface);
-  border-bottom: none;
+  position: relative;
   z-index: 2;
-  /* Mask gradient to fade out at bottom perfectly */
-  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-  transform: translateZ(0);
+  border-radius: 24px 24px 0 0;
+  padding: 8px 8px 0 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+.hero-video {
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--bento-border);
+  border-bottom: none;
+  background-color: #050505;
 }
 
 /* Bento Grid Section */
 .landing-bento-section {
   padding: 120px 40px;
-  background: var(--color-bg);
   position: relative;
   z-index: 10;
 }
@@ -236,22 +272,23 @@
 }
 
 .bento-header h2 {
-  font-size: clamp(36px, 5vw, 56px);
+  font-size: clamp(32px, 5vw, 48px);
   font-weight: 700;
-  letter-spacing: -2px;
-  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
 }
 
 .bento-header p {
-  font-size: 22px;
-  color: var(--color-text-secondary);
+  font-size: 20px;
+  color: var(--landing-text-secondary);
 }
 
 /* THE GRID */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 400px;
+  grid-auto-rows: 480px;
+  /* Increased height to give media maximum scaling room */
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
@@ -265,52 +302,74 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.4s ease,
+    box-shadow 0.4s ease;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .bento-box:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  background: var(--bento-hover);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 /* Grid Layout Assignments */
-.bx-large { grid-column: span 2; grid-row: span 1; }
-.bx-tall { grid-column: span 1; grid-row: span 2; }
-.bx-small { grid-column: span 1; grid-row: span 1; }
-.bx-medium { 
-  grid-column: span 3; 
-  grid-row: span 1; 
-  flex-direction: row; /* Horizontal layout for the bottom wide box */
+.bx-large {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.bx-tall {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+.bx-small {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.bx-medium {
+  grid-column: span 3;
+  grid-row: span 1;
+  flex-direction: row;
+  /* Horizontal text and media */
   align-items: center;
 }
 
 /* Bento Text Content */
 .bento-text {
   padding: 40px 40px 0;
-  z-index: 2;
+  z-index: 10;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .bento-text h3 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -1px;
-  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
 }
 
 .bento-text p {
-  font-size: 18px;
-  color: var(--color-text-secondary);
+  font-size: 16px;
+  color: var(--landing-text-secondary);
   line-height: 1.5;
 }
 
 .text-horizontal {
-  padding: 40px;
   width: 40%;
+  padding: 40px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .bento-centered {
-  padding: 0;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -319,157 +378,341 @@
   text-align: center;
 }
 
-/* Bento Media Wrappers */
+.icon-wrapper {
+  background: rgba(52, 211, 153, 0.1);
+  padding: 20px;
+  border-radius: 24px;
+  margin-bottom: 24px;
+  color: var(--landing-accent);
+}
+
+/* Bento Media Wrappers & Edge-to-Edge Fitting 
+  Zero bottom padding allows images to sit flush on the edge, massively increasing their size.
+*/
 .bento-media-wrapper {
   flex-grow: 1;
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
+  /* ANCHOR TO BOTTOM */
   width: 100%;
-  padding: 24px;
+  padding: 24px 40px 0 40px;
+  /* Sides padded, Bottom 0 to touch the edge */
+  overflow: hidden;
+  min-height: 0;
+  /* Critical fix for flex children overriding bounds */
 }
 
 .bento-media-wrapper.align-right {
   justify-content: flex-end;
-  padding: 24px 40px 24px 0;
+  /* ANCHOR TO RIGHT */
+  align-items: center;
+  padding: 40px 0 40px 40px;
+  /* Bottom padded, Right 0 to touch the edge */
 }
 
+/* Instead of aggressive 100% width, max-width/height forces intrinsic aspect ratio 
+  preservation WITHOUT cropping and wraps the shadow tightly.
+*/
 .bento-img-contain {
   display: block;
-  width: auto;
-  height: auto;
   max-width: 100%;
   max-height: 100%;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-  border: 1px solid var(--bento-border);
+  width: auto;
+  height: auto;
   object-fit: contain;
-  transition: transform 0.4s ease;
+  /* PERFECT FIT, NO CROP */
+  border-radius: 16px 16px 0 0;
+  /* Flat bottom merging with card */
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--bento-border);
+  border-bottom: none;
+  background-color: #050505;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bento-box:hover .bento-img-contain {
-  transform: translateY(-6px) scale(1.02);
+.bento-img-cover {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  /* CHANGED to contain to prevent cropping */
+  border-radius: 16px 0 0 16px;
+  /* Flat right edge merging with card */
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--bento-border);
+  border-right: none;
+  background-color: #050505;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Video inside mockup wrapper */
+.bento-box:hover .bento-img-contain,
+.bento-box:hover .bento-img-cover {
+  transform: scale(1.02);
+}
+
+/* CSS-only Realistic Mobile Mockup */
 .bento-video-wrapper {
   flex-grow: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  /* Anchor to bottom */
   justify-content: center;
-  padding: 0 40px 40px;
+  padding: 32px 32px 0 32px;
+  height: 100%;
+  min-height: 0;
 }
 
 .mockup-frame {
-  width: 100%;
-  max-width: 250px;
-  aspect-ratio: 9 / 19.5;
-  border-radius: 36px;
-  padding: 8px;
-  background: #1a1a1a;
-  box-shadow: inset 0 0 0 2px #333, 0 30px 60px rgba(0,0,0,0.3);
-  overflow: hidden;
+  height: 100%;
+  /* Dictates size based on flex container */
+  max-height: 100%;
+  aspect-ratio: 19.5 / 40;
+  /* Auto-calculates exact width */
+  border-radius: 36px 36px 0 0;
+  /* Flat bottom */
+  background: #000;
+  box-shadow: inset 0 0 0 4px #222,
+    inset 0 0 0 10px #000,
+    0 -20px 40px rgba(0, 0, 0, 0.4);
   position: relative;
+  overflow: hidden;
+  padding: 10px 10px 0 10px;
+  /* No bottom padding for screen */
+  box-sizing: border-box;
+}
+
+.mockup-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 24px;
+  background-color: #000;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  z-index: 10;
 }
 
 .bento-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 28px;
+  border-radius: 26px 26px 0 0;
+  display: block;
 }
 
-/* Gradient Box for Info */
+/* Gradient Box */
 .gradient-box {
-  background: linear-gradient(135deg, rgba(var(--color-text-rgb), 0.05), transparent);
-}
-
-.bento-icon {
-  margin-bottom: 24px;
-  color: var(--color-text);
-  opacity: 0.8;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
 }
 
 /* Final CTA */
 .landing-final-cta {
   text-align: center;
-  padding: 120px 20px;
-  background: var(--color-bg);
+  padding: 140px 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, var(--hero-glow) 0%, transparent 60%);
+  filter: blur(60px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .landing-final-cta h2 {
-  font-size: clamp(40px, 6vw, 64px);
+  font-size: clamp(36px, 6vw, 56px);
   font-weight: 700;
-  letter-spacing: -2px;
-  margin-bottom: 40px;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  z-index: 1;
+}
+
+.landing-final-cta p {
+  font-size: 20px;
+  color: var(--landing-text-secondary);
+  margin-bottom: 24px;
+  z-index: 1;
+}
+
+.mt-6 {
+  margin-top: 24px;
+  z-index: 1;
 }
 
 /* Footer */
 .landing-footer {
-  padding: 60px 80px;
-  background: var(--bento-bg);
+  padding: 40px 80px;
+  background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid var(--bento-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-tag {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--landing-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .landing-footer p {
-  color: var(--color-text-secondary);
+  color: var(--landing-text-secondary);
   font-size: 14px;
 }
 
 /* Responsiveness */
 @media (max-width: 1024px) {
-  .landing-nav.nav-scrolled, .landing-nav { padding-left: 40px; padding-right: 40px; }
-  .landing-footer { padding-left: 40px; padding-right: 40px; }
-  
+
+  .landing-nav.nav-scrolled,
+  .landing-nav {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .landing-footer {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 350px;
+    grid-auto-rows: 420px;
   }
-  
-  .bx-large { grid-column: span 2; }
-  .bx-tall { grid-column: span 1; grid-row: span 2; }
-  .bx-small { grid-column: span 1; grid-row: span 1; }
-  .bx-medium { flex-direction: column; grid-column: span 2; grid-row: span 2; }
-  
-  .text-horizontal { width: 100%; padding-bottom: 0; }
-  
+
+  .bx-large {
+    grid-column: span 2;
+  }
+
+  .bx-tall {
+    grid-column: span 1;
+    grid-row: span 2;
+  }
+
+  .bx-small {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .bx-medium {
+    flex-direction: column;
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .text-horizontal {
+    width: 100%;
+    padding-bottom: 0;
+    text-align: center;
+  }
+
   .bento-media-wrapper.align-right {
     justify-content: center;
-    padding: 24px;
+    align-items: flex-end;
+    /* Switch to bottom anchor on mobile */
+    padding: 0 40px 0 40px;
+  }
+
+  .bento-img-cover {
+    border-radius: 16px 16px 0 0;
+    /* Change from right to bottom bleed */
+    border-right: 1px solid var(--bento-border);
+    border-bottom: none;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
   }
 }
 
 @media (max-width: 768px) {
-  .landing-nav.nav-scrolled, .landing-nav { padding-left: 20px; padding-right: 20px; }
-  .landing-hero { padding-top: 120px; }
-  .hero-actions { flex-direction: column; width: 100%; gap: 12px; }
-  .landing-cta-primary, .landing-cta-secondary { width: 100%; max-width: 320px; }
-  
-  .hero-showcase { margin-top: 40px; }
-  .hero-image { border-width: 4px; border-radius: 12px 12px 0 0; }
-  
-  .landing-bento-section { padding: 80px 20px; }
+
+  .landing-nav.nav-scrolled,
+  .landing-nav {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .landing-main {
+    padding-top: 100px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .landing-cta-primary,
+  .landing-cta-secondary {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .hero-showcase {
+    margin-top: 60px;
+  }
+
+  .landing-bento-section {
+    padding: 80px 20px;
+  }
+
   .bento-grid {
     grid-template-columns: 1fr;
     grid-auto-rows: auto;
+    /* Allow auto expansion for mobile stacks */
   }
-  
-  .bx-large, .bx-tall, .bx-small, .bx-medium { 
+
+  .bx-large,
+  .bx-tall,
+  .bx-small,
+  .bx-medium {
     grid-column: span 1;
     grid-row: auto;
-    min-height: 400px;
+    min-height: 460px;
+    /* Enforce tall boxes on mobile to fit the huge media */
   }
-  
-  .bento-text { padding: 32px 32px 0; }
-  .bento-text h3 { font-size: 24px; }
-  .bento-text p { font-size: 16px; }
-  
-  .mockup-frame { max-width: 200px; }
-  .bento-icon { margin-bottom: 16px; }
-  
-  .landing-footer { flex-direction: column; gap: 20px; text-align: center; padding: 40px 20px; }
+
+  .bento-text {
+    padding: 32px 32px 0;
+  }
+
+  .bento-media-wrapper {
+    padding: 32px 20px 0 20px;
+  }
+
+  .bento-media-wrapper.align-right {
+    padding: 32px 20px 0 20px;
+  }
+
+  .landing-footer {
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }

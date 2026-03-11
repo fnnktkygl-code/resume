@@ -16,8 +16,8 @@ import { sanitizeResumeData } from './utils/sanitize';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
-
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
+const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 
 const STORAGE_KEY = 'resume-builder-data';
 const THEME_KEY = 'resume-builder-theme';
@@ -60,7 +60,7 @@ function loadData() {
         projects: sanitized.projects || DEFAULT_DATA.projects,
         certifications: sanitized.certifications || DEFAULT_DATA.certifications,
         sectionOrder: parsed.sectionOrder || DEFAULT_SECTION_ORDER,
-        customSections: parsed.customSections || [],
+        customSections: sanitized.customSections || [],
       };
     }
   } catch {}
@@ -108,6 +108,7 @@ export default function App() {
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [exportConfig, setExportConfig] = useState({ type: '', title: '', message: '', action: null });
   const [sectionToDelete, setSectionToDelete] = useState(null);
+  const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '' });
 
   
   const removeSection = useCallback((sectionId) => {
@@ -396,10 +397,18 @@ export default function App() {
                 />
               )}
               {currentId === 'summary' && (
-                <SummaryStep data={data.summary} onChange={(v) => setData({ ...data, summary: v })} />
+                <SummaryStep 
+                  data={data.summary} 
+                  onChange={(v) => setData({ ...data, summary: v })} 
+                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'summary' })}
+                />
               )}
               {currentId === 'experience' && (
-                <ExperienceStep data={data.experience} onChange={(v) => setData({ ...data, experience: v })} />
+                <ExperienceStep 
+                  data={data.experience} 
+                  onChange={(v) => setData({ ...data, experience: v })} 
+                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'experience' })}
+                />
               )}
               {currentId === 'education' && (
                 <EducationStep data={data.education} onChange={(v) => setData({ ...data, education: v })} />
@@ -408,7 +417,11 @@ export default function App() {
                 <SkillsStep data={data.skills} onChange={(v) => setData({ ...data, skills: v })} />
               )}
               {currentId === 'projects' && (
-                <ProjectsStep data={data.projects} onChange={(v) => setData({ ...data, projects: v })} />
+                <ProjectsStep 
+                  data={data.projects} 
+                  onChange={(v) => setData({ ...data, projects: v })} 
+                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'projects' })}
+                />
               )}
               {currentId === 'certifications' && (
                 <CertificationsStep data={data.certifications} onChange={(v) => setData({ ...data, certifications: v })} />
@@ -441,139 +454,141 @@ export default function App() {
 
           {/* Right: Live Preview */}
             <aside className="preview-panel" aria-label={t('Live Preview')}>
-              <div className="preview-header">
-                <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
-                <div className="preview-controls">
-                  <div className="control-group">
-                    <button 
-                      className={`control-btn ${language === 'en' ? 'active' : ''}`}
-                      onClick={() => handleLanguageChange('en')}
-                      aria-label="Switch to English"
-                    >EN</button>
-                    <button 
-                      className={`control-btn ${language === 'fr' ? 'active' : ''}`}
-                      onClick={() => handleLanguageChange('fr')}
-                      aria-label="Switch to French"
-                    >FR</button>
+              <div className="preview-sticky-header">
+                <div className="preview-header">
+                  <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
+                  <div className="preview-controls">
+                    <div className="control-group">
+                      <button 
+                        className={`control-btn ${language === 'en' ? 'active' : ''}`}
+                        onClick={() => handleLanguageChange('en')}
+                        aria-label="Switch to English"
+                      >EN</button>
+                      <button 
+                        className={`control-btn ${language === 'fr' ? 'active' : ''}`}
+                        onClick={() => handleLanguageChange('fr')}
+                        aria-label="Switch to French"
+                      >FR</button>
+                    </div>
+
+                    <div className="control-divider" aria-hidden="true" />
+
+                    {/* Template picker */}
+                    <div className="control-group">
+                      <span className="control-group-label">Template</span>
+                      <button
+                        className={`template-btn ${template === 'standard' ? 'active' : ''}`}
+                        onClick={() => setTemplate('standard')}
+                      >
+                        Classic
+                      </button>
+                      <button
+                        className={`template-btn ${template === 'modern' ? 'active' : ''}`}
+                        onClick={() => setTemplate('modern')}
+                      >
+                        Modern
+                      </button>
+                    </div>
+
+                    <div className="control-divider" aria-hidden="true" />
+
+                    <div className="control-group">
+                      <button 
+                        className={`control-btn ${layout.isCompact ? 'active' : ''}`}
+                        onClick={() => setLayout(prev => ({
+                          ...prev,
+                          isCompact: !prev.isCompact,
+                          fontSize: prev.isCompact ? 10.5 : 9.5,
+                          paddingX: prev.isCompact ? 0.75 : 0.5,
+                          paddingY: prev.isCompact ? 0.75 : 0.5,
+                          lineHeight: prev.isCompact ? 1.45 : 1.25,
+                          sectionSpacing: prev.isCompact ? 10 : 4,
+                          itemSpacing: prev.isCompact ? 8 : 4
+                        }))}
+                      >
+                        📐 {layout.isCompact ? t('Normal') : t('Compact')}
+                      </button>
+                      <button 
+                        className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
+                        onClick={() => setIsLayoutOpen(!isLayoutOpen)}
+                        aria-expanded={isLayoutOpen}
+                      >
+                        <i className="fi fi-rr-settings"></i>
+                      </button>
+                    </div>
+
+                    <div className="control-divider" aria-hidden="true" />
+
+                    <button className="control-btn" onClick={() => setIsAIOpen(true)}>
+                      <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
+                    </button>
                   </div>
+                </div>
 
-                  <div className="control-divider" aria-hidden="true" />
-
-                  {/* Template picker */}
-                  <div className="control-group">
-                    <span className="control-group-label">Template</span>
-                    <button
-                      className={`template-btn ${template === 'standard' ? 'active' : ''}`}
-                      onClick={() => setTemplate('standard')}
-                    >
-                      Classic
-                    </button>
-                    <button
-                      className={`template-btn ${template === 'modern' ? 'active' : ''}`}
-                      onClick={() => setTemplate('modern')}
-                    >
-                      Modern
-                    </button>
-                  </div>
-
-                  <div className="control-divider" aria-hidden="true" />
-
-                  <div className="control-group">
-                    <button 
-                      className={`control-btn ${layout.isCompact ? 'active' : ''}`}
-                      onClick={() => setLayout(prev => ({
-                        ...prev,
-                        isCompact: !prev.isCompact,
-                        fontSize: prev.isCompact ? 10.5 : 9.5,
-                        paddingX: prev.isCompact ? 0.75 : 0.5,
-                        paddingY: prev.isCompact ? 0.75 : 0.5,
-                        lineHeight: prev.isCompact ? 1.45 : 1.25,
-                        sectionSpacing: prev.isCompact ? 10 : 4,
-                        itemSpacing: prev.isCompact ? 8 : 4
-                      }))}
-                    >
-                      📐 {layout.isCompact ? t('Normal') : t('Compact')}
-                    </button>
-                    <button 
-                      className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
-                      onClick={() => setIsLayoutOpen(!isLayoutOpen)}
-                      aria-expanded={isLayoutOpen}
-                    >
-                      <i className="fi fi-rr-settings"></i>
-                    </button>
-                  </div>
-
-                  <div className="control-divider" aria-hidden="true" />
-
-                  <button className="control-btn" onClick={() => setIsAIOpen(true)}>
-                    <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
+                {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
+                
+                <div className="preview-export-bar">
+                  <button 
+                    type="button"
+                    className="btn-export" 
+                    onClick={() => {
+                      setExportConfig({
+                        type: 'pdf',
+                        icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
+                        title: t('Print / Save as PDF'),
+                        message: t('Export CV to PDF?'),
+                        action: () => setTimeout(() => window.print(), 100)
+                      });
+                      setShowExportConfirm(true);
+                    }}
+                  >
+                    {t('Print / Save as PDF')}
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn-export" 
+                    onClick={() => {
+                      setExportConfig({
+                        type: 'markdown',
+                        icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
+                        title: t('Markdown'),
+                        message: t('Export CV to Markdown?'),
+                        action: () => {
+                          try {
+                            exportMarkdown(data);
+                          } catch (err) {
+                            alert('Export failed: ' + err.message);
+                          }
+                        }
+                      });
+                      setShowExportConfirm(true);
+                    }}
+                  >
+                    {t('Markdown')}
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn-export" 
+                    onClick={() => {
+                      setExportConfig({
+                        type: 'json',
+                        icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
+                        title: t('Export JSON'),
+                        message: t('Export CV to JSON?'),
+                        action: () => {
+                          try {
+                            exportJson(data);
+                          } catch (err) {
+                            alert('Export failed: ' + err.message);
+                          }
+                        }
+                      });
+                      setShowExportConfirm(true);
+                    }}
+                  >
+                    {t('Export JSON')}
                   </button>
                 </div>
-              </div>
-
-
-              {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
-              <div className="preview-export-bar">
-                <button 
-                  type="button"
-                  className="btn-export" 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'pdf',
-                      icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Print / Save as PDF'),
-                      message: t('Export CV to PDF?'),
-                      action: () => setTimeout(() => window.print(), 100)
-                    });
-                    setShowExportConfirm(true);
-                  }}
-                >
-                  {t('Print / Save as PDF')}
-                </button>
-                <button 
-                  type="button"
-                  className="btn-export" 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'markdown',
-                      icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Markdown'),
-                      message: t('Export CV to Markdown?'),
-                      action: () => {
-                        try {
-                          exportMarkdown(data);
-                        } catch (err) {
-                          alert('Export failed: ' + err.message);
-                        }
-                      }
-                    });
-                    setShowExportConfirm(true);
-                  }}
-                >
-                  {t('Markdown')}
-                </button>
-                <button 
-                  type="button"
-                  className="btn-export" 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'json',
-                      icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Export JSON'),
-                      message: t('Export CV to JSON?'),
-                      action: () => {
-                        try {
-                          exportJson(data);
-                        } catch (err) {
-                          alert('Export failed: ' + err.message);
-                        }
-                      }
-                    });
-                    setShowExportConfirm(true);
-                  }}
-                >
-                  {t('Export JSON')}
-                </button>
               </div>
               <ResumePreview 
                 data={data} 
@@ -737,6 +752,14 @@ export default function App() {
               onClose={() => setIsAIOpen(false)} 
               data={data} 
               language={language} 
+            />
+          )}
+          {aiBoldConfig.isOpen && (
+            <AIBoldModal
+              isOpen={aiBoldConfig.isOpen}
+              onClose={() => setAiBoldConfig({ ...aiBoldConfig, isOpen: false })}
+              textData={aiBoldConfig.text}
+              contextType={aiBoldConfig.contextType}
             />
           )}
         </Suspense>

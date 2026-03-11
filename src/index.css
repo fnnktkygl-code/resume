@@ -38,9 +38,9 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Fraunces', Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -280,10 +280,20 @@ body {
   margin-bottom: 12px;
 }
 
+.preview-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-bg);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid transparent;
+}
+
 .preview-export-bar {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   background: var(--color-surface);
   padding: 8px;
   border-radius: var(--radius-sm);

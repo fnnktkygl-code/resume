@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { parseMarkdown } from '../utils/formatText';
 
 function ModernTemplate({ data, layout = {}, language = 'en' }) {
   const p = data.personal;
@@ -82,7 +83,7 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
         {data.summary && (
           <div>
             <div className="resume-section-header">{h.summary}</div>
-            <div>{data.summary}</div>
+            <div>{parseMarkdown(data.summary)}</div>
           </div>
         )}
 
@@ -103,7 +104,7 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
                   <div className="resume-title">{exp.title}</div>
                   <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px` }}>
                     {exp.bullets.filter(Boolean).map((b, bi) => (
-                      <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{b}</div>
+                      <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
                     ))}
                   </div>
                 </div>
@@ -143,10 +144,10 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
                     <span className="resume-company">{pr.name}</span>
                     {pr.link && <span className="resume-dates">{pr.link}</span>}
                   </div>
-                  {pr.description && <div style={{ marginBottom: '2px' }}>{pr.description}</div>}
+                  {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
                   {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
                   {pr.highlights.filter(Boolean).map((h, hi) => (
-                    <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{h}</div>
+                    <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
                   ))}
                 </div>
               ))}
@@ -169,7 +170,7 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
                     </div>
                     {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
                     {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
-                      {item.description}
+                      {parseMarkdown(item.description)}
                     </div>}
                   </div>
                 ))}
