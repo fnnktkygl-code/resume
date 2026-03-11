@@ -1143,10 +1143,10 @@ input[type="range"] {
 
 .mobile-preview-body {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
-  display: flex;
-  justify-content: center;
+  display: block;
 }
 
 @media (max-width: 1024px) {
