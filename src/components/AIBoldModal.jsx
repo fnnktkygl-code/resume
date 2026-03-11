@@ -65,7 +65,7 @@ ${textData}
       <div className="modal-content" ref={modalRef} tabIndex={-1}>
         <h2>✨ {t('AI Smart Bolding')}</h2>
         <p>
-          {t('Copy this prompt into ChatGPT or Claude. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.')}
+          {t('Copy this prompt into ChatGPT or your favorite AI. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.')}
         </p>
         
         <div className="prompt-box">
