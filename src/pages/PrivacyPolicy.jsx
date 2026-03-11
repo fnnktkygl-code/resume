@@ -34,16 +34,17 @@ export default function PrivacyPolicy({ onBack }) {
             <ul>
               <li><strong>Local Storage:</strong> Your data is saved locally in your browser's <code>localStorage</code> purely for your convenience, allowing you to resume your work later.</li>
               <li><strong>Cookies:</strong> We do not use tracking cookies.</li>
-              <li><strong>Analytics:</strong> We may use basic, anonymized analytics to understand overall site performance without identifying individual users.</li>
+              <li><strong>Analytics:</strong> We do not use any analytics, tracking pixels, or telemetry. Zero data about your usage is collected.</li>
             </ul>
           </section>
 
           <section>
             <h2>3. Artificial Intelligence Features</h2>
             <p>
-              If you utilize any AI-related features on our platform (like AI translation or prompt suggestions), 
-              the specific data you invoke for that transaction may be securely sent to our chosen LLM providers 
-              to generate the response. This data is not retained by us and is processed solely to fulfill your immediate request.
+              Our AI-related features (such as AI Smart Bolding or translation prompts) work by generating a prompt
+              that you manually copy and paste into an external AI tool of your choice (e.g., ChatGPT, Claude).
+              <strong>No data is automatically transmitted from this application to any AI provider or external server.</strong> You
+              remain in full control of what you share and with whom.
             </p>
           </section>
 
