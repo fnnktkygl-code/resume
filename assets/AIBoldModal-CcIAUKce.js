@@ -1,0 +1,11 @@
+import{u as f,r as a,j as e}from"./index-CFhPoi-V.js";function w({isOpen:s,onClose:n,textData:p,contextType:h}){const{t:r}=f(),[x,c]=a.useState(!1),[i,l]=a.useState(""),d=a.useRef(null),u=a.useRef(null);if(a.useEffect(()=>{if(s){u.current=document.activeElement,requestAnimationFrame(()=>{var t;return(t=d.current)==null?void 0:t.focus()});const o=t=>{t.key==="Escape"&&n()};return document.addEventListener("keydown",o),()=>{var t;document.removeEventListener("keydown",o),(t=u.current)==null||t.focus()}}},[s,n]),!s)return null;const m=()=>`Act as an expert technical resume writer.
+I have written ${{summary:"this professional resume summary",experience:"this resume experience bullet point",projects:"this resume project description"}[h]||"this resume text"}, but I need to highlight the most impactful parts to pass ATS parsers and catch a recruiter's eye.
+
+Please review the following text. Wrap the most important keywords, strong action verbs, and quantifiable metrics in markdown bold (**bold text**).
+CRITICAL: DO NOT rewrite, add, or remove any words. Keep my exact phrasing and punctuation identical. ONLY add ** markdown characters around the parts that should be stressed.
+
+Text to enhance:
+"""
+${p}
+"""
+`,y=async()=>{try{await navigator.clipboard.writeText(m()),c(!0),l(""),setTimeout(()=>c(!1),2e3)}catch{l(r("Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C)."))}};return e.jsx("div",{className:"modal-overlay",role:"dialog","aria-modal":"true",children:e.jsxs("div",{className:"modal-content",ref:d,tabIndex:-1,children:[e.jsxs("h2",{children:["✨ ",r("AI Smart Bolding")]}),e.jsx("p",{children:r("Copy this prompt into ChatGPT or Claude. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.")}),e.jsx("div",{className:"prompt-box",children:e.jsx("textarea",{readOnly:!0,value:m()})}),i&&e.jsx("p",{style:{color:"var(--color-danger)",fontSize:"13px"},children:i}),e.jsxs("div",{className:"modal-actions",children:[e.jsx("button",{className:"btn-secondary",onClick:n,children:r("Close")}),e.jsx("button",{className:"btn-primary",onClick:y,children:r(x?"Copied!":"Copy Prompt")})]})]})})}export{w as default};
