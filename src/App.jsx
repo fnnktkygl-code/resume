@@ -353,6 +353,22 @@ export default function App() {
 
             {/* Step Content */}
             <div className="animate-fade-in" key={currentId}>
+              {!data.sectionOrder.includes(currentId) && currentId !== 'personal' && currentId !== 'summary' && (
+                <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}>
+                    <i className="fi fi-rr-eye-crossed" style={{ color: 'var(--color-primary)' }}></i>
+                    <span>{t('This section is hidden from your resume.')}</span>
+                  </div>
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => setData(prev => ({ ...prev, sectionOrder: [...prev.sectionOrder, currentId] }))}
+                    style={{ padding: '6px 16px', fontSize: '14px' }}
+                  >
+                    + {t('Add to Resume')}
+                  </button>
+                </div>
+              )}
+
               {currentId === 'personal' && (
                 <PersonalStep 
                   data={data.personal} 
