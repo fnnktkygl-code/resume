@@ -108,6 +108,12 @@ function download(content, filename, type) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a); // Append to body for better browser compatibility
   a.click();
-  URL.revokeObjectURL(url);
+  
+  // Clean up with a small delay to ensure the browser has started the download
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
