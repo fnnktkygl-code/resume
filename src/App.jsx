@@ -348,58 +348,66 @@ export default function App() {
               <div className="preview-header">
                 <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
                 <div className="preview-controls">
-                  <button 
-                    className={`control-btn ${language === 'en' ? 'active' : ''}`}
-                    onClick={() => handleLanguageChange('en')}
-                    aria-label="Switch to English"
-                  >EN</button>
-                  <button 
-                    className={`control-btn ${language === 'fr' ? 'active' : ''}`}
-                    onClick={() => handleLanguageChange('fr')}
-                    aria-label="Switch to French"
-                  >FR</button>
-                  
-                  <div style={{ width: '1px', height: '16px', background: 'var(--color-border)', margin: '0 4px' }} aria-hidden="true" />
+                  <div className="control-group">
+                    <button 
+                      className={`control-btn ${language === 'en' ? 'active' : ''}`}
+                      onClick={() => handleLanguageChange('en')}
+                      aria-label="Switch to English"
+                    >EN</button>
+                    <button 
+                      className={`control-btn ${language === 'fr' ? 'active' : ''}`}
+                      onClick={() => handleLanguageChange('fr')}
+                      aria-label="Switch to French"
+                    >FR</button>
+                  </div>
+
+                  <div className="control-divider" aria-hidden="true" />
 
                   {/* Template picker */}
-                  <button
-                    className={`template-btn ${template === 'standard' ? 'active' : ''}`}
-                    onClick={() => setTemplate('standard')}
-                  >
-                    Standard
-                  </button>
-                  <button
-                    className={`template-btn ${template === 'modern' ? 'active' : ''}`}
-                    onClick={() => setTemplate('modern')}
-                  >
-                    Modern
-                  </button>
+                  <div className="control-group">
+                    <span className="control-group-label">Template</span>
+                    <button
+                      className={`template-btn ${template === 'standard' ? 'active' : ''}`}
+                      onClick={() => setTemplate('standard')}
+                    >
+                      Classic
+                    </button>
+                    <button
+                      className={`template-btn ${template === 'modern' ? 'active' : ''}`}
+                      onClick={() => setTemplate('modern')}
+                    >
+                      Modern
+                    </button>
+                  </div>
 
-                  <div style={{ width: '1px', height: '16px', background: 'var(--color-border)', margin: '0 4px' }} aria-hidden="true" />
+                  <div className="control-divider" aria-hidden="true" />
 
-                  <button 
-                    className={`control-btn ${layout.isCompact ? 'active' : ''}`}
-                    onClick={() => setLayout({
-                      isCompact: !layout.isCompact,
-                      fontSize: layout.isCompact ? 10.5 : 9.5,
-                      paddingX: layout.isCompact ? 0.75 : 0.5,
-                      paddingY: layout.isCompact ? 0.75 : 0.5,
-                      lineHeight: layout.isCompact ? 1.45 : 1.25,
-                      sectionSpacing: layout.isCompact ? 10 : 4,
-                      itemSpacing: layout.isCompact ? 8 : 4
-                    })}
-                  >
-                    {layout.isCompact ? t('Standard Fit') : t('Compact Fit')}
-                  </button>
-                  
-                  <button 
-                    className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
-                    onClick={() => setIsLayoutOpen(!isLayoutOpen)}
-                    aria-expanded={isLayoutOpen}
-                  >
-                    ⚙️ Layout
-                  </button>
-                  
+                  <div className="control-group">
+                    <button 
+                      className={`control-btn ${layout.isCompact ? 'active' : ''}`}
+                      onClick={() => setLayout({
+                        isCompact: !layout.isCompact,
+                        fontSize: layout.isCompact ? 10.5 : 9.5,
+                        paddingX: layout.isCompact ? 0.75 : 0.5,
+                        paddingY: layout.isCompact ? 0.75 : 0.5,
+                        lineHeight: layout.isCompact ? 1.45 : 1.25,
+                        sectionSpacing: layout.isCompact ? 10 : 4,
+                        itemSpacing: layout.isCompact ? 8 : 4
+                      })}
+                    >
+                      📐 {layout.isCompact ? t('Normal') : t('Compact')}
+                    </button>
+                    <button 
+                      className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
+                      onClick={() => setIsLayoutOpen(!isLayoutOpen)}
+                      aria-expanded={isLayoutOpen}
+                    >
+                      ⚙️
+                    </button>
+                  </div>
+
+                  <div className="control-divider" aria-hidden="true" />
+
                   <button className="control-btn" onClick={() => setIsAIOpen(true)}>
                     ✨ {t('AI Translate')}
                   </button>

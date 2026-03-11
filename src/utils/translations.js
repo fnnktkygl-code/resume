@@ -15,6 +15,8 @@ export const TRANSLATIONS = {
     'AI Translate': '✨ AI Translate',
     'Standard Fit': 'Standard Fit',
     'Compact Fit': 'Compact Fit',
+    'Normal': 'Normal',
+    'Compact': 'Compact',
     'Layout Settings': '⚙️ Layout Settings',
     'Reset': 'Reset',
 
@@ -186,8 +188,10 @@ export const TRANSLATIONS = {
     'Clear': '🗑️ Effacer',
     'Saved': 'Enregistré',
     'AI Translate': '✨ Traduire par IA',
-    'Standard Fit': 'Standard',
-    'Compact Fit': 'Format Compact',
+    'Standard Fit': 'Normal',
+    'Compact Fit': 'Compact',
+    'Normal': 'Normal',
+    'Compact': 'Compact',
     'Layout Settings': '⚙️ Paramètres de mise en page',
     'Reset': 'Réinitialiser',
 
