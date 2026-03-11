@@ -7,10 +7,30 @@ import { safeUUID } from './constants';
 
 const EXPECTED_KEYS = ['personal', 'headings', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 const PERSONAL_KEYS = ['name', 'tagline', 'email', 'phone', 'location', 'linkedin', 'website', 'github'];
+const PERSONAL_URL_KEYS = ['linkedin', 'website', 'github'];
 
 function stripHtml(str) {
   if (typeof str !== 'string') return '';
+  if (typeof DOMParser !== 'undefined') {
+    const doc = new DOMParser().parseFromString(str, 'text/html');
+    return (doc.body.textContent || '').trim();
+  }
   return str.replace(/<[^>]*>/g, '').trim();
+}
+
+const SAFE_URL_PROTOCOLS = ['http:', 'https:', 'mailto:', 'tel:'];
+
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  try {
+    const parsed = new URL(trimmed, 'https://placeholder.invalid');
+    if (!SAFE_URL_PROTOCOLS.includes(parsed.protocol)) return '';
+    return trimmed;
+  } catch {
+    return '';
+  }
 }
 
 function sanitizeString(val) {
@@ -20,12 +40,12 @@ function sanitizeString(val) {
   return '';
 }
 
-function sanitizeObject(obj, allowedKeys) {
+function sanitizeObject(obj, allowedKeys, urlKeys = []) {
   if (!obj || typeof obj !== 'object') return {};
   const result = {};
   for (const key of allowedKeys) {
     if (key in obj) {
-      result[key] = sanitizeString(obj[key]);
+      result[key] = urlKeys.includes(key) ? sanitizeUrl(obj[key]) : sanitizeString(obj[key]);
     }
   }
   return result;
@@ -65,7 +85,7 @@ function sanitizeProject(proj) {
     name: stripHtml(proj.name || ''),
     description: stripHtml(proj.description || ''),
     techStack: stripHtml(proj.techStack || ''),
-    link: stripHtml(proj.link || ''),
+    link: sanitizeUrl(proj.link || ''),
     highlights: Array.isArray(proj.highlights) ? proj.highlights.map(h => stripHtml(h || '')) : [''],
   };
 }
@@ -77,7 +97,7 @@ function sanitizeCertification(cert) {
     name: stripHtml(cert.name || ''),
     issuer: stripHtml(cert.issuer || ''),
     date: stripHtml(cert.date || ''),
-    credentialUrl: stripHtml(cert.credentialUrl || ''),
+    credentialUrl: sanitizeUrl(cert.credentialUrl || ''),
   };
 }
 
@@ -87,7 +107,7 @@ export function sanitizeResumeData(raw) {
   }
 
   return {
-    personal: sanitizeObject(raw.personal, PERSONAL_KEYS),
+    personal: sanitizeObject(raw.personal, PERSONAL_KEYS, PERSONAL_URL_KEYS),
     headings: raw.headings && typeof raw.headings === 'object'
       ? Object.fromEntries(Object.entries(raw.headings).map(([k, v]) => [k, stripHtml(v)]))
       : undefined,
