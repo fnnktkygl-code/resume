@@ -108,11 +108,18 @@ export default function App() {
 
   
   const removeSection = useCallback((sectionId) => {
-    setData(prev => ({
-      ...prev,
-      sectionOrder: prev.sectionOrder.filter(id => id !== sectionId)
-    }));
+    setData(prev => {
+      const isCustom = sectionId.startsWith('custom_');
+      return {
+        ...prev,
+        sectionOrder: prev.sectionOrder.filter(id => id !== sectionId),
+        ...(isCustom && {
+          customSections: (prev.customSections || []).filter(s => s.id !== sectionId)
+        })
+      };
+    });
     setSectionToDelete(null);
+    setStep(prevStep => Math.max(0, prevStep - 1));
   }, []);
 
   const t = (key) => getTranslation(language, key);
