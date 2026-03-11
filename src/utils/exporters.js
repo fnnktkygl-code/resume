@@ -3,62 +3,79 @@ import { sanitizeResumeData } from './sanitize';
 export function exportMarkdown(data) {
   const p = data.personal;
   const h = data.headings || {};
-  const validExp = data.experience.filter(e => e.company || e.title);
-  const validEdu = data.education.filter(e => e.institution || e.degree);
-  const validProj = data.projects.filter(pr => pr.name);
-  const validCert = data.certifications.filter(c => c.name);
-  const fmtDate = (m, y) => [m, y].filter(Boolean).join(' ');
+  const order = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 
   let md = '';
   if (p.name) md += `# ${p.name}\n`;
   if (p.tagline) md += `*${p.tagline}*\n`;
   const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean).join(' | ');
   if (contact) md += `${contact}\n\n`;
-  if (data.summary) md += `## ${h.summary || 'Summary'}\n${data.summary}\n\n`;
 
-  if (validExp.length > 0) {
-    md += `## ${h.experience || 'Work Experience'}\n`;
-    validExp.forEach(exp => {
-      const dateStr = `${fmtDate(exp.startMonth, exp.startYear)} — ${exp.current ? (h.present || 'Present') : fmtDate(exp.endMonth, exp.endYear)}`;
-      md += `### ${exp.company}\n**${exp.title}** | ${dateStr}\n`;
-      exp.bullets.filter(Boolean).forEach(b => { md += `- ${b}\n`; });
-      md += '\n';
-    });
-  }
+  const fmtDate = (m, y) => [m, y].filter(Boolean).join(' ');
 
-  if (validEdu.length > 0) {
-    md += `## ${h.education || 'Education'}\n`;
-    validEdu.forEach(edu => {
-      md += `**${edu.institution}** | ${[edu.degree, edu.field].filter(Boolean).join(', ')} | ${edu.startYear}–${edu.endYear}\n`;
-    });
-    md += '\n';
-  }
+  const sectionGenerators = {
+    summary: () => {
+      if (!data.summary) return '';
+      return `## ${h.summary || 'Summary'}\n${data.summary}\n\n`;
+    },
+    experience: () => {
+      const validExp = data.experience.filter(e => e.company || e.title);
+      if (validExp.length === 0) return '';
+      let s = `## ${h.experience || 'Work Experience'}\n`;
+      validExp.forEach(exp => {
+        const dateStr = `${fmtDate(exp.startMonth, exp.startYear)} — ${exp.current ? (h.present || 'Present') : fmtDate(exp.endMonth, exp.endYear)}`;
+        s += `### ${exp.company}\n**${exp.title}** | ${dateStr}\n`;
+        exp.bullets.filter(Boolean).forEach(b => { s += `- ${b}\n`; });
+        s += '\n';
+      });
+      return s;
+    },
+    education: () => {
+      const validEdu = data.education.filter(e => e.institution || e.degree);
+      if (validEdu.length === 0) return '';
+      let s = `## ${h.education || 'Education'}\n`;
+      validEdu.forEach(edu => {
+        s += `**${edu.institution}** | ${[edu.degree, edu.field].filter(Boolean).join(', ')} | ${edu.startYear}–${edu.endYear}\n`;
+      });
+      return s + '\n';
+    },
+    skills: () => {
+      if (!data.skills.technical && !data.skills.soft && !data.skills.languages) return '';
+      let s = `## ${h.skills || 'Skills'}\n`;
+      if (data.skills.technical) s += `**${h.technical || 'Technical:'}** ${data.skills.technical}\n`;
+      if (data.skills.soft) s += `**${h.interpersonal || 'Interpersonal:'}** ${data.skills.soft}\n`;
+      if (data.skills.languages) s += `**${h.languages || 'Languages:'}** ${data.skills.languages}\n`;
+      return s + '\n';
+    },
+    projects: () => {
+      const validProj = data.projects.filter(pr => pr.name);
+      if (validProj.length === 0) return '';
+      let s = `## ${h.projects || 'Projects'}\n`;
+      validProj.forEach(pr => {
+        s += `### ${pr.name}${pr.link ? ` — ${pr.link}` : ''}\n`;
+        if (pr.description) s += `${pr.description}\n`;
+        if (pr.techStack) s += `**Tech:** ${pr.techStack}\n`;
+        pr.highlights.filter(Boolean).forEach(hl => { s += `- ${hl}\n`; });
+        s += '\n';
+      });
+      return s;
+    },
+    certifications: () => {
+      const validCert = data.certifications.filter(c => c.name);
+      if (validCert.length === 0) return '';
+      let s = `## ${h.certifications || 'Certifications'}\n`;
+      validCert.forEach(c => {
+        s += `- **${c.name}** — ${c.issuer}${c.date ? ` (${c.date})` : ''}${c.credentialUrl ? ` | ${c.credentialUrl}` : ''}\n`;
+      });
+      return s + '\n';
+    }
+  };
 
-  if (data.skills.technical || data.skills.soft || data.skills.languages) {
-    md += `## ${h.skills || 'Skills'}\n`;
-    if (data.skills.technical) md += `**${h.technical || 'Technical:'}** ${data.skills.technical}\n`;
-    if (data.skills.soft) md += `**${h.interpersonal || 'Interpersonal:'}** ${data.skills.soft}\n`;
-    if (data.skills.languages) md += `**${h.languages || 'Languages:'}** ${data.skills.languages}\n`;
-    md += '\n';
-  }
-
-  if (validProj.length > 0) {
-    md += `## ${h.projects || 'Projects'}\n`;
-    validProj.forEach(pr => {
-      md += `### ${pr.name}${pr.link ? ` — ${pr.link}` : ''}\n`;
-      if (pr.description) md += `${pr.description}\n`;
-      if (pr.techStack) md += `**Tech:** ${pr.techStack}\n`;
-      pr.highlights.filter(Boolean).forEach(h => { md += `- ${h}\n`; });
-      md += '\n';
-    });
-  }
-
-  if (validCert.length > 0) {
-    md += `## ${h.certifications || 'Certifications'}\n`;
-    validCert.forEach(c => {
-      md += `- **${c.name}** — ${c.issuer}${c.date ? ` (${c.date})` : ''}${c.credentialUrl ? ` | ${c.credentialUrl}` : ''}\n`;
-    });
-  }
+  order.forEach(sectionKey => {
+    if (sectionGenerators[sectionKey]) {
+      md += sectionGenerators[sectionKey]();
+    }
+  });
 
   download(md, `${(p.name || 'resume').replace(/\s+/g, '_')}_resume.md`, 'text/markdown');
 }
