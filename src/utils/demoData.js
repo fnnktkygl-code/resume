@@ -14,14 +14,14 @@ const HEADINGS_DEMO = {
 export const DEMO_DATA_1_PAGE = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Sarah Chen',
+    name: 'Hoshi Fenneko',
     tagline: 'Senior Software Engineer',
-    email: 'sarah.chen@email.com',
+    email: 'hoshi.fenneko@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/sarahchen',
-    github: 'github.com/sarahchen',
-    website: 'sarahchen.dev',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
   },
   summary: 'Results-driven full-stack engineer with 7+ years of experience building scalable web applications and distributed systems. Led the architecture of a real-time analytics platform serving 3M+ daily active users, reducing infrastructure costs by 40%.',
   experience: [
@@ -75,7 +75,7 @@ export const DEMO_DATA_1_PAGE = {
       name: 'OpenTrace',
       description: 'Open-source distributed tracing library for Node.js microservices.',
       techStack: 'TypeScript, Node.js',
-      link: 'github.com/sarahchen/opentrace',
+      link: 'github.com/hoshifenneko/opentrace',
       highlights: [
         'Achieved 2.4K GitHub stars within 8 months of launch',
       ],
@@ -87,14 +87,14 @@ export const DEMO_DATA_1_PAGE = {
 export const DEMO_DATA_1_PAGE_FR = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Sarah Chen',
+    name: 'Hoshi Fenneko',
     tagline: 'Ingénieur Logiciel Sénior',
-    email: 'sarah.chen@email.com',
+    email: 'hoshi.fenneko@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/sarahchen',
-    github: 'github.com/sarahchen',
-    website: 'sarahchen.dev',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
   },
   summary: 'Ingénieur full-stack expérimentée avec plus de 7 ans d\'expérience dans la création d\'applications web évolutives et de systèmes distribués. J\'ai dirigé l\'architecture d\'une plateforme d\'analyse en temps réel desservant plus de 3 millions d\'utilisateurs actifs, réduisant les coûts de 40%.',
   experience: [
@@ -148,7 +148,7 @@ export const DEMO_DATA_1_PAGE_FR = {
       name: 'OpenTrace',
       description: 'Bibliothèque open-source de traçage distribué pour les microservices Node.js.',
       techStack: 'TypeScript, Node.js',
-      link: 'github.com/sarahchen/opentrace',
+      link: 'github.com/hoshifenneko/opentrace',
       highlights: [
         'A obtenu plus de 2 400 étoiles sur GitHub dans les 8 mois suivant le lancement.',
       ],
@@ -160,14 +160,14 @@ export const DEMO_DATA_1_PAGE_FR = {
 export const DEMO_DATA_2_PAGES = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Sarah Chen',
+    name: 'Hoshi Fenneko',
     tagline: 'Staff Software Engineer & Technical Leader',
-    email: 'sarah.chen@email.com',
+    email: 'hoshi.fenneko@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/sarahchen',
-    github: 'github.com/sarahchen',
-    website: 'sarahchen.dev',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
   },
   summary: 'Results-driven full-stack engineer with 7+ years of experience building scalable web applications and distributed systems. Led the architecture of a real-time analytics platform serving 3M+ daily active users, reducing infrastructure costs by 40%. Passionate about clean code, developer experience, and mentoring junior engineers. Proven track record of scaling consumer-facing platforms to handle massive load while maintaining 99.99% uptime. Recognized for translating complex business requirements into robust, cloud-native technical solutions.',
   experience: [
@@ -276,7 +276,7 @@ export const DEMO_DATA_2_PAGES = {
       name: 'OpenTrace',
       description: 'Open-source distributed tracing library for Node.js microservices with automatic instrumentation and Jaeger/Zipkin integration.',
       techStack: 'TypeScript, Node.js, OpenTelemetry, gRPC',
-      link: 'github.com/sarahchen/opentrace',
+      link: 'github.com/hoshifenneko/opentrace',
       highlights: [
         'Achieved 2.4K GitHub stars and 180+ contributors within 8 months of launch',
         'Reduced mean time to debug production issues by 65% across 3 adopting companies',
@@ -315,14 +315,14 @@ export const DEMO_DATA_2_PAGES = {
 export const DEMO_DATA_2_PAGES_FR = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Sarah Chen',
+    name: 'Hoshi Fenneko',
     tagline: 'Staff Software Engineer & Directrice Technique',
-    email: 'sarah.chen@email.com',
+    email: 'hoshi.fenneko@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/sarahchen',
-    github: 'github.com/sarahchen',
-    website: 'sarahchen.dev',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
   },
   summary: 'Ingénieur full-stack expérimentée avec plus de 7 ans d\'expérience dans la création d\'applications web évolutives et de systèmes distribués. J\'ai dirigé l\'architecture d\'une plateforme d\'analyse en temps réel desservant plus de 3 millions d\'utilisateurs actifs, réduisant les coûts de 40%. Passionnée par le clean code, l\'expérience développeur et le mentorat des ingénieurs juniors. J\'ai fait mes preuves dans la mise à l\'échelle de plateformes grand public pour gérer des charges massives tout en maintenant une disponibilité de 99,99 %. Reconnue pour avoir traduit des exigences métiers complexes en solutions techniques robustes et cloud-natives.',
   experience: [
@@ -431,7 +431,7 @@ export const DEMO_DATA_2_PAGES_FR = {
       name: 'OpenTrace',
       description: 'Bibliothèque open source de traçage distribué pour les microservices Node.js avec instrumentation automatique et intégration de Jaeger/Zipkin.',
       techStack: 'TypeScript, Node.js, OpenTelemetry, gRPC',
-      link: 'github.com/sarahchen/opentrace',
+      link: 'github.com/hoshifenneko/opentrace',
       highlights: [
         'A obtenu 2 400 étoiles sur GitHub et plus de 180 contributeurs dans les 8 mois suivant son lancement.',
         'Réduction du délai moyen de débogage des problèmes de production de 65 % dans les 3 entreprises qui l\'ont adopté.',

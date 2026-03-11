@@ -143,6 +143,12 @@ export const TRANSLATIONS = {
     'Item Spacing': 'Item Spacing',
     'Vertical Padding': 'Vertical Padding',
 
+    // Actions
+    'Confirm Export': 'Are you sure you want to export your resume?',
+    'Export CV to PDF?': 'Are you sure you want to print or save the CV as PDF?',
+    'Export CV to Markdown?': 'Are you sure you want to download the CV in Markdown format?',
+    'Export CV to JSON?': 'Are you sure you want to download the CV in JSON format?',
+
     // ATS Score
     'ATS Readiness': 'ATS Readiness',
     'Excellent — ready to apply': 'Excellent — ready to apply',
@@ -317,6 +323,12 @@ export const TRANSLATIONS = {
     'Section Spacing': 'Espace section',
     'Item Spacing': 'Espace élément',
     'Vertical Padding': 'Marge verticale',
+
+    // Actions
+    'Confirm Export': 'Voulez-vous vraiment exporter votre CV ?',
+    'Export CV to PDF?': 'Voulez-vous vraiment imprimer ou sauvegarder le CV en PDF ?',
+    'Export CV to Markdown?': 'Voulez-vous vraiment télécharger le CV au format Markdown ?',
+    'Export CV to JSON?': 'Voulez-vous vraiment télécharger le CV au format JSON ?',
 
     // ATS Score
     'ATS Readiness': 'Score ATS',

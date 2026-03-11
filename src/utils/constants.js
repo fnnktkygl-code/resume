@@ -9,7 +9,6 @@ export const STEPS = [
   { id: 'skills', label: 'Skills', icon: '⚡' },
   { id: 'projects', label: 'Projects', icon: '🚀' },
   { id: 'certifications', label: 'Certs', icon: '🏆' },
-  { id: 'preview', label: 'Preview', icon: '👁' },
 ];
 
 export function createEmptyExperience() {
