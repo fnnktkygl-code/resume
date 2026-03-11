@@ -326,47 +326,66 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-top: 24px;
+  padding-top: 32px;
 }
 
-.bento-media-wrapper.pt-0 {
-  padding-top: 0;
+.bento-media-wrapper-custom {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
   align-items: flex-start;
   margin-top: 24px;
-}
-
-.bento-media-wrapper.align-right {
-  justify-content: flex-end;
-  align-items: center;
-  width: 60%;
-  height: 100%;
-  padding: 0 40px 0 0;
+  width: 100%;
 }
 
 .bento-img-top {
-  width: 85%;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 800px;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
   border: 1px solid var(--bento-border);
   border-bottom: none;
   object-fit: cover;
   object-position: top;
+  transition: transform 0.4s ease;
 }
 
-.bento-img-scale {
-  width: 80%;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+.bento-box:hover .bento-img-top {
+  transform: translateY(-8px);
+}
+
+.bento-img-custom {
+  width: 85%;
+  max-width: 280px;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
   border: 1px solid var(--bento-border);
+  border-bottom: none;
+  transition: transform 0.4s ease;
+}
+
+.bento-box:hover .bento-img-custom {
+  transform: translateY(-8px);
 }
 
 .bento-img-offset {
-  height: 120%;
+  position: absolute;
+  top: -20px;
+  left: 45%;
+  width: 900px; /* Force strict width so it won't shrink */
+  height: auto;
   border-radius: 16px;
-  box-shadow: -20px 20px 60px rgba(0,0,0,0.2);
+  box-shadow: -30px 30px 80px rgba(0,0,0,0.2);
   border: 1px solid var(--bento-border);
-  transform: rotate(-2deg) translateY(10%);
-  object-fit: cover;
+  transform: rotate(-3deg);
+  transform-origin: top left;
+  z-index: 1;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-box:hover .bento-img-offset {
+  transform: rotate(-1.5deg) translateY(-8px) translateX(-10px);
 }
 
 /* Video inside mockup wrapper */
@@ -453,8 +472,17 @@
   .bx-medium { flex-direction: column; grid-column: span 2; grid-row: span 2; }
   
   .text-horizontal { width: 100%; padding-bottom: 0; }
-  .bento-media-wrapper.align-right { width: 100%; justify-content: center; align-items: flex-end; padding: 24px 0 0; }
-  .bento-img-offset { height: 90%; transform: none; border-radius: 12px 12px 0 0; border-bottom: none; }
+  .bento-img-offset { 
+    position: relative; 
+    top: auto; left: auto; 
+    transform: none !important; 
+    width: 90%; 
+    height: auto; 
+    margin: 40px auto 0;
+    border-radius: 12px 12px 0 0; 
+    border-bottom: none; 
+    display: block;
+  }
 }
 
 @media (max-width: 768px) {

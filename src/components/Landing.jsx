@@ -122,8 +122,8 @@ export default function Landing({ onStart }) {
                 <h3>Custom Blocks</h3>
                 <p>Go beyond defaults. Add anything.</p>
               </div>
-              <div className="bento-media-wrapper pt-0">
-                 <img src="./assets/mobile_dark_mode_custom_section_view.jpeg" alt="Mobile Dark Mode" className="bento-img-scale" />
+              <div className="bento-media-wrapper-custom">
+                 <img src="./assets/mobile_dark_mode_custom_section_view.jpeg" alt="Mobile Dark Mode" className="bento-img-custom" />
               </div>
             </div>
             
@@ -144,9 +144,7 @@ export default function Landing({ onStart }) {
                   <p>Fine-tune every aspect of your timeline and effortlessly toggle between languages with integrated AI translation prompt hints.</p>
                 </div>
               </div>
-              <div className="bento-media-wrapper overflow-hidden align-right">
-                <img src="./assets/dark_mode_desktop_english_toggled_view_on_certifs_panel.png" alt="Certifications English" className="bento-img-offset" />
-              </div>
+              <img src="./assets/dark_mode_desktop_english_toggled_view_on_certifs_panel.png" alt="Certifications English" className="bento-img-offset" />
             </div>
           </div>
         </section>
