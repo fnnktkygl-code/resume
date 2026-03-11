@@ -193,6 +193,18 @@ export default function App() {
     setShowClearConfirm(false);
   };
 
+  const loadDemoData = useCallback((pages) => {
+    let demoData;
+    if (pages === 1) {
+      demoData = language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE;
+    } else {
+      demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES;
+    }
+    setData(structuredClone(demoData));
+    setStep(0);
+    setMobileMenuOpen(false);
+  }, [language]);
+
   const handleSectionReorder = useCallback((newOrder) => {
     setData(prev => ({ ...prev, sectionOrder: newOrder }));
   }, []);
@@ -283,10 +295,10 @@ export default function App() {
           </div>
           <div className="header-right">
             <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
-            <button className="btn-demo" onClick={() => setData(language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE)}>
+            <button className="btn-demo" onClick={() => loadDemoData(1)}>
               <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
             </button>
-            <button className="btn-demo" onClick={() => setData(language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES)}>
+            <button className="btn-demo" onClick={() => loadDemoData(2)}>
               <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
             </button>
             <button className="btn-demo" onClick={() => setShowClearConfirm(true)}>
@@ -302,10 +314,10 @@ export default function App() {
               ⋯
             </button>
             <div className={`mobile-menu-dropdown${mobileMenuOpen ? ' open' : ''}`}>
-              <button className="btn-demo" onClick={() => { setData(language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE); setMobileMenuOpen(false); }}>
+              <button className="btn-demo" onClick={() => loadDemoData(1)}>
                 <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
               </button>
-              <button className="btn-demo" onClick={() => { setData(language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES); setMobileMenuOpen(false); }}>
+              <button className="btn-demo" onClick={() => loadDemoData(2)}>
                 <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
               </button>
               <button className="btn-demo" onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}>
