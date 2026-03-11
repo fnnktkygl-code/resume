@@ -153,6 +153,30 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
             </div>
           </div>
         )}
+
+        {data.customSections?.map(sec => {
+          const validItems = sec.items.filter(i => i.title || i.subtitle || i.description);
+          if (!validItems.length) return null;
+          return (
+            <div key={sec.id}>
+              <div className="resume-section-header">{sec.label || 'Custom'}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+                {validItems.map((item, i) => (
+                  <div key={i}>
+                    <div className="resume-exp-header">
+                      {item.title && <span className="resume-company">{item.title}</span>}
+                      {item.date && <span className="resume-dates">{item.date}</span>}
+                    </div>
+                    {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                    {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                      {item.description}
+                    </div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

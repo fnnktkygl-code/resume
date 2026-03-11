@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
-import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification } from './utils/constants';
+import { useState, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
+import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification, createEmptyCustomSection } from './utils/constants';
 import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR } from './utils/demoData';
 import AtsScore from './components/AtsScore';
 import ResumePreview from './components/ResumePreview';
@@ -10,6 +10,7 @@ import EducationStep from './components/steps/EducationStep';
 import SkillsStep from './components/steps/SkillsStep';
 import ProjectsStep from './components/steps/ProjectsStep';
 import CertificationsStep from './components/steps/CertificationsStep';
+import CustomStep from './components/steps/CustomStep';
 import { exportMarkdown, exportJson, importJson } from './utils/exporters';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
@@ -103,8 +104,17 @@ export default function App() {
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [exportConfig, setExportConfig] = useState({ type: '', title: '', message: '', action: null });
+  const [sectionToDelete, setSectionToDelete] = useState(null);
 
   
+  const removeSection = useCallback((sectionId) => {
+    setData(prev => ({
+      ...prev,
+      sectionOrder: prev.sectionOrder.filter(id => id !== sectionId)
+    }));
+    setSectionToDelete(null);
+  }, []);
+
   const t = (key) => getTranslation(language, key);
 
   // Theme
@@ -135,7 +145,26 @@ export default function App() {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
-  const currentId = STEPS[step]?.id;
+  const allSteps = useMemo(() => {
+    const custom = (data.customSections || []).map(s => ({
+      id: s.id,
+      label: s.label || 'Custom',
+      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+    }));
+    return [...STEPS, ...custom];
+  }, [data.customSections]);
+
+  const currentId = allSteps[step]?.id;
+
+  const addCustomSection = () => {
+    const newSection = createEmptyCustomSection('New Section');
+    setData(prev => ({
+      ...prev,
+      customSections: [...(prev.customSections || []), newSection],
+      sectionOrder: [...prev.sectionOrder, newSection.id]
+    }));
+    setStep(allSteps.length); // Navigate to the new step right away
+  };
 
   const handleImport = useCallback((imported) => {
     setData({
@@ -223,7 +252,12 @@ export default function App() {
       case 'skills': return !!(data.skills.technical);
       case 'projects': return data.projects.some(p => p.name);
       case 'certifications': return data.certifications.some(c => c.name);
-      default: return false;
+      default: 
+        if (stepId?.startsWith('custom_')) {
+          const sec = data.customSections?.find(s => s.id === stepId);
+          return sec && sec.items.some(i => i.title || i.subtitle);
+        }
+        return false;
     }
   };
 
@@ -240,15 +274,15 @@ export default function App() {
             <span className="badge">ATS Ready</span>
           </div>
           <div className="header-right">
-            <span className="privacy-note">{t('All data stays in your browser')}</span>
+            <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
             <button className="btn-demo" onClick={() => setData(language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE)}>
-              {t('1-Page Demo')}
+              <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
             </button>
             <button className="btn-demo" onClick={() => setData(language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES)}>
-              {t('2-Page Demo')}
+              <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
             </button>
             <button className="btn-demo" onClick={() => setShowClearConfirm(true)}>
-              {t('Clear')}
+              <i className="fi fi-rr-trash"></i> {t('Clear')}
             </button>
 
             {/* Mobile menu for small screens */}
@@ -261,13 +295,13 @@ export default function App() {
             </button>
             <div className={`mobile-menu-dropdown${mobileMenuOpen ? ' open' : ''}`}>
               <button className="btn-demo" onClick={() => { setData(language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE); setMobileMenuOpen(false); }}>
-                {t('1-Page Demo')}
+                <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
               </button>
               <button className="btn-demo" onClick={() => { setData(language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES); setMobileMenuOpen(false); }}>
-                {t('2-Page Demo')}
+                <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
               </button>
               <button className="btn-demo" onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}>
-                {t('Clear')}
+                <i className="fi fi-rr-trash"></i> {t('Clear')}
               </button>
             </div>
 
@@ -283,7 +317,7 @@ export default function App() {
           <div className="form-panel">
             {/* Stepper */}
             <nav className="stepper" role="tablist" aria-label="Resume sections">
-              {STEPS.map((s, i) => (
+              {allSteps.map((s, i) => (
                 <button
                   key={s.id}
                   className={`step-btn${i === step ? ' active' : ''}${stepHasData(s.id) ? ' completed' : ''}`}
@@ -296,6 +330,15 @@ export default function App() {
                   {stepHasData(s.id) && <span className="step-check" aria-hidden="true">✓</span>}
                 </button>
               ))}
+              <button 
+                className="step-btn step-add-btn" 
+                onClick={addCustomSection}
+                title={t("Add Custom Section")}
+                aria-label={t("Add Custom Section")}
+              >
+                <span className="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
+                <span className="step-label">{t('Add Section')}</span>
+              </button>
             </nav>
 
             {/* ATS Score */}
@@ -329,6 +372,15 @@ export default function App() {
               {currentId === 'certifications' && (
                 <CertificationsStep data={data.certifications} onChange={(v) => setData({ ...data, certifications: v })} />
               )}
+              {currentId?.startsWith('custom_') && (
+                <CustomStep 
+                  section={data.customSections.find(s => s.id === currentId)} 
+                  onChange={(updatedSec) => {
+                    const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
+                    setData({ ...data, customSections: mapped });
+                  }} 
+                />
+              )}
 
             </div>
 
@@ -337,7 +389,7 @@ export default function App() {
               {step > 0 ? (
                 <button className="btn-secondary" onClick={() => setStep(step - 1)}>{t('Back')}</button>
               ) : <div />}
-              {step < STEPS.length - 1 && (
+              {step < allSteps.length - 1 && (
                 <button className="btn-primary" onClick={() => setStep(step + 1)}>
                   {t('Continue')}
                 </button>
@@ -387,15 +439,16 @@ export default function App() {
                   <div className="control-group">
                     <button 
                       className={`control-btn ${layout.isCompact ? 'active' : ''}`}
-                      onClick={() => setLayout({
-                        isCompact: !layout.isCompact,
-                        fontSize: layout.isCompact ? 10.5 : 9.5,
-                        paddingX: layout.isCompact ? 0.75 : 0.5,
-                        paddingY: layout.isCompact ? 0.75 : 0.5,
-                        lineHeight: layout.isCompact ? 1.45 : 1.25,
-                        sectionSpacing: layout.isCompact ? 10 : 4,
-                        itemSpacing: layout.isCompact ? 8 : 4
-                      })}
+                      onClick={() => setLayout(prev => ({
+                        ...prev,
+                        isCompact: !prev.isCompact,
+                        fontSize: prev.isCompact ? 10.5 : 9.5,
+                        paddingX: prev.isCompact ? 0.75 : 0.5,
+                        paddingY: prev.isCompact ? 0.75 : 0.5,
+                        lineHeight: prev.isCompact ? 1.45 : 1.25,
+                        sectionSpacing: prev.isCompact ? 10 : 4,
+                        itemSpacing: prev.isCompact ? 8 : 4
+                      }))}
                     >
                       📐 {layout.isCompact ? t('Normal') : t('Compact')}
                     </button>
@@ -404,17 +457,42 @@ export default function App() {
                       onClick={() => setIsLayoutOpen(!isLayoutOpen)}
                       aria-expanded={isLayoutOpen}
                     >
-                      ⚙️
+                      <i className="fi fi-rr-settings"></i>
                     </button>
                   </div>
 
                   <div className="control-divider" aria-hidden="true" />
 
                   <button className="control-btn" onClick={() => setIsAIOpen(true)}>
-                    ✨ {t('AI Translate')}
+                    <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
                   </button>
                 </div>
               </div>
+
+        {/* Section delete confirmation modal */}
+        {sectionToDelete && (
+          <div className="modal-overlay" role="dialog" aria-modal="true">
+            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
+              <h2 style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
+                {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
+              </h2>
+              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
+                {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
+              </p>
+              <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                <button className="btn-secondary" onClick={() => setSectionToDelete(null)}>{t('Cancel')}</button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => removeSection(sectionToDelete)} 
+                  style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
+                >
+                  {t('Confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
               {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
               <div className="preview-export-bar">
                 <button 
@@ -423,6 +501,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'pdf',
+                      icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Print / Save as PDF'),
                       message: t('Export CV to PDF?'),
                       action: () => setTimeout(() => window.print(), 100)
@@ -438,6 +517,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'markdown',
+                      icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Markdown'),
                       message: t('Export CV to Markdown?'),
                       action: () => {
@@ -459,6 +539,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'json',
+                      icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Export JSON'),
                       message: t('Export CV to JSON?'),
                       action: () => {
@@ -481,6 +562,7 @@ export default function App() {
                 language={language} 
                 template={template}
                 onSectionReorder={handleSectionReorder}
+                onSectionRemove={setSectionToDelete}
                 compact 
               />
             </aside>
@@ -491,7 +573,7 @@ export default function App() {
           className="mobile-preview-fab"
           onClick={() => setShowMobilePreview(true)}
         >
-          👁 {t('Preview')}
+          <i className="fi fi-rr-eye"></i> {t('Preview')}
         </button>
 
         {/* Mobile Preview Overlay */}
@@ -509,7 +591,7 @@ export default function App() {
                   className={`control-btn ${isMobileLayoutOpen ? 'active' : ''}`}
                   onClick={() => setIsMobileLayoutOpen(!isMobileLayoutOpen)}
                   style={{ padding: '6px' }}
-                >⚙️</button>
+                ><i className="fi fi-rr-settings"></i></button>
                 <div style={{ width: '1px', background: 'var(--color-border)', margin: '0 4px', height: '16px' }} />
                  <button 
                   type="button"
@@ -518,6 +600,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'pdf',
+                      icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Print / Save as PDF'),
                       message: t('Export CV to PDF?'),
                       action: () => setTimeout(() => window.print(), 100)
@@ -526,7 +609,7 @@ export default function App() {
                   }} 
                   title={t('Print / Save as PDF')}
                 >
-                  🖨️
+                  <i className="fi fi-rr-print" style={{ fontSize: '1.1rem' }}></i>
                 </button>
                 <button 
                   type="button"
@@ -535,6 +618,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'markdown',
+                      icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Markdown'),
                       message: t('Export CV to Markdown?'),
                       action: () => {
@@ -549,7 +633,7 @@ export default function App() {
                   }} 
                   title={t('Markdown')}
                 >
-                  📄
+                  <i className="fi fi-rr-file-code" style={{ fontSize: '1.1rem' }}></i>
                 </button>
                 <button 
                   type="button"
@@ -558,6 +642,7 @@ export default function App() {
                   onClick={() => {
                     setExportConfig({
                       type: 'json',
+                      icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
                       title: t('Export JSON'),
                       message: t('Export CV to JSON?'),
                       action: () => {
@@ -572,7 +657,7 @@ export default function App() {
                   }} 
                   title={t('Export JSON')}
                 >
-                  💾
+                  <i className="fi fi-rr-disk" style={{ fontSize: '1.1rem' }}></i>
                 </button>
                 <button className="btn-secondary" onClick={() => setShowMobilePreview(false)} style={{ padding: '6px 14px', fontSize: '13px', marginLeft: '4px' }}>
                   ✕ {t('Close')}
@@ -585,7 +670,14 @@ export default function App() {
                   <LayoutControls layout={layout} onChange={setLayout} />
                 </div>
               )}
-              <ResumePreview data={data} layout={layout} language={language} template={template} />
+              <ResumePreview 
+                data={data} 
+                layout={layout} 
+                language={language} 
+                template={template} 
+                onSectionReorder={(newOrder) => setData(prev => ({ ...prev, sectionOrder: newOrder }))}
+                onSectionRemove={setSectionToDelete}
+              />
             </div>
           </div>
         )}
@@ -613,8 +705,9 @@ export default function App() {
         {showExportConfirm && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="export-confirm-title">
             <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
-              <h2 id="export-confirm-title" style={{ fontSize: '18px' }}>
-                {exportConfig.type === 'pdf' ? '🖨️' : exportConfig.type === 'markdown' ? '📄' : '💾'} {exportConfig.title}
+              <h2 id="export-confirm-title" style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{exportConfig.icon}</span> 
+                {exportConfig.title}
               </h2>
               <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
                 {exportConfig.message}
