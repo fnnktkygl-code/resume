@@ -1,13 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../styles/landing.css';
 
 export default function Landing({ onStart }) {
   const [scrolled, setScrolled] = useState(false);
-
+  
+  // Intersection Observer for scroll animations
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
   return (
@@ -18,15 +35,15 @@ export default function Landing({ onStart }) {
       </nav>
 
       <main className="landing-main">
-        <section className="landing-hero">
+        {/* HERO SECTION */}
+        <section className="landing-hero animate-on-scroll">
           <div className="hero-content">
-            <span className="landing-badge">ATS-Friendly & Responsive</span>
             <h1 className="landing-title">
-              The resume that<br/>gets you hired.
+              Craft your story.<br/>Land the job.
             </h1>
             <p className="landing-subtitle">
-              Stand out with a modern, beautifully designed CV. 
-              Real-time preview, high-quality translation prompts, and privacy-first architecture natively built for the browser.
+              A meticulously designed, privacy-first resume builder right in your browser. 
+              Real-time preview, intelligent translations, and absolute control.
             </p>
             <div className="hero-actions">
               <button className="landing-cta-primary" onClick={onStart}>
@@ -35,72 +52,103 @@ export default function Landing({ onStart }) {
               <button className="landing-cta-secondary" onClick={() => {
                 document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
               }}>
-                Learn More
+                Take a Tour
               </button>
             </div>
           </div>
 
-          <div className="landing-showcase-premium">
+          <div className="hero-showcase">
             <div className="showcase-glow"></div>
             <img 
-              src="./assets/desktop_features_showcase.png" 
-              alt="Features" 
-              className="showcase-layer showcase-back"
-            />
-            <img 
-              src="./assets/desktop_showcase.png" 
-              alt="Desktop App" 
-              className="showcase-layer showcase-main"
-            />
-            <img 
-              src="./assets/mobile_showcase_v2.png" 
-              alt="Mobile App" 
-              className="showcase-layer showcase-front"
+              src="./assets/dark_mode__parameter_extended_view.png" 
+              alt="ResuMe Desktop Dark Mode" 
+              className="hero-image mask-hero"
             />
           </div>
         </section>
 
-        <section id="features" className="landing-features">
-          <div className="features-intro">
-            <h2>Designed for performance.</h2>
-            <p>Everything you need to craft the perfect profile, instantly.</p>
+        {/* BENTO GRID FEATURES SECTION */}
+        <section id="features" className="landing-bento-section">
+          <div className="bento-header animate-on-scroll">
+            <h2>Pro-level tools.</h2>
+            <p>Everything you need, wrapped in a beautiful, adaptive interface.</p>
           </div>
           
-          <div className="features-grid-premium">
-            <div className="feature-card-premium">
-              <div className="feature-icon-premium">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <div className="bento-grid">
+            {/* Feature 1: The App Frame (Large - span 2 cols) */}
+            <div className="bento-box bx-large animate-on-scroll">
+              <div className="bento-text">
+                <h3>Adaptive Editor</h3>
+                <p>Toggle sections, reorder freely, and see updates instantly without reload.</p>
               </div>
-              <h3 className="feature-title">Privacy First</h3>
-              <p className="feature-desc">All your data stays completely in your browser. No server saves, no tracking, absolute control.</p>
+              <div className="bento-media-wrapper">
+                <img src="./assets/light_mode_desktop_parameter_collapsed_view.png" alt="Light Mode Desktop" className="bento-img-top" />
+              </div>
+            </div>
+
+            {/* Feature 2: Mobile Centric (Tall - span 2 rows) */}
+            <div className="bento-box bx-tall animate-on-scroll">
+              <div className="bento-text">
+                <h3>Flawless on Mobile</h3>
+                <p>Edit your CV seamlessly on the go.</p>
+              </div>
+              <div className="bento-video-wrapper">
+                <div className="mockup-frame">
+                  <video 
+                    src="./assets/light_mode_mobile_preview_and_parameters_playging_view.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="bento-video"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 3: Custom Sections (Small - Col 1 Row 2) */}
+            <div className="bento-box bx-small animate-on-scroll">
+              <div className="bento-text">
+                <h3>Custom Blocks</h3>
+                <p>Go beyond defaults. Add anything.</p>
+              </div>
+              <div className="bento-media-wrapper pt-0">
+                 <img src="./assets/mobile_dark_mode_custom_section_view.jpeg" alt="Mobile Dark Mode" className="bento-img-scale" />
+              </div>
             </div>
             
-            <div className="feature-card-premium">
-              <div className="feature-icon-premium">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8l6 6"></path><path d="M4 14l6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="M22 22l-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+            {/* Feature 4: Privacy (Small - Col 2 Row 2) */}
+             <div className="bento-box bx-small animate-on-scroll gradient-box">
+              <div className="bento-text bento-centered">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="bento-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h3>Privacy First</h3>
+                <p>100% Client-side.<br/>No servers. No tracking.</p>
               </div>
-              <h3 className="feature-title">AI Translation</h3>
-              <p className="feature-desc">Instantly translate your CV into English or French with high-quality, pre-optimized AI prompts.</p>
             </div>
-            
-            <div className="feature-card-premium">
-              <div className="feature-icon-premium">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+
+            {/* Feature 5: High Customization (Medium - span 3 cols, Row 3) */}
+            <div className="bento-box bx-medium animate-on-scroll">
+               <div className="bento-text text-horizontal">
+                <div>
+                  <h3>Precision Control</h3>
+                  <p>Fine-tune every aspect of your timeline and effortlessly toggle between languages with integrated AI translation prompt hints.</p>
+                </div>
               </div>
-              <h3 className="feature-title">Premium Templates</h3>
-              <p className="feature-desc">Choose between standard and modern multi-column layouts crafted for maximum readability.</p>
-            </div>
-            
-            <div className="feature-card-premium">
-              <div className="feature-icon-premium">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              <div className="bento-media-wrapper overflow-hidden align-right">
+                <img src="./assets/dark_mode_desktop_english_toggled_view_on_certifs_panel.png" alt="Certifications English" className="bento-img-offset" />
               </div>
-              <h3 className="feature-title">Mobile Ready</h3>
-              <p className="feature-desc">Build, edit, and preview your beautiful resume seamlessly from your smartphone.</p>
             </div>
           </div>
         </section>
         
+        {/* FINAL CTA */}
+        <section className="landing-final-cta animate-on-scroll">
+          <h2>Ready to stand out?</h2>
+          <button className="landing-cta-primary large" onClick={onStart}>
+            Start Building Now
+          </button>
+        </section>
+
         <footer className="landing-footer">
           <div className="landing-logo">Resu<span>Me</span></div>
           <p>© {new Date().getFullYear()} ResuMe Preview Project. Open Source.</p>
