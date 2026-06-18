@@ -499,43 +499,6 @@ export default function App() {
     if (idx !== -1) {
       setStep(idx);
       if (window.innerWidth <= 1024) setMobileMenuOpen(false);
-    }
-  }, [allSteps]);
-
-  const handleStepperDragStart = (e, sectionId) => {
-    if (sectionId === 'personal') {
-      e.preventDefault();
-      return;
-    }
-    setDraggedStepId(sectionId);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', sectionId);
-  };
-
-  const handleStepperDragOver = (e, sectionId) => {
-    e.preventDefault();
-    if (sectionId === 'personal') return;
-    if (draggedStepId && draggedStepId !== sectionId) {
-      setDragOverStepId(sectionId);
-    }
-  };
-
-  const handleStepperDrop = (e, targetSectionId) => {
-    e.preventDefault();
-    if (targetSectionId === 'personal') return;
-    if (draggedStepId && draggedStepId !== targetSectionId) {
-      handleSectionReorder(draggedStepId, targetSectionId);
-      // Also update the current step to point to the dragged section
-      const newAllSteps = [...allSteps];
-      const fromIdx = newAllSteps.findIndex(s => s.id === draggedStepId);
-      const toIdx = newAllSteps.findIndex(s => s.id === targetSectionId);
-      if (fromIdx !== -1 && toIdx !== -1) {
-        setStep(toIdx);
-      }
-    }
-    setDraggedStepId(null);
-    setDragOverStepId(null);
-  };
       setShowMobilePreview(false); // Close preview on mobile to show the editor
       return;
     }
@@ -582,6 +545,40 @@ export default function App() {
       setShowMobilePreview(false);
     }
   }, [allSteps, language]);
+
+  const handleStepperDragStart = (e, sectionId) => {
+    if (sectionId === 'personal') {
+      e.preventDefault();
+      return;
+    }
+    setDraggedStepId(sectionId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sectionId);
+  };
+
+  const handleStepperDragOver = (e, sectionId) => {
+    e.preventDefault();
+    if (sectionId === 'personal') return;
+    if (draggedStepId && draggedStepId !== sectionId) {
+      setDragOverStepId(sectionId);
+    }
+  };
+
+  const handleStepperDrop = (e, targetSectionId) => {
+    e.preventDefault();
+    if (targetSectionId === 'personal') return;
+    if (draggedStepId && draggedStepId !== targetSectionId) {
+      handleSectionReorder(draggedStepId, targetSectionId);
+      const newAllSteps = [...allSteps];
+      const fromIdx = newAllSteps.findIndex(s => s.id === draggedStepId);
+      const toIdx = newAllSteps.findIndex(s => s.id === targetSectionId);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        setStep(toIdx);
+      }
+    }
+    setDraggedStepId(null);
+    setDragOverStepId(null);
+  };
 
   const addCustomSection = () => {
     const newSection = createEmptyCustomSection('New Section');
