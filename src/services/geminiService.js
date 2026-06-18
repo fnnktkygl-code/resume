@@ -389,5 +389,40 @@ Output the fully optimized resume with minimalist bolding as a valid JSON object
     throw error;
   }
 };
+export async function matchKeywordsWithProxy(data, jobDescription, language) {
+  try {
+    const res = await fetch('/api/matchKeywords', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, jobDescription, language })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to match keywords');
+    }
+    const result = await res.json();
+    return result;
+  } catch (error) {
+    console.error('Match Keywords Error:', error);
+    throw error;
+  }
+}
 
-
+export async function generateCoverLetterWithProxy(data, jobDescription, language) {
+  try {
+    const res = await fetch('/api/generateCoverLetter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, jobDescription, language })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to generate cover letter');
+    }
+    const result = await res.json();
+    return result.coverLetter;
+  } catch (error) {
+    console.error('Cover Letter Error:', error);
+    throw error;
+  }
+}
