@@ -90,6 +90,14 @@ export function createEmptyCertification() {
   };
 }
 
+export function createEmptySpacer() {
+  return {
+    id: `spacer_${safeUUID()}`,
+    type: 'spacer',
+    height: 32,
+  };
+}
+
 export function safeUUID() {
   try {
     return crypto.randomUUID();

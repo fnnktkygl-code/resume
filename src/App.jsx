@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from 'react';
-import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification, createEmptyCustomSection } from './utils/constants';
+import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification, createEmptyCustomSection, createEmptySpacer } from './utils/constants';
 import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR, DEMO_DATA_1_PAGE_ES, DEMO_DATA_2_PAGES_ES } from './utils/demoData';
 import AtsScore from './components/AtsScore';
 import ResumePreview from './components/ResumePreview';
@@ -11,6 +11,7 @@ import SkillsStep from './components/steps/SkillsStep';
 import ProjectsStep from './components/steps/ProjectsStep';
 import CertificationsStep from './components/steps/CertificationsStep';
 import CustomStep from './components/steps/CustomStep';
+import SpacerStep from './components/steps/SpacerStep';
 import { exportMarkdown, exportJson, importJson, exportDocx } from './utils/exporters';
 import { sanitizeResumeData } from './utils/sanitize';
 import { TranslationContext } from './utils/TranslationContext';
@@ -23,6 +24,8 @@ const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
 const AIBoldifyModal = lazy(() => import('./components/ui/AIBoldifyModal'));
 const OnboardingModal = lazy(() => import('./components/ui/OnboardingModal'));
 const CVManagerModal = lazy(() => import('./components/ui/CVManagerModal'));
+const ReorderSectionsModal = lazy(() => import('./components/ui/ReorderSectionsModal'));
+const CoverLetterModal = lazy(() => import('./components/ui/CoverLetterModal'));
 import ImportModal from './components/ui/ImportModal';
 
 const STORAGE_KEY = 'resume-builder-data';
@@ -144,6 +147,9 @@ export default function App() {
   const [isTailorOpen, setIsTailorOpen] = useState(false);
   const [isBoldifyOpen, setIsBoldifyOpen] = useState(false);
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+  const [isCoverLetterModalOpen, setIsCoverLetterModalOpen] = useState(false);
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
+  const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const templateDropdownRef = useRef(null);
@@ -251,6 +257,7 @@ export default function App() {
   });
 
   const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
 
   // Sync current data edits to the active CV in cvList and persist
   useEffect(() => {
@@ -436,6 +443,13 @@ export default function App() {
         icon = <i className="fi fi-rr-star" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
       } else if (s.id === 'custom_loisirs') {
         icon = <i className="fi fi-rr-smile" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
+      } else if (s.id.startsWith('spacer_')) {
+        icon = <i className="fi fi-rr-expand-arrows" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
+        return {
+          id: s.id,
+          label: 'Spacer',
+          icon
+        };
       }
       
       return {
@@ -509,6 +523,16 @@ export default function App() {
       sectionOrder: [...prev.sectionOrder, newSection.id]
     }));
     setStep(allSteps.length); // Navigate to the new step right away
+  };
+
+  const addSpacerSection = () => {
+    const newSpacer = createEmptySpacer();
+    setData(prev => ({
+      ...prev,
+      customSections: [...(prev.customSections || []), newSpacer],
+      sectionOrder: [...prev.sectionOrder, newSpacer.id]
+    }));
+    setStep(allSteps.length);
   };
 
   const handleImport = useCallback((imported) => {
@@ -629,6 +653,31 @@ export default function App() {
       setStep(0);
     }
   }, [cvList, activeCvId]);
+
+  const handleExportData = useCallback(() => {
+    const dataStr = JSON.stringify(cvList, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `resume-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [cvList]);
+
+  const handleImportData = useCallback((importedCvList) => {
+    if (Array.isArray(importedCvList) && importedCvList.length > 0) {
+      setCvList(importedCvList);
+      localStorage.setItem('resume-builder-cv-list', JSON.stringify(importedCvList));
+      const firstCv = importedCvList[0];
+      setActiveCvId(firstCv.id);
+      localStorage.setItem('resume-builder-active-cv-id', firstCv.id);
+      setData(firstCv.data);
+      alert(t('Backup restored successfully!'));
+    }
+  }, [t]);
 
   const handleSectionReorder = useCallback((newOrder) => {
     setData(prev => ({ ...prev, sectionOrder: newOrder }));
@@ -773,6 +822,11 @@ export default function App() {
           <div className="header-right">
             <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
 
+            {/* Cover Letter Generator */}
+            <button className="btn-demo" style={{ marginRight: '8px', border: '1px solid var(--color-border)' }} onClick={() => setIsCoverLetterModalOpen(true)}>
+              <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
+            </button>
+
             {/* Primary action: Import CV */}
             <button className="btn-demo btn-import-primary" onClick={() => setShowImportModal(true)}>
               <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
@@ -821,7 +875,7 @@ export default function App() {
         {/* Main */}
         <main className="main" id="main-content">
           {/* Left: Form Panel */}
-          <div className="form-panel">
+          <div className={`form-panel ${isEditorCollapsed ? 'collapsed' : ''}`}>
             {/* S2: Profile completion bar removed — integrated into ATS Score widget */}
 
             {/* Stepper */}
@@ -847,6 +901,26 @@ export default function App() {
               >
                 <span className="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
                 <span className="step-label">{t('Add Section')}</span>
+              </button>
+              <button 
+                className="step-btn step-add-btn" 
+                onClick={addSpacerSection}
+                title={t("Add Spacer (Page Break)")}
+                aria-label={t("Add Spacer (Page Break)")}
+                style={{ marginTop: '4px', borderStyle: 'dashed', backgroundColor: 'transparent' }}
+              >
+                <span className="step-icon"><i className="fi fi-rr-expand-arrows"></i></span>
+                <span className="step-label">{t('Add Spacer')}</span>
+              </button>
+              <button 
+                className="step-btn step-add-btn" 
+                onClick={() => setIsReorderModalOpen(true)}
+                title={t("Reorder Sections")}
+                aria-label={t("Reorder Sections")}
+                style={{ marginTop: '8px', borderStyle: 'dashed', backgroundColor: 'transparent' }}
+              >
+                <span className="step-icon"><i className="fi fi-rr-apps-sort"></i></span>
+                <span className="step-label">{t('Reorder Sections')}</span>
               </button>
             </nav>
 
@@ -965,6 +1039,15 @@ export default function App() {
                   onDelete={() => setSectionToDelete(currentId)}
                 />
               )}
+              {currentId?.startsWith('spacer_') && (
+                <SpacerStep 
+                  data={data.customSections.find(s => s.id === currentId)} 
+                  onChange={(updatedSec) => {
+                    const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
+                    setData({ ...data, customSections: mapped });
+                  }} 
+                />
+              )}
 
             </div>
 
@@ -985,7 +1068,25 @@ export default function App() {
             <aside className={`preview-panel ${isPreviewHeaderCollapsed ? 'preview-panel--collapsed' : ''}`} aria-label={t('Live Preview')}>
               <div className={`preview-sticky-header ${isPreviewHeaderCollapsed ? 'preview-sticky-header--collapsed' : ''}`}>
                 <div className="preview-header">
-                  <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                      title={isEditorCollapsed ? t('Expand Editor') : t('Collapse Editor')}
+                      style={{ padding: '4px 6px' }}
+                    >
+                      <i className={`fi fi-rr-angle-double-${isEditorCollapsed ? 'right' : 'left'}`}></i>
+                    </button>
+                    <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setIsFullScreenPreview(true)}
+                      title={t('Full Screen')}
+                      style={{ padding: '4px 6px', marginLeft: '4px' }}
+                    >
+                      <i className="fi fi-rr-expand"></i>
+                    </button>
+                  </div>
                   {isPreviewHeaderCollapsed ? (
                     <button 
                       className="control-btn"
@@ -1483,7 +1584,25 @@ export default function App() {
               onDuplicateCv={handleDuplicateCv}
               onRenameCv={handleRenameCv}
               onDeleteCv={handleDeleteCv}
+              onExportData={handleExportData}
+              onImportData={handleImportData}
               language={language}
+            />
+          )}
+          {isReorderModalOpen && (
+            <ReorderSectionsModal
+              isOpen={isReorderModalOpen}
+              onClose={() => setIsReorderModalOpen(false)}
+              sectionOrder={data.sectionOrder || DEFAULT_SECTION_ORDER}
+              customSections={data.customSections}
+              onReorder={handleSectionReorder}
+            />
+          )}
+          {isCoverLetterModalOpen && (
+            <CoverLetterModal
+              isOpen={isCoverLetterModalOpen}
+              onClose={() => setIsCoverLetterModalOpen(false)}
+              data={data}
             />
           )}
         </Suspense>
@@ -1503,6 +1622,40 @@ export default function App() {
           <div className="save-toast" key={Date.now()}>
             <span className="save-dot" />
             ✓ {t('Saved')}
+          </div>
+        )}
+
+        {isFullScreenPreview && (
+          <div className="fullscreen-overlay">
+            <div className="fullscreen-header">
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{t('Full Screen Preview')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-bg)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--color-border)' }}>
+                  <button className="control-btn" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title={t('Zoom Out')} style={{ padding: '2px 6px' }}>−</button>
+                  <span style={{ fontSize: '12px', fontWeight: '600', minWidth: '40px', textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
+                  <button className="control-btn" onClick={() => setZoom(z => Math.min(2, z + 0.1))} title={t('Zoom In')} style={{ padding: '2px 6px' }}>+</button>
+                  <button className="control-btn" onClick={() => setZoom(1)} title={t('Reset Zoom')} style={{ padding: '2px 6px', marginLeft: '4px' }}><i className="fi fi-rr-refresh"></i></button>
+                </div>
+              </div>
+              <button className="btn-secondary" onClick={() => setIsFullScreenPreview(false)} style={{ padding: '8px 16px' }}>
+                <i className="fi fi-rr-cross"></i> {t('Close')}
+              </button>
+            </div>
+            <div className="fullscreen-content">
+              <div 
+                className="resume-container" 
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s ease-out' }}
+              >
+                <div className="resume-wrapper" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}>
+                  <ResumePreview
+                    data={data}
+                    template={template}
+                    layout={layout}
+                    language={language}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

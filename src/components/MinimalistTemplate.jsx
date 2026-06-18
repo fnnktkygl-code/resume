@@ -229,6 +229,11 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
             </div>
           );
         }
+        if (sectionId.startsWith('spacer_')) {
+          const spacerSec = data.customSections?.find(s => s.id === sectionId);
+          if (!spacerSec) return null;
+          return <div key={sectionId} style={{ height: `${spacerSec.height}px` }} />;
+        }
         return null;
     }
   };

@@ -249,8 +249,11 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
 
           {/* Custom Sections */}
           {data.customSections?.map(sec => {
-            const validItems = sec.items.filter(i => i.title || i.subtitle || i.description);
-            if (!validItems.length) return null;
+            if (sec.id.startsWith('spacer_')) {
+              return <div key={sec.id} style={{ height: `${sec.height}px` }} />;
+            }
+            const validItems = sec.items?.filter(i => i.title || i.subtitle || i.description);
+            if (!validItems || !validItems.length) return null;
             return (
               <div key={sec.id} className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle(sec.id)} onClick={() => handleSectionClick(sec.id)}>
                 <div style={sectionHeaderStyle}>{sec.label || 'Custom'}</div>

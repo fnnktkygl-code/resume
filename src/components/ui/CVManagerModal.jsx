@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, onLoadCv, onCreateCv, onDuplicateCv, onRenameCv, onDeleteCv }) {
+export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, onLoadCv, onCreateCv, onDuplicateCv, onRenameCv, onDeleteCv, onExportData, onImportData }) {
   const { t, language } = useTranslation();
+  const fileInputRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [newName, setNewName] = useState('');
 
@@ -176,6 +177,46 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
         >
           + {t('Create New Resume')}
         </button>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          <button 
+            type="button"
+            className="btn-secondary" 
+            onClick={onExportData}
+            style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
+          >
+            💾 {t('Export Backup')}
+          </button>
+          <button 
+            type="button"
+            className="btn-secondary" 
+            onClick={() => fileInputRef.current?.click()}
+            style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
+          >
+            📥 {t('Import Backup')}
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            accept=".json" 
+            style={{ display: 'none' }} 
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                try {
+                  const importedData = JSON.parse(event.target.result);
+                  onImportData(importedData);
+                } catch (err) {
+                  alert(t('Invalid backup file.'));
+                }
+              };
+              reader.readAsText(file);
+              e.target.value = '';
+            }} 
+          />
+        </div>
       </div>
     </Modal>
   );

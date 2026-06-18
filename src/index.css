@@ -349,6 +349,17 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  transition: all 0.3s ease;
+}
+
+.form-panel.collapsed {
+  flex: 0 0 0px;
+  min-width: 0px;
+  width: 0px;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .preview-panel {

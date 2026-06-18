@@ -304,6 +304,15 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           </div>
         );
       default:
+        if (sectionId.startsWith('spacer_')) {
+          const spacerSec = data.customSections?.find(s => s.id === sectionId);
+          if (!spacerSec) return null;
+          return (
+            <div key={sectionId} {...wrapProps} style={{ ...wrapProps.style, height: `${spacerSec.height}px` }}>
+              {isDraggable && <DragHandleWithActions />}
+            </div>
+          );
+        }
         if (sectionId.startsWith('custom_')) {
           const customSec = data.customSections?.find(s => s.id === sectionId);
           if (!customSec || !customSec.items.length) return null;

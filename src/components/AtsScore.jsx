@@ -2,6 +2,7 @@ import { computeAtsScore } from '../utils/atsScore';
 import { useTranslation } from '../utils/TranslationContext';
 import { memo, useState } from 'react';
 import { analyzeResumeWithProxy } from '../services/geminiService';
+import ATSKeywordsModal from './ui/ATSKeywordsModal';
 
 function AtsScore({ data }) {
   const { t, language } = useTranslation();
@@ -9,6 +10,7 @@ function AtsScore({ data }) {
   const [aiTips, setAiTips] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
+  const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState(false);
 
   const checklist = [
     { label: t('Personal Info'), completed: !!(data.personal.name || data.personal.email) },
@@ -113,9 +115,42 @@ function AtsScore({ data }) {
               </>
             )}
           </button>
+          
+          <button 
+            onClick={() => setIsKeywordsModalOpen(true)} 
+            title={t('Compare resume with job description keywords')}
+            style={{
+              marginTop: '6px',
+              width: '100%',
+              padding: '5px 12px',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              backgroundColor: 'transparent',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--color-accent)'}
+            onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--color-border)'}
+          >
+            <i className="fi fi-rr-search-alt"></i> {t('Keyword Matcher')}
+          </button>
+
           {error && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '6px' }}>{error}</div>}
         </div>
       </div>
+      
+      <ATSKeywordsModal 
+        isOpen={isKeywordsModalOpen} 
+        onClose={() => setIsKeywordsModalOpen(false)} 
+        data={data} 
+      />
  
       {/* Completeness Checklist */}
       <div className="ats-checklist" style={{ marginTop: '14px', borderTop: '1px dashed var(--color-border)', paddingTop: '12px' }}>
