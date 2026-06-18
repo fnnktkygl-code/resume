@@ -11,7 +11,10 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
   const validEdu = data.education.filter(e => e.institution || e.degree);
   const validProj = data.projects.filter(pr => pr.name);
   const validCert = data.certifications.filter(c => c.name);
-  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+  const hasCustomLangues = data.customSections?.some(s => 
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+  );
+  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
 
   const {
@@ -77,7 +80,7 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 </div>
               </div>
             )}
-            {data.skills.languages && (
+            {data.skills.languages && !hasCustomLangues && (
               <div className="modern-sidebar-item">
                 <strong style={{ display: 'block', marginBottom: '4px' }}>{h.languages}</strong>
                 <div className="skills-container">

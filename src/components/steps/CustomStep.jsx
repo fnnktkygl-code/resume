@@ -27,6 +27,65 @@ export default function CustomStep({ section, onChange, onDelete }) {
     onChange({ ...section, items: updatedItems });
   };
 
+  const isLangues = section.id === 'custom_langues';
+  const isAtouts = section.id === 'custom_atouts';
+  const isLoisirs = section.id === 'custom_loisirs';
+
+  const getFieldSettings = () => {
+    if (isLangues) {
+      return {
+        titleLabel: t('Language'),
+        titlePlaceholder: t('E.g., English'),
+        showSubtitle: true,
+        subtitleLabel: t('Level'),
+        subtitlePlaceholder: t('E.g., Native, Fluent, B2'),
+        showDate: false,
+        showDescription: true,
+        descLabel: t('Details (Optional)'),
+        descPlaceholder: t('E.g., IELTS 8.5, professional usage...'),
+      };
+    }
+    if (isAtouts) {
+      return {
+        titleLabel: t('Strength'),
+        titlePlaceholder: t('E.g., Problem Solving'),
+        showSubtitle: true,
+        subtitleLabel: t('Context / Level (Optional)'),
+        subtitlePlaceholder: t('E.g., Advanced, 5 years experience'),
+        showDate: false,
+        showDescription: true,
+        descLabel: t('Details (Optional)'),
+        descPlaceholder: t('Provide any additional context...'),
+      };
+    }
+    if (isLoisirs) {
+      return {
+        titleLabel: t('Hobby / Interest'),
+        titlePlaceholder: t('E.g., Photography, Hiking'),
+        showSubtitle: false,
+        showDate: false,
+        showDescription: true,
+        descLabel: t('Details (Optional)'),
+        descPlaceholder: t('Provide any additional context...'),
+      };
+    }
+    return {
+      titleLabel: t('Title / Name'),
+      titlePlaceholder: t('E.g., Employee of the Year'),
+      showSubtitle: true,
+      subtitleLabel: t('Subtitle / Issuer'),
+      subtitlePlaceholder: t('E.g., Acme Corp'),
+      showDate: true,
+      dateLabel: t('Date / Year'),
+      datePlaceholder: t('E.g., 2023 or Nov 2023'),
+      showDescription: true,
+      descLabel: t('Description / Details (Optional)'),
+      descPlaceholder: t('Provide any additional context or details here...'),
+    };
+  };
+
+  const fields = getFieldSettings();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div className="card">
@@ -59,39 +118,45 @@ export default function CustomStep({ section, onChange, onDelete }) {
             </div>
             
             <div className="field-grid">
-              <Field label={t('Title / Name')}>
+              <Field label={fields.titleLabel} full={!fields.showSubtitle && !fields.showDate}>
                 <TextInput 
                   value={item.title} 
                   onChange={(v) => updateItem(ii, 'title', v)} 
-                  placeholder={t('E.g., Employee of the Year')} 
+                  placeholder={fields.titlePlaceholder} 
                 />
               </Field>
-              <Field label={t('Subtitle / Issuer')}>
-                <TextInput 
-                  value={item.subtitle} 
-                  onChange={(v) => updateItem(ii, 'subtitle', v)} 
-                  placeholder={t('E.g., Acme Corp')} 
-                />
-              </Field>
-              <Field label={t('Date / Year')}>
-                <TextInput 
-                  value={item.date} 
-                  onChange={(v) => updateItem(ii, 'date', v)} 
-                  placeholder={t('E.g., 2023 or Nov 2023')} 
-                />
-              </Field>
+              {fields.showSubtitle && (
+                <Field label={fields.subtitleLabel}>
+                  <TextInput 
+                    value={item.subtitle} 
+                    onChange={(v) => updateItem(ii, 'subtitle', v)} 
+                    placeholder={fields.subtitlePlaceholder} 
+                  />
+                </Field>
+              )}
+              {fields.showDate && (
+                <Field label={fields.dateLabel}>
+                  <TextInput 
+                    value={item.date} 
+                    onChange={(v) => updateItem(ii, 'date', v)} 
+                    placeholder={fields.datePlaceholder} 
+                  />
+                </Field>
+              )}
             </div>
             
-            <div style={{ marginTop: '16px' }}>
-              <Field label={t('Description / Details (Optional)')}>
-                <TextArea 
-                  value={item.description} 
-                  onChange={(v) => updateItem(ii, 'description', v)} 
-                  placeholder={t('Provide any additional context or details here...')} 
-                  rows={3} 
-                />
-              </Field>
-            </div>
+            {fields.showDescription && (
+              <div style={{ marginTop: '16px' }}>
+                <Field label={fields.descLabel} full>
+                  <TextArea 
+                    value={item.description} 
+                    onChange={(v) => updateItem(ii, 'description', v)} 
+                    placeholder={fields.descPlaceholder} 
+                    rows={3} 
+                  />
+                </Field>
+              </div>
+            )}
           </div>
         ))}
       </div>

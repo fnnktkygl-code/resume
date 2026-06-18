@@ -42,7 +42,7 @@ const DEFAULT_LAYOUT = {
   fontFamily: 'Inter',
 };
 
-const DEFAULT_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_atouts', 'custom_loisirs'];
+const DEFAULT_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];
 
 function detectLanguage() {
   try {
@@ -60,14 +60,17 @@ function loadData() {
   const getLocalizedDefaultData = () => {
     const defaultData = structuredClone(DEFAULT_DATA);
     if (lang === 'fr') {
-      defaultData.customSections[0].label = 'Atouts';
-      defaultData.customSections[1].label = 'Loisirs';
+      defaultData.customSections[0].label = 'Langues';
+      defaultData.customSections[1].label = 'Atouts';
+      defaultData.customSections[2].label = 'Loisirs';
     } else if (lang === 'es') {
-      defaultData.customSections[0].label = 'Fortalezas';
-      defaultData.customSections[1].label = 'Aficiones';
+      defaultData.customSections[0].label = 'Idiomas';
+      defaultData.customSections[1].label = 'Fortalezas';
+      defaultData.customSections[2].label = 'Aficiones';
     } else {
-      defaultData.customSections[0].label = 'Strengths';
-      defaultData.customSections[1].label = 'Hobbies';
+      defaultData.customSections[0].label = 'Languages';
+      defaultData.customSections[1].label = 'Strengths';
+      defaultData.customSections[2].label = 'Hobbies';
     }
     return defaultData;
   };
@@ -383,11 +386,23 @@ export default function App() {
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
   const allSteps = useMemo(() => {
-    const custom = (data.customSections || []).map(s => ({
-      id: s.id,
-      label: s.label || 'Custom',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-    }));
+    const custom = (data.customSections || []).map(s => {
+      let icon = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>;
+      
+      if (s.id === 'custom_langues') {
+        icon = <i className="fi fi-rr-globe" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
+      } else if (s.id === 'custom_atouts') {
+        icon = <i className="fi fi-rr-star" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
+      } else if (s.id === 'custom_loisirs') {
+        icon = <i className="fi fi-rr-smile" style={{ fontSize: '1.1rem', lineHeight: 1 }}></i>;
+      }
+      
+      return {
+        id: s.id,
+        label: s.label || 'Custom',
+        icon
+      };
+    });
     return [...STEPS, ...custom];
   }, [data.customSections]);
 
@@ -403,9 +418,12 @@ export default function App() {
     }
 
     // If it's a default custom section that is missing, create it
-    if (sectionId === 'custom_atouts' || sectionId === 'custom_loisirs') {
+    if (sectionId === 'custom_langues' || sectionId === 'custom_atouts' || sectionId === 'custom_loisirs') {
+      const isLangues = sectionId === 'custom_langues';
       const isAtouts = sectionId === 'custom_atouts';
-      const label = isAtouts 
+      const label = isLangues
+        ? (language === 'fr' ? 'Langues' : language === 'es' ? 'Idiomas' : 'Languages')
+        : isAtouts
         ? (language === 'fr' ? 'Atouts' : language === 'es' ? 'Fortalezas' : 'Strengths')
         : (language === 'fr' ? 'Loisirs' : language === 'es' ? 'Aficiones' : 'Hobbies');
       
@@ -413,7 +431,7 @@ export default function App() {
         id: sectionId,
         label,
         items: [{
-          id: `item_${isAtouts ? 'atouts' : 'loisirs'}_1`,
+          id: `item_${isLangues ? 'langues' : isAtouts ? 'atouts' : 'loisirs'}_1`,
           title: '',
           subtitle: '',
           date: '',
@@ -582,8 +600,16 @@ export default function App() {
         if (isDemo2) nextData = DEMO_DATA_2_PAGES_FR;
         else if (isDemo1) nextData = DEMO_DATA_1_PAGE_FR;
 
+        const customSections = (nextData.customSections || []).map(s => {
+          if (s.id === 'custom_langues') return { ...s, label: 'Langues' };
+          if (s.id === 'custom_atouts') return { ...s, label: 'Atouts' };
+          if (s.id === 'custom_loisirs') return { ...s, label: 'Loisirs' };
+          return s;
+        });
+
         return { 
           ...nextData,
+          customSections,
           sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
@@ -603,8 +629,16 @@ export default function App() {
         if (isDemo2) nextData = DEMO_DATA_2_PAGES_ES;
         else if (isDemo1) nextData = DEMO_DATA_1_PAGE_ES;
 
+        const customSections = (nextData.customSections || []).map(s => {
+          if (s.id === 'custom_langues') return { ...s, label: 'Idiomas' };
+          if (s.id === 'custom_atouts') return { ...s, label: 'Fortalezas' };
+          if (s.id === 'custom_loisirs') return { ...s, label: 'Aficiones' };
+          return s;
+        });
+
         return { 
           ...nextData,
+          customSections,
           sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
@@ -624,8 +658,16 @@ export default function App() {
         if (isDemo2) nextData = DEMO_DATA_2_PAGES;
         else if (isDemo1) nextData = DEMO_DATA_1_PAGE;
 
+        const customSections = (nextData.customSections || []).map(s => {
+          if (s.id === 'custom_langues') return { ...s, label: 'Languages' };
+          if (s.id === 'custom_atouts') return { ...s, label: 'Strengths' };
+          if (s.id === 'custom_loisirs') return { ...s, label: 'Hobbies' };
+          return s;
+        });
+
         return { 
           ...nextData,
+          customSections,
           sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,

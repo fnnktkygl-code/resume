@@ -22,9 +22,6 @@ export default function SkillsStep({ data, onChange }) {
         <Field label={t('Soft Skills')} full>
           <TextInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile Project Management" />
         </Field>
-        <Field label={t('Languages')} full>
-          <TextInput value={data.languages} onChange={(v) => update('languages', v)} placeholder="English (Native), French (Professional)" />
-        </Field>
       </div>
       <div className="tip">
         💡 <strong>{t('Keyword Strategy')}:</strong> {t('Mirror the exact phrasing from target job descriptions. Modern AI parsers understand synonyms, but legacy ATS still relies on exact matches.')}

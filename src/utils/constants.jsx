@@ -145,6 +145,19 @@ export const DEFAULT_DATA = {
   certifications: [createEmptyCertification()],
   customSections: [
     {
+      id: 'custom_langues',
+      label: 'Langues',
+      items: [
+        {
+          id: 'item_langues_1',
+          title: '',
+          subtitle: '',
+          date: '',
+          description: ''
+        }
+      ]
+    },
+    {
       id: 'custom_atouts',
       label: 'Atouts',
       items: [
@@ -171,6 +184,6 @@ export const DEFAULT_DATA = {
       ]
     }
   ],
-  sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_atouts', 'custom_loisirs'],
+  sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'],
 };
 

@@ -15,7 +15,10 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
   const validEdu = data.education.filter(e => e.institution || e.degree);
   const validProj = data.projects.filter(pr => pr.name);
   const validCert = data.certifications.filter(c => c.name);
-  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+  const hasCustomLangues = data.customSections?.some(s => 
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+  );
+  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const hasContent = hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length;
 
   const h = data.headings || {};
@@ -238,7 +241,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                   </div>
                 </div>
               )}
-              {data.skills.languages && (
+              {data.skills.languages && !hasCustomLangues && (
                 <div>
                   <strong>{h.languages}</strong>
                   <div className="skills-container">

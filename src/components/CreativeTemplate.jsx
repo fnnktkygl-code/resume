@@ -10,7 +10,10 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
   const validEdu = data.education.filter(e => e.institution || e.degree);
   const validProj = data.projects.filter(pr => pr.name);
   const validCert = data.certifications.filter(c => c.name);
-  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+  const hasCustomLangues = data.customSections?.some(s => 
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+  );
+  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
 
   const {
@@ -130,7 +133,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                     </div>
                   </div>
                 )}
-                {data.skills.languages && (
+                {data.skills.languages && !hasCustomLangues && (
                   <div>
                     <strong style={{ display: 'block', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #444)', marginBottom: '3px' }}>{h.languages || 'Languages'}</strong>
                     <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>

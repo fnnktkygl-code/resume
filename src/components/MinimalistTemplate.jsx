@@ -10,7 +10,10 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
   const validEdu = data.education.filter(e => e.institution || e.degree);
   const validProj = data.projects.filter(pr => pr.name);
   const validCert = data.certifications.filter(c => c.name);
-  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+  const hasCustomLangues = data.customSections?.some(s => 
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+  );
+  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
 
   const {
@@ -143,7 +146,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                   <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.soft}</span>
                 </div>
               )}
-              {data.skills.languages && (
+              {data.skills.languages && !hasCustomLangues && (
                 <div>
                   <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{h.languages || 'Languages'}:</span>
                   <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.languages}</span>
