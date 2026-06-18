@@ -568,12 +568,20 @@ export default function App() {
     e.preventDefault();
     if (targetSectionId === 'personal') return;
     if (draggedStepId && draggedStepId !== targetSectionId) {
-      handleSectionReorder(draggedStepId, targetSectionId);
-      const newAllSteps = [...allSteps];
-      const fromIdx = newAllSteps.findIndex(s => s.id === draggedStepId);
-      const toIdx = newAllSteps.findIndex(s => s.id === targetSectionId);
+      const newOrder = [...data.sectionOrder];
+      const fromIdx = newOrder.indexOf(draggedStepId);
+      const toIdx = newOrder.indexOf(targetSectionId);
       if (fromIdx !== -1 && toIdx !== -1) {
-        setStep(toIdx);
+        newOrder.splice(fromIdx, 1);
+        newOrder.splice(toIdx, 0, draggedStepId);
+        handleSectionReorder(newOrder);
+      }
+      
+      const newAllSteps = [...allSteps];
+      const stepFromIdx = newAllSteps.findIndex(s => s.id === draggedStepId);
+      const stepToIdx = newAllSteps.findIndex(s => s.id === targetSectionId);
+      if (stepFromIdx !== -1 && stepToIdx !== -1) {
+        setStep(stepToIdx);
       }
     }
     setDraggedStepId(null);
