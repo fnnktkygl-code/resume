@@ -79,7 +79,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
             <div style={sectionTitleStyle}>{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <strong style={{ fontSize: '10pt', color: textColor }}>{exp.title}</strong>
                     <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)', whiteSpace: 'nowrap' }}>
@@ -117,7 +117,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
             <div style={sectionTitleStyle}>{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <strong style={{ fontSize: '10pt', color: textColor }}>{edu.degree}</strong>
                     <span style={{ fontSize: '8.5pt', color: '#666', whiteSpace: 'nowrap' }}>
@@ -168,7 +168,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
             <div style={sectionTitleStyle}>{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <strong style={{ fontSize: '10pt', color: textColor }}>{pr.name}</strong>
                     {pr.link && <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)' }}>{pr.link}</span>}
@@ -194,7 +194,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
             <div style={sectionTitleStyle}>{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {validCert.map((c, i) => (
-                <div key={i} style={{ fontSize: '9pt', color: textColor }}>
+                <div key={i} style={{ fontSize: '9pt', color: textColor, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <strong>{c.name}</strong> — {c.issuer}{c.date ? ` (${c.date})` : ''}
                 </div>
               ))}
@@ -214,7 +214,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
               <div style={sectionTitleStyle}>{customSec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <strong style={{ fontSize: '10pt', color: textColor }}>{item.title}</strong>
                       {item.date && <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)' }}>{item.date}</span>}

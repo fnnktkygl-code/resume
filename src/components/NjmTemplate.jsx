@@ -184,7 +184,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
                       {renderExperienceIcon(exp.icon)} {exp.title}
@@ -236,7 +236,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
-                <div key={i} style={{ display: 'flex', gap: '16px' }}>
+                <div key={i} style={{ display: 'flex', gap: '16px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ width: '50px', flexShrink: 0, textAlign: 'right', fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', paddingTop: '2px' }}>
                     {edu.startYear && <div style={{ marginBottom: '2px' }}>{edu.startYear}</div>}
                     {edu.endYear && <div>{edu.current ? t('PRESENT') : edu.endYear}</div>}
@@ -312,7 +312,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
                       {pr.name}
@@ -355,7 +355,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       {item.title && (
                         <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>

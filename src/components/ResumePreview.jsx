@@ -175,7 +175,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div className="resume-exp-header">
                     {exp.link ? (
                       <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
@@ -209,7 +209,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div className="resume-exp-header">
                     <span className="resume-company">{edu.institution}</span>
                     <span className="resume-dates">
@@ -266,7 +266,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
-                <div key={i}>
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <div className="resume-exp-header">
                     <span className="resume-company">{pr.name}</span>
                     {pr.link && <span className="resume-dates">{pr.link}</span>}
@@ -310,7 +310,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
               <div className="resume-section-header">{customSec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div className="resume-exp-header">
                       {item.title && <span className="resume-company">{item.title}</span>}
                       {item.date && <span className="resume-dates">{item.date}</span>}

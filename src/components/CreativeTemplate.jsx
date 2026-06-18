@@ -171,7 +171,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
               <div style={sectionHeaderStyle}>{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validExp.map((exp, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <strong style={{ fontSize: '10pt', color: textColor }}>{exp.title}</strong>
                       <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)', whiteSpace: 'nowrap' }}>
@@ -208,7 +208,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
               <div style={sectionHeaderStyle}>{displayHeading('education', 'Education', 'EDUCATION')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validEdu.map((edu, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <strong style={{ fontSize: '10pt', color: textColor }}>{edu.degree}</strong>
                       <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)', whiteSpace: 'nowrap' }}>
@@ -228,7 +228,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
               <div style={sectionHeaderStyle}>{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validProj.map((pr, i) => (
-                  <div key={i}>
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <strong style={{ fontSize: '10pt', color: textColor }}>{pr.name}</strong>
                       {pr.link && <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)' }}>{pr.link}</span>}
@@ -256,7 +256,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                 <div style={sectionHeaderStyle}>{sec.label || 'Custom'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                   {validItems.map((item, i) => (
-                    <div key={i}>
+                    <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <strong style={{ fontSize: '10pt', color: textColor }}>{item.title}</strong>
                         {item.date && <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)' }}>{item.date}</span>}
