@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from 'react';
 import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification, createEmptyCustomSection } from './utils/constants';
-import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR } from './utils/demoData';
+import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR, DEMO_DATA_1_PAGE_ES, DEMO_DATA_2_PAGES_ES } from './utils/demoData';
 import AtsScore from './components/AtsScore';
 import ResumePreview from './components/ResumePreview';
 import PersonalStep from './components/steps/PersonalStep';
@@ -11,15 +11,21 @@ import SkillsStep from './components/steps/SkillsStep';
 import ProjectsStep from './components/steps/ProjectsStep';
 import CertificationsStep from './components/steps/CertificationsStep';
 import CustomStep from './components/steps/CustomStep';
-import { exportMarkdown, exportJson, importJson } from './utils/exporters';
+import { exportMarkdown, exportJson, importJson, exportDocx } from './utils/exporters';
 import { sanitizeResumeData } from './utils/sanitize';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
 import Modal from './components/ui/Modal';
+import QuotaBadge from './components/QuotaBadge';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
+const AIBoldifyModal = lazy(() => import('./components/ui/AIBoldifyModal'));
+const OnboardingModal = lazy(() => import('./components/ui/OnboardingModal'));
+const CVManagerModal = lazy(() => import('./components/ui/CVManagerModal'));
+const JobFinderModal = lazy(() => import('./components/ui/JobFinderModal'));
+import ImportModal from './components/ui/ImportModal';
 
 const STORAGE_KEY = 'resume-builder-data';
 const THEME_KEY = 'resume-builder-theme';
@@ -34,39 +40,69 @@ const DEFAULT_LAYOUT = {
   lineHeight: 1.45,
   sectionSpacing: 10,
   itemSpacing: 8,
+  accentColor: '#1B6B3A',
+  fontFamily: 'Inter',
 };
 
-const DEFAULT_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
+const DEFAULT_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_atouts', 'custom_loisirs'];
 
 function detectLanguage() {
   try {
     const browserLang = navigator.language || navigator.userLanguage || 'en';
-    return browserLang.startsWith('fr') ? 'fr' : 'en';
+    if (browserLang.startsWith('fr')) return 'fr';
+    if (browserLang.startsWith('es')) return 'es';
+    return 'en';
   } catch {
     return 'en';
   }
 }
 
 function loadData() {
+  const lang = detectLanguage();
+  const getLocalizedDefaultData = () => {
+    const defaultData = structuredClone(DEFAULT_DATA);
+    if (lang === 'fr') {
+      defaultData.customSections[0].label = 'Atouts';
+      defaultData.customSections[1].label = 'Loisirs';
+    } else if (lang === 'es') {
+      defaultData.customSections[0].label = 'Fortalezas';
+      defaultData.customSections[1].label = 'Aficiones';
+    } else {
+      defaultData.customSections[0].label = 'Strengths';
+      defaultData.customSections[1].label = 'Hobbies';
+    }
+    return defaultData;
+  };
+
   try {
+    const listSaved = localStorage.getItem('resume-builder-cv-list');
+    const activeId = localStorage.getItem('resume-builder-active-cv-id') || 'default';
+    if (listSaved) {
+      const parsed = JSON.parse(listSaved);
+      const activeCv = parsed.find(c => c.id === activeId);
+      if (activeCv && activeCv.data) {
+        return activeCv.data;
+      }
+    }
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       const sanitized = sanitizeResumeData(parsed);
+      const localizedDefaults = getLocalizedDefaultData();
       return {
-        ...DEFAULT_DATA,
+        ...localizedDefaults,
         ...sanitized,
-        headings: { ...DEFAULT_DATA.headings, ...sanitized.headings },
-        personal: { ...DEFAULT_DATA.personal, ...sanitized.personal },
-        skills: { ...DEFAULT_DATA.skills, ...sanitized.skills },
-        projects: sanitized.projects || DEFAULT_DATA.projects,
-        certifications: sanitized.certifications || DEFAULT_DATA.certifications,
+        headings: { ...localizedDefaults.headings, ...sanitized.headings },
+        personal: { ...localizedDefaults.personal, ...sanitized.personal },
+        skills: { ...localizedDefaults.skills, ...sanitized.skills },
+        projects: sanitized.projects || localizedDefaults.projects,
+        certifications: sanitized.certifications || localizedDefaults.certifications,
         sectionOrder: sanitized.sectionOrder || DEFAULT_SECTION_ORDER,
-        customSections: sanitized.customSections || [],
+        customSections: (sanitized.customSections && sanitized.customSections.length > 0) ? sanitized.customSections : localizedDefaults.customSections,
       };
     }
   } catch {}
-  return { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] };
+  return { ...getLocalizedDefaultData(), sectionOrder: [...DEFAULT_SECTION_ORDER] };
 }
 
 function loadTheme() {
@@ -87,7 +123,9 @@ function loadLayout() {
 
 function loadTemplate() {
   try {
-    return localStorage.getItem(TEMPLATE_KEY) || 'standard';
+    const val = localStorage.getItem(TEMPLATE_KEY);
+    if (val === 'recruiter') return 'njm';
+    return val || 'standard';
   } catch {
     return 'standard';
   }
@@ -103,17 +141,194 @@ export default function App() {
   const [template, setTemplate] = useState(loadTemplate);
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isTailorOpen, setIsTailorOpen] = useState(false);
+  const [isBoldifyOpen, setIsBoldifyOpen] = useState(false);
+  const [isJobFinderOpen, setIsJobFinderOpen] = useState(false);
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
+  const templateDropdownRef = useRef(null);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const onboarded = localStorage.getItem('resume-builder-onboarded');
+    if (!onboarded) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  // Dynamic theme accent color sync
+  useEffect(() => {
+    const accent = layout.accentColor || '#1B6B3A';
+    document.documentElement.style.setProperty('--color-accent', accent);
+    
+    let r = 27, g = 107, b = 58;
+    if (accent.startsWith('#')) {
+      const cleanHex = accent.replace('#', '');
+      if (cleanHex.length === 3) {
+        r = parseInt(cleanHex[0] + cleanHex[0], 16);
+        g = parseInt(cleanHex[1] + cleanHex[1], 16);
+        b = parseInt(cleanHex[2] + cleanHex[2], 16);
+      } else if (cleanHex.length === 6) {
+        r = parseInt(cleanHex.slice(0, 2), 16);
+        g = parseInt(cleanHex.slice(2, 4), 16);
+        b = parseInt(cleanHex.slice(4, 6), 16);
+      }
+    }
+    
+    if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+      document.documentElement.style.setProperty('--color-accent-rgb', `${r}, ${g}, ${b}`);
+      document.documentElement.style.setProperty('--color-accent-light', `rgba(${r}, ${g}, ${b}, 0.1)`);
+      document.documentElement.style.setProperty('--color-accent-hover', `rgba(${r}, ${g}, ${b}, 0.85)`);
+    } else {
+      document.documentElement.style.setProperty('--color-accent-light', 'rgba(27, 107, 58, 0.1)');
+      document.documentElement.style.setProperty('--color-accent-hover', 'rgba(27, 107, 58, 0.85)');
+    }
+  }, [layout.accentColor]);
+
+  // Multi-CV states
+  const [cvList, setCvList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('resume-builder-cv-list');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    const initialCv = {
+      id: 'default',
+      name: detectLanguage() === 'fr' ? 'Mon CV Principal' : 'My Primary Resume',
+      lastModified: Date.now(),
+      data: loadData()
+    };
+    localStorage.setItem('resume-builder-cv-list', JSON.stringify([initialCv]));
+    return [initialCv];
+  });
+
+  const [activeCvId, setActiveCvId] = useState(() => {
+    try {
+      return localStorage.getItem('resume-builder-active-cv-id') || 'default';
+    } catch {
+      return 'default';
+    }
+  });
+
+  const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
+
+  // Sync current data edits to the active CV in cvList and persist
+  useEffect(() => {
+    setCvList(prev => {
+      const updated = prev.map(cv => {
+        if (cv.id === activeCvId) {
+          return {
+            ...cv,
+            lastModified: Date.now(),
+            data: data
+          };
+        }
+        return cv;
+      });
+      localStorage.setItem('resume-builder-cv-list', JSON.stringify(updated));
+      return updated;
+    });
+  }, [data, activeCvId]);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
-  const [showExportConfirm, setShowExportConfirm] = useState(false);
-  const [exportConfig, setExportConfig] = useState({ type: '', title: '', message: '', action: null });
-  const [sectionToDelete, setSectionToDelete] = useState(null);
-  const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '' });
 
-  
+  // Close template dropdown on outside click
+  useEffect(() => {
+    if (!isTemplateDropdownOpen) return;
+    function handleOutside(e) {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target)) {
+        setIsTemplateDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [isTemplateDropdownOpen]);
+  const [sectionToDelete, setSectionToDelete] = useState(null);
+  const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '', onUpdate: null });
+  // A2 — AI Snapshot: stores a copy of data before any AI mutation for one-click undo
+  const [aiSnapshot, setAiSnapshot] = useState(null);
+  const saveSnapshot = useCallback(() => setAiSnapshot(structuredClone(data)), [data]);
+  const restoreSnapshot = useCallback(() => { if (aiSnapshot) { setData(aiSnapshot); setAiSnapshot(null); } }, [aiSnapshot]);
+
+  // A1 — Undo/Redo state stack
+  const [past, setPast] = useState([]);
+  const [future, setFuture] = useState([]);
+  const lastPushedStateRef = useRef(JSON.stringify(data));
+  const debounceTimerRef = useRef(null);
+
+  const pushToHistory = useCallback((newState) => {
+    const serialized = JSON.stringify(newState);
+    if (serialized === lastPushedStateRef.current) return;
+
+    setPast(prev => {
+      const nextPast = [...prev, JSON.parse(lastPushedStateRef.current)];
+      if (nextPast.length > 50) nextPast.shift();
+      return nextPast;
+    });
+    setFuture([]); // Clear future on new edits
+    lastPushedStateRef.current = serialized;
+  }, []);
+
+  const undo = useCallback(() => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    const newPast = past.slice(0, past.length - 1);
+
+    setPast(newPast);
+    setFuture(prev => [data, ...prev]);
+    
+    lastPushedStateRef.current = JSON.stringify(previous);
+    setData(previous);
+  }, [past, data]);
+
+  const redo = useCallback(() => {
+    if (future.length === 0) return;
+    const next = future[0];
+    const newFuture = future.slice(1);
+
+    setFuture(newFuture);
+    setPast(prev => [...prev, data]);
+
+    lastPushedStateRef.current = JSON.stringify(next);
+    setData(next);
+  }, [future, data]);
+
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      pushToHistory(data);
+    }, 1000); // Debounce typing history to 1s
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [data, pushToHistory]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (cmdOrCtrl && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      } else if (cmdOrCtrl && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
   const removeSection = useCallback((sectionId) => {
     setData(prev => {
       const isCustom = sectionId.startsWith('custom_');
@@ -130,6 +345,17 @@ export default function App() {
   }, []);
 
   const t = (key) => getTranslation(language, key);
+
+  const hasContent = useMemo(() => {
+    const p = data.personal;
+    const hasContact = p.name || p.email || p.phone;
+    const validExp = data.experience.filter(e => e.company || e.title);
+    const validEdu = data.education.filter(e => e.institution || e.degree);
+    const validProj = data.projects.filter(pr => pr.name);
+    const validCert = data.certifications.filter(c => c.name);
+    const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+    return Boolean(hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length);
+  }, [data]);
 
   // Theme
   useEffect(() => {
@@ -170,6 +396,55 @@ export default function App() {
 
   const currentId = allSteps[step]?.id;
 
+  const handleSectionClick = useCallback((sectionId) => {
+    // If it's a custom section, we want to match its id.
+    const idx = allSteps.findIndex(s => s.id === sectionId);
+    if (idx !== -1) {
+      setStep(idx);
+      setShowMobilePreview(false); // Close preview on mobile to show the editor
+      return;
+    }
+
+    // If it's a default custom section that is missing, create it
+    if (sectionId === 'custom_atouts' || sectionId === 'custom_loisirs') {
+      const isAtouts = sectionId === 'custom_atouts';
+      const label = isAtouts 
+        ? (language === 'fr' ? 'Atouts' : language === 'es' ? 'Fortalezas' : 'Strengths')
+        : (language === 'fr' ? 'Loisirs' : language === 'es' ? 'Aficiones' : 'Hobbies');
+      
+      const newSec = {
+        id: sectionId,
+        label,
+        items: [{
+          id: `item_${isAtouts ? 'atouts' : 'loisirs'}_1`,
+          title: '',
+          subtitle: '',
+          date: '',
+          description: ''
+        }]
+      };
+
+      setData(prev => {
+        const customSections = [...(prev.customSections || [])];
+        if (!customSections.some(s => s.id === sectionId)) {
+          customSections.push(newSec);
+        }
+        const sectionOrder = [...(prev.sectionOrder || [])];
+        if (!sectionOrder.includes(sectionId)) {
+          sectionOrder.push(sectionId);
+        }
+        return {
+          ...prev,
+          customSections,
+          sectionOrder
+        };
+      });
+
+      setStep(allSteps.length);
+      setShowMobilePreview(false);
+    }
+  }, [allSteps, language]);
+
   const addCustomSection = () => {
     const newSection = createEmptyCustomSection('New Section');
     setData(prev => ({
@@ -203,9 +478,9 @@ export default function App() {
   const loadDemoData = useCallback((pages) => {
     let demoData;
     if (pages === 1) {
-      demoData = language === 'fr' ? DEMO_DATA_1_PAGE_FR : DEMO_DATA_1_PAGE;
+      demoData = language === 'fr' ? DEMO_DATA_1_PAGE_FR : language === 'es' ? DEMO_DATA_1_PAGE_ES : DEMO_DATA_1_PAGE;
     } else {
-      demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : DEMO_DATA_2_PAGES;
+      demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : language === 'es' ? DEMO_DATA_2_PAGES_ES : DEMO_DATA_2_PAGES;
     }
     const cloned = structuredClone(demoData);
     if (!cloned.sectionOrder) cloned.sectionOrder = [...DEFAULT_SECTION_ORDER];
@@ -213,6 +488,87 @@ export default function App() {
     setStep(0);
     setMobileMenuOpen(false);
   }, [language]);
+
+  const handleOnboardingSelect = useCallback((option) => {
+    localStorage.setItem('resume-builder-onboarded', 'true');
+    setShowOnboarding(false);
+    if (option === 'import') {
+      setShowImportModal(true);
+    } else if (option === 'demo') {
+      loadDemoData(1);
+    } else if (option === 'scratch') {
+      clearData();
+    }
+  }, [loadDemoData, clearData]);
+
+  const handleLoadCv = useCallback((id) => {
+    const target = cvList.find(c => c.id === id);
+    if (target) {
+      setActiveCvId(id);
+      setData(target.data);
+      localStorage.setItem('resume-builder-active-cv-id', id);
+      setStep(0);
+      setIsCvManagerOpen(false);
+    }
+  }, [cvList]);
+
+  const handleCreateCv = useCallback(() => {
+    const newId = 'cv_' + Date.now();
+    const newCv = {
+      id: newId,
+      name: `${t('New Resume')} (${cvList.length + 1})`,
+      lastModified: Date.now(),
+      data: { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] }
+    };
+    const nextList = [...cvList, newCv];
+    setCvList(nextList);
+    localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
+
+    setActiveCvId(newId);
+    setData(newCv.data);
+    localStorage.setItem('resume-builder-active-cv-id', newId);
+    setStep(0);
+    setIsCvManagerOpen(false);
+  }, [cvList, t]);
+
+  const handleDuplicateCv = useCallback((id) => {
+    const source = cvList.find(c => c.id === id);
+    if (source) {
+      const newId = 'cv_' + Date.now();
+      const newCv = {
+        id: newId,
+        name: `${source.name} (${t('copy')})`,
+        lastModified: Date.now(),
+        data: structuredClone(source.data)
+      };
+      const nextList = [...cvList, newCv];
+      setCvList(nextList);
+      localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
+    }
+  }, [cvList, t]);
+
+  const handleRenameCv = useCallback((id, name) => {
+    setCvList(prev => {
+      const next = prev.map(c => c.id === id ? { ...c, name, lastModified: Date.now() } : c);
+      localStorage.setItem('resume-builder-cv-list', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleDeleteCv = useCallback((id) => {
+    if (cvList.length <= 1) return;
+    const nextList = cvList.filter(c => c.id !== id);
+    setCvList(nextList);
+    localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
+
+    if (activeCvId === id) {
+      const fallback = nextList[0];
+      setActiveCvId(fallback.id);
+      setData(fallback.data);
+      localStorage.setItem('resume-builder-active-cv-id', fallback.id);
+      setStep(0);
+    }
+  }, [cvList, activeCvId]);
 
   const handleSectionReorder = useCallback((newOrder) => {
     setData(prev => ({ ...prev, sectionOrder: newOrder }));
@@ -234,16 +590,37 @@ export default function App() {
           sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
-            summary: nextData.headings.summary === 'Summary' ? 'Profil' : nextData.headings.summary,
-            experience: nextData.headings.experience === 'Work Experience' ? 'Expériences Professionnelles' : nextData.headings.experience,
-            education: nextData.headings.education === 'Education' ? 'Formation' : nextData.headings.education,
-            skills: nextData.headings.skills === 'Skills' ? 'Compétences' : nextData.headings.skills,
-            projects: nextData.headings.projects === 'Projects' ? 'Projets' : nextData.headings.projects,
-            certifications: nextData.headings.certifications === 'Certifications' ? 'Certifications' : nextData.headings.certifications,
-            technical: nextData.headings.technical === 'Technical:' ? 'Technique:' : nextData.headings.technical,
-            interpersonal: nextData.headings.interpersonal === 'Interpersonal:' ? 'Interpersonnelles:' : nextData.headings.interpersonal,
-            languages: nextData.headings.languages === 'Languages:' ? 'Langues:' : nextData.headings.languages,
-            present: nextData.headings.present === 'Present' ? 'Présent' : nextData.headings.present
+            summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Resumen Profesional') ? 'Profil' : nextData.headings.summary,
+            experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Experiencia Profesional') ? 'Expériences Professionnelles' : nextData.headings.experience,
+            education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Educación') ? 'Formation' : nextData.headings.education,
+            skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Habilidades') ? 'Compétences' : nextData.headings.skills,
+            projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Proyectos') ? 'Projets' : nextData.headings.projects,
+            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
+            technical: (nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Técnicas:') ? 'Technique:' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Interpersonales:') ? 'Interpersonnelles:' : nextData.headings.interpersonal,
+            languages: (nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Idiomas:') ? 'Langues:' : nextData.headings.languages,
+            present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Presente') ? 'Présent' : nextData.headings.present
+          }
+        };
+      } else if (lang === 'es') {
+        if (isDemo2) nextData = DEMO_DATA_2_PAGES_ES;
+        else if (isDemo1) nextData = DEMO_DATA_1_PAGE_ES;
+
+        return { 
+          ...nextData,
+          sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
+          headings: {
+            ...nextData.headings,
+            summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Profil') ? 'Resumen Profesional' : nextData.headings.summary,
+            experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Expériences Professionnelles') ? 'Experiencia Profesional' : nextData.headings.experience,
+            education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Formation') ? 'Educación' : nextData.headings.education,
+            skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Compétences') ? 'Habilidades' : nextData.headings.skills,
+            projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Projets') ? 'Proyectos' : nextData.headings.projects,
+            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certifications') ? 'Certificaciones' : nextData.headings.certifications,
+            technical: (nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Technique:') ? 'Técnicas:' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Interpersonnelles:') ? 'Interpersonales:' : nextData.headings.interpersonal,
+            languages: (nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Langues:') ? 'Idiomas:' : nextData.headings.languages,
+            present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Présent') ? 'Presente' : nextData.headings.present
           }
         };
       } else {
@@ -255,16 +632,16 @@ export default function App() {
           sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
-            summary: nextData.headings.summary === 'Profil' ? 'Summary' : nextData.headings.summary,
-            experience: nextData.headings.experience === 'Expériences Professionnelles' ? 'Work Experience' : nextData.headings.experience,
-            education: nextData.headings.education === 'Formation' ? 'Education' : nextData.headings.education,
-            skills: nextData.headings.skills === 'Compétences' ? 'Skills' : nextData.headings.skills,
-            projects: nextData.headings.projects === 'Projets' ? 'Projects' : nextData.headings.projects,
-            certifications: nextData.headings.certifications === 'Certifications' ? 'Certifications' : nextData.headings.certifications,
-            technical: nextData.headings.technical === 'Technique:' ? 'Technical:' : nextData.headings.technical,
-            interpersonal: nextData.headings.interpersonal === 'Interpersonnelles:' ? 'Interpersonal:' : nextData.headings.interpersonal,
-            languages: nextData.headings.languages === 'Langues:' ? 'Languages:' : nextData.headings.languages,
-            present: nextData.headings.present === 'Présent' ? 'Present' : nextData.headings.present
+            summary: (nextData.headings.summary === 'Profil' || nextData.headings.summary === 'Resumen Profesional') ? 'Summary' : nextData.headings.summary,
+            experience: (nextData.headings.experience === 'Expériences Professionnelles' || nextData.headings.experience === 'Experiencia Profesional') ? 'Work Experience' : nextData.headings.experience,
+            education: (nextData.headings.education === 'Formation' || nextData.headings.education === 'Educación') ? 'Education' : nextData.headings.education,
+            skills: (nextData.headings.skills === 'Compétences' || nextData.headings.skills === 'Habilidades') ? 'Skills' : nextData.headings.skills,
+            projects: (nextData.headings.projects === 'Projets' || nextData.headings.projects === 'Proyectos') ? 'Projects' : nextData.headings.projects,
+            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
+            technical: (nextData.headings.technical === 'Technique:' || nextData.headings.technical === 'Técnicas:') ? 'Technical:' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Interpersonnelles:' || nextData.headings.interpersonal === 'Interpersonales:') ? 'Interpersonal:' : nextData.headings.interpersonal,
+            languages: (nextData.headings.languages === 'Langues:' || nextData.headings.languages === 'Idiomas:') ? 'Languages:' : nextData.headings.languages,
+            present: (nextData.headings.present === 'Présent' || nextData.headings.present === 'Presente') ? 'Present' : nextData.headings.present
           }
         };
       }
@@ -296,42 +673,65 @@ export default function App() {
         {/* Skip to content — accessibility */}
         <a href="#main-content" className="skip-link">{t('Skip to main content')}</a>
 
-        {/* Header */}
+        {/* Header — M1: simplified, demos in overflow menu */}
         <header className="header">
           <div className="header-left">
-            <span className="logo">Resu<span className="logo-accent">Me</span></span>
+            <button
+              className="logo logo-btn"
+              onClick={() => { window.location.hash = ''; }}
+              title={t('Back to home')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              Resu<span className="logo-accent">Me</span>
+            </button>
             <span className="badge">ATS Ready</span>
           </div>
           <div className="header-right">
+            <QuotaBadge />
             <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
-            <button className="btn-demo" onClick={() => loadDemoData(1)}>
-              <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
-            </button>
-            <button className="btn-demo" onClick={() => loadDemoData(2)}>
-              <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
-            </button>
-            <button className="btn-demo" onClick={() => setShowClearConfirm(true)}>
-              <i className="fi fi-rr-trash"></i> {t('Clear')}
+
+            {/* Primary action: Import CV */}
+            <button className="btn-demo btn-import-primary" onClick={() => setShowImportModal(true)}>
+              <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
             </button>
 
-            {/* Mobile menu for small screens */}
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Menu"
-            >
-              ⋯
+            {/* S4: Smart Job Search */}
+            <button className="btn-demo btn-job-search" onClick={() => setIsJobFinderOpen(true)} style={{ marginLeft: '8px' }}>
+              <i className="fi fi-rr-search"></i> {t('Job Search AI')}
             </button>
-            <div className={`mobile-menu-dropdown${mobileMenuOpen ? ' open' : ''}`}>
-              <button className="btn-demo" onClick={() => loadDemoData(1)}>
-                <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
+
+            {/* S3: Demos + Clear moved to overflow menu */}
+            <div className="header-overflow-menu">
+              <button
+                className="mobile-menu-btn header-more-btn"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="More options"
+                aria-expanded={mobileMenuOpen}
+              >
+                <i className="fi fi-rr-menu-dots"></i>
               </button>
-              <button className="btn-demo" onClick={() => loadDemoData(2)}>
-                <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
-              </button>
-              <button className="btn-demo" onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}>
-                <i className="fi fi-rr-trash"></i> {t('Clear')}
-              </button>
+              <div className={`mobile-menu-dropdown header-dropdown${mobileMenuOpen ? ' open' : ''}`}>
+                <div className="dropdown-section-label">{t('My Documents')}</div>
+                <button className="btn-demo dropdown-item" onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}>
+                  <i className="fi fi-rr-folder"></i> {t('Manage My Resumes')}
+                </button>
+                <div className="dropdown-divider" />
+                <div className="dropdown-section-label">{t('Examples')}</div>
+                <button className="btn-demo dropdown-item" onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}>
+                  <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
+                </button>
+                <button className="btn-demo dropdown-item" onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}>
+                  <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
+                </button>
+                <div className="dropdown-divider" />
+                <button
+                  className="btn-demo dropdown-item dropdown-danger"
+                  onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}
+                  disabled={!hasContent}
+                >
+                  <i className="fi fi-rr-trash"></i> {t('Clear')}
+                </button>
+              </div>
             </div>
 
             <button className="theme-toggle" onClick={toggleTheme} aria-label={t('Toggle theme')}>
@@ -344,6 +744,8 @@ export default function App() {
         <main className="main" id="main-content">
           {/* Left: Form Panel */}
           <div className="form-panel">
+            {/* S2: Profile completion bar removed — integrated into ATS Score widget */}
+
             {/* Stepper */}
             <nav className="stepper" role="tablist" aria-label="Resume sections">
               {allSteps.map((s, i) => (
@@ -376,9 +778,9 @@ export default function App() {
             {/* Step Content */}
             <div className="animate-fade-in" key={currentId}>
               {!data.sectionOrder.includes(currentId) && currentId !== 'personal' && currentId !== 'summary' && (
-                <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--color-accent-light)', border: '1px solid var(--color-accent)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text)' }}>
-                    <i className="fi fi-rr-eye-crossed" style={{ color: 'var(--color-primary)' }}></i>
+                    <i className="fi fi-rr-eye-crossed" style={{ color: 'var(--color-accent)' }}></i>
                     <span>{t('This section is hidden from your resume.')}</span>
                   </div>
                   <button 
@@ -403,14 +805,39 @@ export default function App() {
                 <SummaryStep 
                   data={data.summary} 
                   onChange={(v) => setData({ ...data, summary: v })} 
-                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'summary' })}
+                  onAIAssist={(text) => setAiBoldConfig({ 
+                    isOpen: true, 
+                    text, 
+                    contextType: 'summary', 
+                    onUpdate: (newText) => {
+                      setAiSnapshot(structuredClone(data));
+                      setData(prev => ({...prev, summary: newText}));
+                    }
+                  })}
                 />
               )}
               {currentId === 'experience' && (
                 <ExperienceStep 
                   data={data.experience} 
                   onChange={(v) => setData({ ...data, experience: v })} 
-                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'experience' })}
+                  onAIAssist={(text, index, bulletIndex) => {
+                    setAiBoldConfig({
+                      isOpen: true, 
+                      text, 
+                      contextType: 'experience',
+                      onUpdate: (newText) => {
+                        setAiSnapshot(structuredClone(data));
+                        setData(prev => {
+                          const newExp = [...prev.experience];
+                          newExp[index] = {
+                            ...newExp[index],
+                            bullets: newExp[index].bullets.map((b, i) => i === bulletIndex ? newText : b)
+                          };
+                          return {...prev, experience: newExp};
+                        });
+                      }
+                    });
+                  }}
                 />
               )}
               {currentId === 'education' && (
@@ -423,7 +850,28 @@ export default function App() {
                 <ProjectsStep 
                   data={data.projects} 
                   onChange={(v) => setData({ ...data, projects: v })} 
-                  onAIAssist={(text) => setAiBoldConfig({ isOpen: true, text, contextType: 'projects' })}
+                  onAIAssist={(text, index, bulletIndex) => {
+                    setAiBoldConfig({
+                      isOpen: true, 
+                      text, 
+                      contextType: 'projects',
+                      onUpdate: (newText) => {
+                        setAiSnapshot(structuredClone(data));
+                        setData(prev => {
+                          const newProj = [...prev.projects];
+                          if (bulletIndex === -1) {
+                            newProj[index] = { ...newProj[index], description: newText };
+                          } else {
+                            newProj[index] = {
+                              ...newProj[index],
+                              highlights: newProj[index].highlights.map((hl, i) => i === bulletIndex ? newText : hl)
+                            };
+                          }
+                          return {...prev, projects: newProj};
+                        });
+                      }
+                    });
+                  }}
                 />
               )}
               {currentId === 'certifications' && (
@@ -472,32 +920,94 @@ export default function App() {
                         onClick={() => handleLanguageChange('fr')}
                         aria-label="Switch to French"
                       >FR</button>
+                      <button 
+                        className={`control-btn ${language === 'es' ? 'active' : ''}`}
+                        onClick={() => handleLanguageChange('es')}
+                        aria-label="Switch to Spanish"
+                      >ES</button>
+                    </div>
+
+                    <div className="control-group" style={{ gap: '4px' }}>
+                      <button 
+                        className="control-btn" 
+                        onClick={undo} 
+                        disabled={past.length === 0}
+                        title={t('Undo (Ctrl+Z)')}
+                        style={{ opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
+                        aria-label="Undo"
+                      >
+                        ↩
+                      </button>
+                      <button 
+                        className="control-btn" 
+                        onClick={redo} 
+                        disabled={future.length === 0}
+                        title={t('Redo (Ctrl+Y)')}
+                        style={{ opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
+                        aria-label="Redo"
+                      >
+                        ↪
+                      </button>
                     </div>
 
                     <div className="control-divider" aria-hidden="true" />
 
-                    {/* Template picker */}
-                    <div className="control-group">
-                      <span className="control-group-label">Template</span>
-                      <button
-                        className={`template-btn ${template === 'standard' ? 'active' : ''}`}
-                        onClick={() => setTemplate('standard')}
-                      >
-                        Classic
-                      </button>
-                      <button
-                        className={`template-btn ${template === 'modern' ? 'active' : ''}`}
-                        onClick={() => setTemplate('modern')}
-                      >
-                        Modern
-                      </button>
-                      <button
-                        className={`template-btn ${template === 'recruiter' ? 'active' : ''}`}
-                        onClick={() => setTemplate('recruiter')}
-                      >
-                        Recruiter
-                      </button>
-                    </div>
+                     {/* Template picker — compact dropdown */}
+                     {(() => {
+                       const TEMPLATES = [
+                         { id: 'standard',  name: 'Classic',    badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                         { id: 'modern',    name: 'Modern',     badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                         { id: 'njm',       name: 'NJM',        badgeType: 'flagship', badgeText: t("Creator's Favorite") },
+                         { id: 'creative',  name: 'Creative',   badgeType: 'design',   badgeText: t('Visual Design') },
+                         { id: 'minimalist',name: 'Minimalist', badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                       ];
+                       const activeTpl = TEMPLATES.find(t => t.id === template) || TEMPLATES[0];
+                       const getBadgeColors = (badgeType, isActive) => {
+                         if (isActive) return { bg: 'rgba(255,255,255,0.18)', color: '#fff', border: 'rgba(255,255,255,0.35)' };
+                         if (badgeType === 'flagship') return { bg: 'rgba(var(--color-accent-rgb,99,102,241),0.1)', color: 'var(--color-accent)', border: 'rgba(var(--color-accent-rgb,99,102,241),0.25)' };
+                         if (badgeType === 'design')   return { bg: 'rgba(245,158,11,0.1)', color: 'rgb(245,158,11)', border: 'rgba(245,158,11,0.25)' };
+                         return { bg: 'rgba(16,185,129,0.1)', color: 'rgb(16,185,129)', border: 'rgba(16,185,129,0.25)' };
+                       };
+                       const activeBadge = getBadgeColors(activeTpl.badgeType, false);
+                       return (
+                         <div className="tpl-dropdown-wrap" ref={templateDropdownRef}>
+                           <button
+                             className="tpl-dropdown-trigger"
+                             onClick={() => setIsTemplateDropdownOpen(o => !o)}
+                             aria-haspopup="listbox"
+                             aria-expanded={isTemplateDropdownOpen}
+                             title={t('Choose Template')}
+                           >
+                             <span className="tpl-trigger-name">{activeTpl.name}</span>
+                             <span className="tpl-trigger-badge" style={{ background: activeBadge.bg, color: activeBadge.color, border: `1px solid ${activeBadge.border}` }}>
+                               {activeTpl.badgeText}
+                             </span>
+                             <i className={`fi ${isTemplateDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'} tpl-trigger-chevron`}></i>
+                           </button>
+                           {isTemplateDropdownOpen && (
+                             <ul className="tpl-dropdown-menu" role="listbox">
+                               {TEMPLATES.map(tpl => {
+                                 const isActive = template === tpl.id;
+                                 const badge = getBadgeColors(tpl.badgeType, isActive);
+                                 return (
+                                   <li key={tpl.id} role="option" aria-selected={isActive}>
+                                     <button
+                                       className={`tpl-option${isActive ? ' tpl-option--active' : ''}`}
+                                       onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
+                                     >
+                                       <span className="tpl-option-name">{tpl.name}</span>
+                                       <span className="tpl-option-badge" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                         {tpl.badgeText}
+                                       </span>
+                                     </button>
+                                   </li>
+                                 );
+                               })}
+                             </ul>
+                           )}
+                         </div>
+                       );
+                     })()}
 
                     <div className="control-divider" aria-hidden="true" />
 
@@ -528,79 +1038,99 @@ export default function App() {
 
                     <div className="control-divider" aria-hidden="true" />
 
-                    <button className="control-btn" onClick={() => setIsTailorOpen(true)}>
-                      ✨ {t('Tailor to Job')}
-                    </button>
+                    {/* A2: snapshot saved before tailor opens */}
+                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI rewrites your resume to match a specific job description')}>
+                      <button className="control-btn" onClick={() => { setIsTailorOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                        ✨ {t('Tailor to Job')}
+                      </button>
+                    </div>
 
-                    <button className="control-btn" onClick={() => setIsAIOpen(true)}>
-                      <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
-                    </button>
+                    {/* A2: snapshot saved before translation opens */}
+                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI translates your entire resume to the other language')}>
+                      <button className="control-btn" onClick={() => { setIsAIOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                        <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
+                      </button>
+                    </div>
+
+                    {/* S2: Smart Bolding whole CV */}
+                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI Smart Bolding')}>
+                      <button className="control-btn" onClick={() => { setIsBoldifyOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                        <b>B</b> {t('AI Smart Bolding')}
+                      </button>
+                    </div>
+
+                    {/* A2: Undo AI changes button — appears only when snapshot is available */}
+                    {aiSnapshot && (
+                      <button
+                        className="control-btn ai-undo-btn"
+                        onClick={restoreSnapshot}
+                        title={t('Undo AI changes and restore previous version')}
+                      >
+                        ↩ {t('Undo AI')}
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
                 
-                <div className="preview-export-bar">
-                  <button 
-                    type="button"
-                    className="btn-export" 
-                    onClick={() => {
-                      setExportConfig({
-                        type: 'pdf',
-                        icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
-                        title: t('Print / Save as PDF'),
-                        message: t('Export CV to PDF?'),
-                        action: () => setTimeout(() => window.print(), 100)
-                      });
-                      setShowExportConfirm(true);
-                    }}
-                  >
-                    {t('Print / Save as PDF')}
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn-export" 
-                    onClick={() => {
-                      setExportConfig({
-                        type: 'markdown',
-                        icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
-                        title: t('Markdown'),
-                        message: t('Export CV to Markdown?'),
-                        action: () => {
-                          try {
-                            exportMarkdown(data);
-                          } catch (err) {
-                            alert('Export failed: ' + err.message);
-                          }
-                        }
-                      });
-                      setShowExportConfirm(true);
-                    }}
-                  >
-                    {t('Markdown')}
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn-export" 
-                    onClick={() => {
-                      setExportConfig({
-                        type: 'json',
-                        icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
-                        title: t('Export JSON'),
-                        message: t('Export CV to JSON?'),
-                        action: () => {
-                          try {
-                            exportJson(data);
-                          } catch (err) {
-                            alert('Export failed: ' + err.message);
-                          }
-                        }
-                      });
-                      setShowExportConfirm(true);
-                    }}
-                  >
-                    {t('Export JSON')}
-                  </button>
+                {/* S1: Direct export — no confirmation modal */}
+                <div className="preview-export-bar" style={{ position: 'relative' }}>
+                  <div className="export-split-button" style={{ display: 'flex', width: '100%', gap: '1px' }}>
+                    <button 
+                      type="button"
+                      className="btn-export btn-export-primary" 
+                      onClick={() => setTimeout(() => window.print(), 100)}
+                      title={t('Print / Save as PDF')}
+                      style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                    >
+                      <i className="fi fi-rr-print"></i> {t('Export PDF')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-export btn-export-primary"
+                      onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                      style={{ 
+                        flex: '0 0 auto',
+                        padding: '0 12px', 
+                        borderTopLeftRadius: 0, 
+                        borderBottomLeftRadius: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      aria-expanded={isExportDropdownOpen}
+                      aria-label="Export options"
+                    >
+                      <i className={`fi ${isExportDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'}`}></i>
+                    </button>
+                  </div>
+
+                  {isExportDropdownOpen && (
+                    <div className="export-dropdown-menu">
+                      <button 
+                        type="button"
+                        className="dropdown-item" 
+                        onClick={() => { try { exportDocx(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                      >
+                        <i className="fi fi-rr-file-word"></i> {t('Download as Word (DOC)')}
+                      </button>
+                      <button 
+                        type="button"
+                        className="dropdown-item" 
+                        onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                      >
+                        <i className="fi fi-rr-file-code"></i> {t('Download as Markdown')}
+                      </button>
+                      <button 
+                        type="button"
+                        className="dropdown-item" 
+                        onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                      >
+                        <i className="fi fi-rr-disk"></i> {t('Download as JSON')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               <ResumePreview 
@@ -610,6 +1140,7 @@ export default function App() {
                 template={template}
                 onSectionReorder={handleSectionReorder}
                 onSectionRemove={setSectionToDelete}
+                onSectionClick={handleSectionClick}
                 compact 
               />
             </aside>
@@ -630,22 +1161,51 @@ export default function App() {
               <span className="preview-label">{t('Live Preview')}</span>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 {/* Template picker */}
-                <div style={{ display: 'flex', gap: '2px', background: 'var(--color-surface-alt)', borderRadius: 'var(--radius-sm)', padding: '2px' }}>
-                  <button
-                    className={`template-btn ${template === 'standard' ? 'active' : ''}`}
-                    onClick={() => setTemplate('standard')}
-                    style={{ padding: '4px 8px', fontSize: '11px' }}
-                  >Standard</button>
-                  <button
-                    className={`template-btn ${template === 'modern' ? 'active' : ''}`}
-                    onClick={() => setTemplate('modern')}
-                    style={{ padding: '4px 8px', fontSize: '11px' }}
-                  >Modern</button>
-                  <button
-                    className={`template-btn ${template === 'recruiter' ? 'active' : ''}`}
-                    onClick={() => setTemplate('recruiter')}
-                    style={{ padding: '4px 8px', fontSize: '11px' }}
-                  >Recruiter</button>
+                {/* Template picker */}
+                <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface-alt)', borderRadius: 'var(--radius-md)', padding: '4px', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'standard', name: 'Classic', isAts: true },
+                    { id: 'modern', name: 'Modern', isAts: true },
+                    { id: 'njm', name: 'NJM', isFlagship: true },
+                    { id: 'creative', name: 'Creative', isDesign: true },
+                    { id: 'minimalist', name: 'Minimalist', isAts: true }
+                  ].map(tpl => {
+                    const isActive = template === tpl.id;
+                    let dotColor = 'rgb(16, 185, 129)'; // default ATS
+                    if (tpl.isFlagship) dotColor = 'var(--color-accent)';
+                    if (tpl.isDesign) dotColor = 'rgb(245, 158, 11)';
+
+                    return (
+                      <button
+                        key={tpl.id}
+                        onClick={() => setTemplate(tpl.id)}
+                        style={{ 
+                          padding: '4px 8px', 
+                          fontSize: '11px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '4px',
+                          borderRadius: '6px',
+                          border: isActive ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                          background: isActive ? 'var(--color-accent)' : 'var(--color-surface)',
+                          color: isActive ? 'var(--color-accent-contrast, #fff)' : 'var(--color-text-secondary)',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <span style={{ 
+                          width: '6px', 
+                          height: '6px', 
+                          borderRadius: '50%', 
+                          background: isActive ? '#fff' : dotColor,
+                          display: 'inline-block' 
+                        }} />
+                        {tpl.name}
+                      </button>
+                    );
+                  })}
                 </div>
                 <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
                 {/* Compact toggle */}
@@ -672,21 +1232,12 @@ export default function App() {
                   style={{ padding: '6px' }}
                 ><i className="fi fi-rr-settings"></i></button>
                 <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
-                {/* Export buttons */}
+                {/* S1 — Mobile: direct export, no modal */}
                 <button 
                   type="button"
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'pdf',
-                      icon: <i className="fi fi-rr-print" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Print / Save as PDF'),
-                      message: t('Export CV to PDF?'),
-                      action: () => setTimeout(() => window.print(), 100)
-                    });
-                    setShowExportConfirm(true);
-                  }} 
+                  onClick={() => setTimeout(() => window.print(), 100)}
                   title={t('Print / Save as PDF')}
                 >
                   <i className="fi fi-rr-print" style={{ fontSize: '1.1rem' }}></i>
@@ -695,22 +1246,7 @@ export default function App() {
                   type="button"
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'markdown',
-                      icon: <i className="fi fi-rr-file-code" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Markdown'),
-                      message: t('Export CV to Markdown?'),
-                      action: () => {
-                        try {
-                          exportMarkdown(data);
-                        } catch (err) {
-                          alert('Export failed: ' + err.message);
-                        }
-                      }
-                    });
-                    setShowExportConfirm(true);
-                  }} 
+                  onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } }}
                   title={t('Markdown')}
                 >
                   <i className="fi fi-rr-file-code" style={{ fontSize: '1.1rem' }}></i>
@@ -719,22 +1255,7 @@ export default function App() {
                   type="button"
                   className="btn-export" 
                   style={{ padding: '6px 8px', borderRadius: 'var(--radius-sm)' }} 
-                  onClick={() => {
-                    setExportConfig({
-                      type: 'json',
-                      icon: <i className="fi fi-rr-disk" style={{ fontSize: '1.2rem' }}></i>,
-                      title: t('Export JSON'),
-                      message: t('Export CV to JSON?'),
-                      action: () => {
-                        try {
-                          exportJson(data);
-                        } catch (err) {
-                          alert('Export failed: ' + err.message);
-                        }
-                      }
-                    });
-                    setShowExportConfirm(true);
-                  }} 
+                  onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } }}
                   title={t('Export JSON')}
                 >
                   <i className="fi fi-rr-disk" style={{ fontSize: '1.1rem' }}></i>
@@ -760,6 +1281,7 @@ export default function App() {
                 template={template} 
                 onSectionReorder={(newOrder) => setData(prev => ({ ...prev, sectionOrder: newOrder }))}
                 onSectionRemove={setSectionToDelete}
+                onSectionClick={handleSectionClick}
               />
             </div>
           </div>
@@ -772,6 +1294,10 @@ export default function App() {
               onClose={() => setIsAIOpen(false)} 
               data={data} 
               language={language} 
+              onTranslationSuccess={(newData) => {
+                setAiSnapshot(structuredClone(data));
+                setData(newData);
+              }}
             />
           )}
           {isTailorOpen && (
@@ -780,7 +1306,28 @@ export default function App() {
               onClose={() => setIsTailorOpen(false)} 
               data={data} 
               language={language}
-              onTailorSuccess={(newData) => setData(newData)}
+              onTailorSuccess={(newData) => {
+                setAiSnapshot(structuredClone(data));
+                setData(newData);
+              }}
+            />
+          )}
+          {isBoldifyOpen && (
+            <AIBoldifyModal
+              isOpen={isBoldifyOpen}
+              onClose={() => setIsBoldifyOpen(false)}
+              data={data}
+              onBoldifySuccess={(newData) => {
+                setAiSnapshot(structuredClone(data));
+                setData(newData);
+              }}
+            />
+          )}
+          {isJobFinderOpen && (
+            <JobFinderModal
+              isOpen={isJobFinderOpen}
+              onClose={() => setIsJobFinderOpen(false)}
+              data={data}
             />
           )}
           {aiBoldConfig.isOpen && (
@@ -789,9 +1336,42 @@ export default function App() {
               onClose={() => setAiBoldConfig({ ...aiBoldConfig, isOpen: false })}
               textData={aiBoldConfig.text}
               contextType={aiBoldConfig.contextType}
+              onUpdate={aiBoldConfig.onUpdate}
+            />
+          )}
+          {showOnboarding && (
+            <OnboardingModal
+              isOpen={showOnboarding}
+              onClose={() => setShowOnboarding(false)}
+              onSelectOption={handleOnboardingSelect}
+              language={language}
+            />
+          )}
+          {isCvManagerOpen && (
+            <CVManagerModal
+              isOpen={isCvManagerOpen}
+              onClose={() => setIsCvManagerOpen(false)}
+              cvList={cvList}
+              activeCvId={activeCvId}
+              onLoadCv={handleLoadCv}
+              onCreateCv={handleCreateCv}
+              onDuplicateCv={handleDuplicateCv}
+              onRenameCv={handleRenameCv}
+              onDeleteCv={handleDeleteCv}
+              language={language}
             />
           )}
         </Suspense>
+
+        <ImportModal 
+          isOpen={showImportModal} 
+          onClose={() => setShowImportModal(false)} 
+          onImportSuccess={(parsedData) => {
+            handleImport(parsedData);
+            setShowImportModal(false);
+          }}
+          language={language}
+        />
 
         {/* Auto-save toast */}
         {saved && (
@@ -807,7 +1387,7 @@ export default function App() {
           title={
             <span style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
-              {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
+              {t('Remove this section?')}
             </span>
           }
           actions={
@@ -824,40 +1404,11 @@ export default function App() {
           }
         >
           <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
-            {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
+            {t('This action will remove the section from your resume. You can add it back later.')}
           </p>
         </Modal>
 
-        <Modal
-          isOpen={showExportConfirm}
-          onClose={() => setShowExportConfirm(false)}
-          ariaLabelledby="export-confirm-title"
-          title={
-            <span id="export-confirm-title" style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{exportConfig.icon}</span> 
-              {exportConfig.title}
-            </span>
-          }
-          actions={
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '12px' }}>
-              <button className="btn-secondary" onClick={() => setShowExportConfirm(false)}>{t('Cancel')}</button>
-              <button 
-                className="btn-primary" 
-                onClick={() => {
-                  setShowExportConfirm(false);
-                  if (exportConfig.action) exportConfig.action();
-                }} 
-                style={{ padding: '10px 24px', fontSize: '14px' }}
-              >
-                {t('Confirm')}
-              </button>
-            </div>
-          }
-        >
-          <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
-            {exportConfig.message}
-          </p>
-        </Modal>
+        {/* S1: Export confirmation modal removed — exports are now direct */}
 
         <Modal
           isOpen={showClearConfirm}
@@ -865,7 +1416,7 @@ export default function App() {
           title={
             <span style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
-              {language === 'fr' ? 'Effacer toutes les données ?' : 'Clear all data?'}
+              {t('Clear all data?')}
             </span>
           }
           actions={
@@ -882,7 +1433,7 @@ export default function App() {
           }
         >
           <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
-            {language === 'fr' ? 'Toutes les données de votre CV seront définitivement perdues.' : 'All your resume data will be permanently lost.'}
+            {t('All your resume data will be permanently lost.')}
           </p>
         </Modal>
         {/* Print-only resume */}

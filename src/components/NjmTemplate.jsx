@@ -1,0 +1,524 @@
+import { memo } from 'react';
+import { parseMarkdown } from '../utils/formatText';
+import { getTranslation } from '../utils/translations';
+
+const Icons = {
+  Phone: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+  Email: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+  LinkedIn: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>,
+  Location: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+  Briefcase: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+  Building: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="6" x2="12" y2="6"/></svg>,
+  Chart: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  ExternalLink: () => <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  Lightbulb: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>,
+  Globe: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  PlusCircle: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Smile: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+};
+
+function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+  const t = (key) => getTranslation(language, key);
+  const p = data.personal;
+  const hasContact = p.name || p.email || p.phone;
+  const validExp = data.experience.filter(e => e.company || e.title);
+  const validEdu = data.education.filter(e => e.institution || e.degree);
+  const validProj = data.projects.filter(pr => pr.name);
+  const validCert = data.certifications.filter(c => c.name);
+  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+
+  const h = data.headings || {};
+  const {
+    fontSize = 10,
+    sectionSpacing = 12,
+    itemSpacing = 8,
+    lineHeight = 1.3
+  } = layout;
+
+  const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
+
+  const getBottomColumnSections = () => {
+    const matchedIds = new Set();
+    
+    const langSec = data.customSections?.find(s => 
+      s.label?.toLowerCase().includes('langue') || 
+      s.label?.toLowerCase().includes('language') || 
+      s.label?.toLowerCase().includes('idioma')
+    );
+    if (langSec) matchedIds.add(langSec.id);
+
+    const atoutsSec = data.customSections?.find(s => 
+      s.label?.toLowerCase().includes('atout') || 
+      s.label?.toLowerCase().includes('strength') || 
+      s.label?.toLowerCase().includes('compétenc') || 
+      s.label?.toLowerCase().includes('competenc') || 
+      s.label?.toLowerCase().includes('qualit') || 
+      s.label?.toLowerCase().includes('asset')
+    );
+    if (atoutsSec) matchedIds.add(atoutsSec.id);
+
+    const loisirsSec = data.customSections?.find(s => 
+      s.label?.toLowerCase().includes('loisir') || 
+      s.label?.toLowerCase().includes('hobbi') || 
+      s.label?.toLowerCase().includes('interest') || 
+      s.label?.toLowerCase().includes('détente') || 
+      s.label?.toLowerCase().includes('intere')
+    );
+    if (loisirsSec) matchedIds.add(loisirsSec.id);
+
+    return { matchedIds, langSec, atoutsSec, loisirsSec };
+  };
+
+  const { matchedIds, langSec, atoutsSec, loisirsSec } = getBottomColumnSections();
+
+  const formatDate = (m, y) => {
+    if (!m && !y) return '';
+    if (m && y) return `${m} ${y}`;
+    return y || m || '';
+  };
+
+  const primaryColor = layout.accentColor || '#0F3A8C';
+  const textColor = 'var(--resume-text-color, #111)';
+  const grayColor = 'var(--resume-text-secondary, #444)';
+
+  const sectionHeaderStyle = {
+    color: primaryColor,
+    borderBottom: `1.5px solid ${primaryColor}`,
+    textTransform: 'uppercase',
+    fontVariant: 'small-caps',
+    fontWeight: 'bold',
+    fontSize: '1.2em',
+    display: 'flex',
+    alignItems: 'center',
+    paddingBottom: '2px',
+    marginBottom: '6px',
+    letterSpacing: '0.5px'
+  };
+
+  const wrapperStyle = (sectionId) => ({
+    marginBottom: `${sectionSpacing}px`,
+    cursor: onSectionClick ? 'pointer' : 'default',
+    padding: onSectionClick ? '4px' : '0',
+    margin: onSectionClick ? '-4px' : `0 0 ${sectionSpacing}px 0`,
+    borderRadius: '4px'
+  });
+
+  const handleSectionClick = (id) => {
+    if (onSectionClick) onSectionClick(id);
+  };
+
+  const renderTags = (tagString) => {
+    if (!tagString) return null;
+    const tags = tagString.split(',').map(s => s.trim()).filter(Boolean);
+    if (!tags.length) return null;
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+        {tags.map((tag, idx) => (
+          <span key={idx} style={{
+            fontSize: '0.75em',
+            border: '1px solid var(--resume-border-color, #ccc)',
+            borderRadius: '4px',
+            padding: '1px 6px',
+            color: 'var(--resume-text-color, #333)',
+            textTransform: 'uppercase',
+            backgroundColor: 'var(--color-surface-alt, #fafafa)'
+          }}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const renderSection = (sectionId) => {
+    switch (sectionId) {
+      case 'summary':
+        if (!data.summary) return null;
+        return (
+          <div key="summary" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('summary')} onClick={() => handleSectionClick('summary')}>
+            <div style={sectionHeaderStyle}>
+              {h.summary || t('EXECUTIVE SUMMARY')}
+            </div>
+            <div style={{ fontWeight: '500', fontSize: '0.95em', color: textColor, textAlign: 'justify' }}>
+              {parseMarkdown(data.summary)}
+            </div>
+          </div>
+        );
+
+      case 'experience':
+        if (!validExp.length) return null;
+        return (
+          <div key="experience" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('experience')} onClick={() => handleSectionClick('experience')}>
+            <div style={sectionHeaderStyle}>
+              <Icons.Briefcase /> {h.experience || t('WORK EXPERIENCE')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validExp.map((exp, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
+                      <Icons.Chart /> {exp.title}
+                    </span>
+                    <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                      {formatDate(exp.startMonth, exp.startYear)}
+                      {(exp.startMonth || exp.startYear) && ' — '}
+                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
+                    </span>
+                  </div>
+                  <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <Icons.ExternalLink /> {exp.company}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
+                    {exp.bullets.filter(Boolean).map((b, bi) => (
+                      <div key={bi} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
+                        <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                        <div style={{ flex: 1 }}>{parseMarkdown(b)}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {exp.technologies && renderTags(exp.technologies)}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'education':
+        if (!validEdu.length) return null;
+        return (
+          <div key="education" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('education')} onClick={() => handleSectionClick('education')}>
+            <div style={sectionHeaderStyle}>
+              <Icons.Building /> {h.education || t('EDUCATION')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validEdu.map((edu, i) => (
+                <div key={i} style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ width: '50px', flexShrink: 0, textAlign: 'right', fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', paddingTop: '2px' }}>
+                    {edu.startYear && <div style={{ marginBottom: '2px' }}>{edu.startYear}</div>}
+                    {edu.endYear && <div>{edu.current ? t('PRESENT') : edu.endYear}</div>}
+                  </div>
+                  <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
+                    <div style={{ fontSize: '1.05em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {[edu.degree, edu.field].filter(Boolean).join(' EN ')}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.95em', color: grayColor, marginTop: '2px' }}>
+                      <span style={{ color: grayColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                      {edu.institution}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'skills':
+        if (!hasSkills) return null;
+        const skillsList = [];
+        if (data.skills.technical) {
+          skillsList.push({ label: t('PROGRAMMING'), value: data.skills.technical });
+        }
+        if (data.skills.soft) {
+          skillsList.push({ label: t('SOFT SKILLS'), value: data.skills.soft });
+        }
+        return (
+          <div key="skills" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('skills')} onClick={() => handleSectionClick('skills')}>
+            <div style={sectionHeaderStyle}>
+              <Icons.Lightbulb /> {h.skills || t('SKILLS & TOOLS')}
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                {skillsList.map((skill, i) => (
+                  <tr key={i}>
+                    <td style={{ 
+                      width: '140px', 
+                      verticalAlign: 'top', 
+                      padding: '2px 12px 2px 0', 
+                      textAlign: 'right', 
+                      fontSize: '0.8em',
+                      color: grayColor,
+                      textTransform: 'uppercase',
+                      fontVariant: 'small-caps',
+                      borderRight: '1px solid #ddd'
+                    }}>
+                      {skill.label}
+                    </td>
+                    <td style={{ 
+                      verticalAlign: 'top', 
+                      padding: '2px 0 2px 12px', 
+                      fontSize: '0.9em',
+                      fontWeight: '500',
+                      color: textColor
+                    }}>
+                      {skill.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
+      case 'projects':
+        if (!validProj.length) return null;
+        return (
+          <div key="projects" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('projects')} onClick={() => handleSectionClick('projects')}>
+            <div style={sectionHeaderStyle}>
+              <Icons.Briefcase /> {h.projects || t('PROJECTS')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validProj.map((pr, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
+                      {pr.name}
+                    </span>
+                    {pr.link && <span style={{ fontSize: '0.85em', color: primaryColor }}>{pr.link}</span>}
+                  </div>
+                  {pr.description && <div style={{ fontSize: '0.9em', color: grayColor, margin: '2px 0' }}>{parseMarkdown(pr.description)}</div>}
+                  {pr.techStack && renderTags(pr.techStack)}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                    {pr.highlights.filter(Boolean).map((hl, hli) => (
+                      <div key={hli} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
+                        <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                        <div style={{ flex: 1 }}>{parseMarkdown(hl)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        if (sectionId.startsWith('custom_')) {
+          const sec = data.customSections?.find(s => s.id === sectionId);
+          if (!sec || matchedIds.has(sec.id)) return null;
+          
+          const validItems = sec.items.filter(i => i.title || i.subtitle || i.description);
+          if (!validItems.length) return null;
+
+          return (
+            <div 
+              key={sec.id} 
+              className={onSectionClick ? "preview-interactive-section" : ""} 
+              style={wrapperStyle(sec.id)} 
+              onClick={() => handleSectionClick(sec.id)}
+            >
+              <div style={sectionHeaderStyle}>
+                <Icons.PlusCircle /> {sec.label || t('Custom Section')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+                {validItems.map((item, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      {item.title && (
+                        <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
+                          {item.title}
+                        </span>
+                      )}
+                      {item.date && (
+                        <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase' }}>
+                          {item.date}
+                        </span>
+                      )}
+                    </div>
+                    {item.subtitle && (
+                      <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px' }}>
+                        {item.subtitle}
+                      </div>
+                    )}
+                    {item.description && (
+                      <div style={{ fontSize: '0.9em', color: grayColor, marginTop: '4px', whiteSpace: 'pre-line' }}>
+                        {parseMarkdown(item.description)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return null;
+    }
+  };
+
+  const renderBottomColumns = () => {
+    const columns = [];
+
+    // Column 1: Languages
+    let langItems = [];
+    let langTitle = t('Languages');
+    let langSectionId = 'skills';
+    
+    if (langSec) {
+      langTitle = langSec.label;
+      langItems = langSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+      langSectionId = langSec.id;
+    } else if (data.skills.languages) {
+      langItems = data.skills.languages.split(',').map(l => l.trim()).filter(Boolean);
+    }
+    
+    const isLangEmpty = langItems.length === 0;
+    if (!isLangEmpty || onSectionClick) {
+      columns.push({
+        title: langTitle,
+        icon: <Icons.Globe />,
+        items: isLangEmpty ? [t('Add languages')] : langItems,
+        sectionId: langSectionId,
+        isPlaceholder: isLangEmpty
+      });
+    }
+
+    // Column 2: Atouts / Strengths
+    let atoutsItems = [];
+    let atoutsTitle = atoutsSec ? atoutsSec.label : (language === 'fr' ? 'Atouts' : language === 'es' ? 'Fortalezas' : 'Strengths');
+    let atoutsSectionId = atoutsSec ? atoutsSec.id : 'custom_atouts';
+    if (atoutsSec) {
+      atoutsItems = atoutsSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+    }
+    const isAtoutsEmpty = atoutsItems.length === 0;
+    if (!isAtoutsEmpty || onSectionClick) {
+      columns.push({
+        title: atoutsTitle,
+        icon: <Icons.PlusCircle />,
+        items: isAtoutsEmpty ? [t('Add strengths')] : atoutsItems,
+        sectionId: atoutsSectionId,
+        isPlaceholder: isAtoutsEmpty
+      });
+    }
+
+    // Column 3: Loisirs / Hobbies
+    let loisirsItems = [];
+    let loisirsTitle = loisirsSec ? loisirsSec.label : (language === 'fr' ? 'Loisirs' : language === 'es' ? 'Aficiones' : 'Hobbies');
+    let loisirsSectionId = loisirsSec ? loisirsSec.id : 'custom_loisirs';
+    if (loisirsSec) {
+      loisirsItems = loisirsSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+    }
+    const isLoisirsEmpty = loisirsItems.length === 0;
+    if (!isLoisirsEmpty || onSectionClick) {
+      columns.push({
+        title: loisirsTitle,
+        icon: <Icons.Smile />,
+        items: isLoisirsEmpty ? [t('Add hobbies')] : loisirsItems,
+        sectionId: loisirsSectionId,
+        isPlaceholder: isLoisirsEmpty
+      });
+    }
+
+    if (!columns.length) return null;
+
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns.length}, 1fr)`, gap: '16px', marginTop: `${sectionSpacing}px`, pageBreakInside: 'avoid' }}>
+        {columns.map((col, idx) => (
+          <div 
+            key={idx} 
+            className={onSectionClick ? "preview-interactive-section" : ""} 
+            onClick={onSectionClick ? () => onSectionClick(col.sectionId) : undefined}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: onSectionClick ? '4px' : '0', margin: onSectionClick ? '-4px' : '0', borderRadius: '4px' }}
+          >
+            <div
+              style={{
+                color: primaryColor,
+                borderBottom: `1.5px solid ${primaryColor}`,
+                textTransform: 'uppercase',
+                fontVariant: 'small-caps',
+                fontWeight: 'bold',
+                fontSize: '1em',
+                display: 'flex',
+                alignItems: 'center',
+                paddingBottom: '2px',
+                marginBottom: '6px'
+              }}
+            >
+              {col.icon} {col.title}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {col.items.map((item, i) => (
+                <div key={i} style={{ 
+                  display: 'flex', 
+                  gap: '6px', 
+                  alignItems: 'flex-start', 
+                  fontSize: '0.9em', 
+                  color: col.isPlaceholder ? 'var(--resume-text-secondary, #666)' : textColor,
+                  fontStyle: col.isPlaceholder ? 'italic' : 'normal',
+                  opacity: col.isPlaceholder ? 0.7 : 1
+                }}>
+                  <span style={{ color: col.isPlaceholder ? 'var(--resume-border-color, #ccc)' : textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                  <span>{parseMarkdown(item)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const resumePageStyles = {
+    fontFamily: layout.fontFamily || "'Inter', 'Segoe UI', system-ui, sans-serif",
+    color: textColor,
+    backgroundColor: 'transparent', // Let ResumePreview handle background
+    display: 'flex',
+    flexDirection: 'column'
+  };
+
+  return (
+    <div className="njm-resume" style={resumePageStyles}>
+      {/* Header Info */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: `${sectionSpacing}px` }}>
+        <div style={{ flex: 1 }}>
+          {p.name && (
+            <div style={{ color: primaryColor, fontSize: '2em', fontWeight: 600, letterSpacing: '-0.5px' }}>
+              {p.name}
+            </div>
+          )}
+          {p.tagline && (
+            <div style={{ fontSize: '1.1em', fontWeight: '500', color: textColor, marginTop: '2px' }}>
+              {p.tagline}
+            </div>
+          )}
+          
+          {hasContact && (
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '12px', 
+              fontSize: '0.85em', 
+              color: textColor, 
+              marginTop: '8px',
+              borderBottom: '1px solid var(--resume-border-color, #eee)',
+              paddingBottom: '8px'
+            }}>
+              {p.phone && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.Phone /> {p.phone}</span>}
+              {p.email && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.Email /> {p.email}</span>}
+              {p.linkedin && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.LinkedIn /> {p.linkedin}</span>}
+              {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', fontWeight: '500' }}><Icons.Location /> {p.location}</span>}
+            </div>
+          )}
+        </div>
+        {p.showPhoto && p.photo && (
+          <div className="resume-photo-container" style={{ flexShrink: 0 }} data-testid="profile-photo-container">
+            <img src={p.photo} alt={p.name || "Profile"} style={{ width: '85px', height: '85px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${primaryColor}` }} />
+          </div>
+        )}
+      </div>
+
+      {/* Main Sections */}
+      <div style={{ flex: 1 }}>
+        {sectionOrder
+          .filter(s => s !== 'skills') // Skills is placed at the bottom usually, but let's let sectionOrder control it if we want. Wait, the user has Skills at the bottom.
+          .map(sectionId => renderSection(sectionId))}
+
+        {/* Render Skills */}
+        {renderSection('skills')}
+
+        {/* Render bottom 3 columns */}
+        {renderBottomColumns()}
+      </div>
+    </div>
+  );
+}
+
+export default memo(NjmTemplate);
