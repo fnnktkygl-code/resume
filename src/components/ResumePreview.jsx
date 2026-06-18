@@ -364,7 +364,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
 
   return (
     <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%', position: 'relative' }}>
-      <div style={{ position: 'relative', minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale}px`, transition: 'min-height 0.2s ease-out' }}>
+      <div style={{ position: 'relative', minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale + (pagesCount - 1) * 24 * scale}px`, transition: 'min-height 0.2s ease-out' }}>
         <div className="resume-page" style={resumePageStyles}>
           {!hasContent ? (
             <div ref={contentRef} className="resume-empty">
@@ -411,20 +411,21 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           )}
         </div>
 
-        {/* Page breaks */}
+        {/* Page break gutters */}
         {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {
           const topPos = (idx + 1) * pageHeight * scale;
           return (
             <div
               key={idx}
-              className="preview-page-break"
               style={{
                 position: 'absolute',
                 top: `${topPos}px`,
                 left: 0,
                 right: 0,
-                height: '24px',
-                marginTop: '-12px',
+                height: `${24 * scale}px`,
+                backgroundColor: 'var(--color-bg)',
+                borderTop: '2px dashed var(--color-border)',
+                borderBottom: '2px dashed var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -432,18 +433,17 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 pointerEvents: 'none'
               }}
             >
-              <div style={{ width: '100%', borderTop: '2px dashed var(--color-text-muted)', opacity: 0.5 }} />
               <span style={{
-                position: 'absolute',
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
                 borderRadius: '12px',
-                padding: '4px 12px',
-                fontSize: '11px',
+                padding: '2px 10px',
+                fontSize: '10px',
                 fontWeight: '600',
                 color: 'var(--color-text-secondary)',
-                boxShadow: 'var(--shadow-md)',
+                boxShadow: 'var(--shadow-sm)',
                 textTransform: 'uppercase',
+                letterSpacing: '0.5px',
                 pointerEvents: 'auto',
                 display: 'flex',
                 alignItems: 'center',

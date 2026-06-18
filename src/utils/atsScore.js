@@ -18,20 +18,20 @@ export function computeAtsScore(data) {
   const isEducation = /teach|professor|éducati|formateur|enseignant|tutor|instruct|pédagog/i.test(profileSignals);
 
   // Personal info (35 pts)
-  if (p.name) score += 10; else tips.push('Add your full name');
-  if (p.email) score += 8; else tips.push('Add an email address');
-  if (p.phone) score += 7; else tips.push('Add a phone number');
-  if (p.location) score += 5; else tips.push('Add your location');
+  if (p.name) score += 10; else tips.push('ats_tip_add_name');
+  if (p.email) score += 8; else tips.push('ats_tip_add_email');
+  if (p.phone) score += 7; else tips.push('ats_tip_add_phone');
+  if (p.location) score += 5; else tips.push('ats_tip_add_location');
   if (p.linkedin) score += 5;
 
   // Summary (10 pts)
   if (data.summary && data.summary.length > 40) score += 10;
-  else tips.push('Write a professional summary (50+ characters)');
+  else tips.push('ats_tip_add_summary');
 
   // Experience (30 pts)
   const validExp = data.experience.filter(e => e.company && e.title);
   if (validExp.length > 0) score += 12;
-  else tips.push('Add at least one work experience');
+  else tips.push('ats_tip_add_experience');
 
   let hasMetrics = false;
   let hasDates = true;
@@ -43,32 +43,32 @@ export function computeAtsScore(data) {
   if (hasMetrics) {
     score += 12;
   } else if (validExp.length > 0) {
-    // Adapt the tip to the detected domain
+    // Adapt the tip key to the detected domain
     if (isHealthcare) {
-      tips.push('Add measurable impact to your bullets (e.g. patients managed, care protocols improved)');
+      tips.push('ats_tip_metrics_health');
     } else if (isEducation) {
-      tips.push('Add measurable impact to your bullets (e.g. students taught, programs developed, pass rate)');
+      tips.push('ats_tip_metrics_education');
     } else if (isCreative) {
-      tips.push('Add measurable impact to your bullets (e.g. projects delivered, engagement metrics, audience growth)');
+      tips.push('ats_tip_metrics_creative');
     } else if (isBusiness) {
-      tips.push('Add quantifiable results to your bullets (e.g. revenue growth %, deals closed, team size)');
+      tips.push('ats_tip_metrics_business');
     } else if (isTech) {
-      tips.push('Add quantifiable metrics to your bullets (e.g. latency reduced by X%, users served, uptime %)');
+      tips.push('ats_tip_metrics_tech');
     } else {
-      tips.push('Add concrete results or impact to your bullet points where possible');
+      tips.push('ats_tip_metrics_generic');
     }
   }
   if (hasDates && validExp.length > 0) score += 6;
-  else if (validExp.length > 0) tips.push('Use Month/Year format for all dates');
+  else if (validExp.length > 0) tips.push('ats_tip_dates');
 
   // Education (10 pts)
   const validEdu = data.education.filter(e => e.institution && e.degree);
   if (validEdu.length > 0) score += 10;
-  else tips.push('Add your education');
+  else tips.push('ats_tip_add_education');
 
   // Skills (10 pts)
   if (data.skills.technical && data.skills.technical.split(',').length >= 3) score += 10;
-  else tips.push('List at least 3 key skills relevant to your field');
+  else tips.push('ats_tip_add_skills');
 
   // Projects (bonus 3 pts)
   const validProj = data.projects.filter(p => p.name && p.description);

@@ -1123,6 +1123,8 @@ input[type="range"] {
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
+  padding: 20px;
+  background: var(--color-surface-alt);
 }
 
 .resume-page {
@@ -1132,6 +1134,8 @@ input[type="range"] {
   font-size: 10.5pt;
   color: #222;
   line-height: 1.45;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  border-radius: 2px;
   --resume-text-color: #222;
   --resume-text-secondary: #555;
   --resume-border-color: #eee;
