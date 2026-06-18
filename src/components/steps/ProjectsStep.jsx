@@ -57,7 +57,7 @@ export default function ProjectsStep({ data, onChange, onAIAssist }) {
               <TextArea
                 value={proj.description}
                 onChange={(v) => updateProj(pi, 'description', v)}
-                onAIAssist={() => onAIAssist?.(proj.description)}
+                onAIAssist={() => onAIAssist?.(proj.description, pi, -1)}
                 placeholder="Built a real-time analytics platform processing 1M+ events/day with sub-second dashboard updates."
                 rows={2}
               />
@@ -73,7 +73,7 @@ export default function ProjectsStep({ data, onChange, onAIAssist }) {
                     <TextArea
                       value={hl}
                       onChange={(v) => updateHighlight(pi, hi, v)}
-                      onAIAssist={() => onAIAssist?.(hl)}
+                      onAIAssist={() => onAIAssist?.(hl, pi, hi)}
                       placeholder="Reduced data pipeline latency by 60% through query optimization"
                       rows={2}
                     />

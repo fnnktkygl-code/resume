@@ -1,8 +1,36 @@
 import { getTranslation } from '../utils/translations';
 import React, { useEffect, useState } from 'react';
+import ImportModal from './ui/ImportModal';
 
 import '../styles/landing.css';
 
+function LandingVideo({ src, poster, className }) {
+  const [error, setError] = useState(false);
+
+  if (error) {
+    return (
+      <img
+        src={poster}
+        alt="Preview fallback"
+        className={className}
+        loading="lazy"
+      />
+    );
+  }
+
+  return (
+    <video
+      src={src}
+      poster={poster}
+      preload="none"
+      loop
+      muted
+      playsInline
+      className={`${className} animate-video-on-scroll`}
+      onError={() => setError(true)}
+    />
+  );
+}
 
 export default function Landing({ onStart, onNavigate }) {
   const [lang, setLang] = useState('en');
@@ -15,6 +43,12 @@ export default function Landing({ onStart, onNavigate }) {
   const t = (k) => getTranslation(lang, k);
 
   const [scrolled, setScrolled] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const handleImportSuccess = (parsedData) => {
+    localStorage.setItem('resume-builder-data', JSON.stringify(parsedData));
+    onStart(); // Navigate to app
+  };
 
   // Intersection Observer for scroll animations
   useEffect(() => {
@@ -53,7 +87,12 @@ export default function Landing({ onStart, onNavigate }) {
     <div className="landing-page">
       <nav className={`landing-nav ${scrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-logo">Resu<span>Me</span></div>
-        <button className="landing-cta-small" onClick={onStart}>{t('Build CV')}</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="landing-cta-small" style={{ background: 'var(--landing-bg)', color: 'var(--landing-text)', border: '1px solid var(--landing-text-secondary)' }} onClick={() => setShowImportModal(true)}>
+            <i className="fi fi-rr-magic-wand"></i> Import CV
+          </button>
+          <button className="landing-cta-small" onClick={onStart}>{t('Build CV')}</button>
+        </div>
       </nav>
 
       <main className="landing-main">
@@ -71,10 +110,8 @@ export default function Landing({ onStart, onNavigate }) {
               <button className="landing-cta-primary" onClick={onStart}>
                 Start Building Free
               </button>
-              <button className="landing-cta-secondary" onClick={() => {
-                document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
-              }}>
-                Take a Tour
+              <button className="landing-cta-secondary" onClick={() => setShowImportModal(true)}>
+                <i className="fi fi-rr-magic-wand"></i> Import Resume
               </button>
             </div>
           </div>
@@ -82,13 +119,10 @@ export default function Landing({ onStart, onNavigate }) {
           <div className="hero-showcase animate-on-scroll staggered-4">
             <div className="showcase-glow"></div>
             <div className="hero-image-wrapper">
-              <video
+              <LandingVideo
                 src="./assets/dark_mode_playing_with_parameters_desktop.mov"
-                preload="none"
-                loop
-                muted
-                playsInline
-                className="hero-video animate-video-on-scroll"
+                poster="./assets/dark_mode__parameter_extended_view.png"
+                className="hero-video"
               />
             </div>
           </div>
@@ -116,13 +150,10 @@ export default function Landing({ onStart, onNavigate }) {
               </div>
               <div className="hero-showcase bento-showcase">
                 <div className="hero-image-wrapper">
-                  <video
+                  <LandingVideo
                     src="./assets/light_mode_desktop_drag_add_remove_section.mov"
-                    preload="none"
-                    loop
-                    muted
-                    playsInline
-                    className="hero-video animate-video-on-scroll"
+                    poster="./assets/light_mode_desktop_parameter_collapsed_view.png"
+                    className="hero-video"
                   />
                 </div>
               </div>
@@ -161,13 +192,10 @@ export default function Landing({ onStart, onNavigate }) {
                 <p>{t('Edit your CV seamlessly on the go.')}</p>
               </div>
               <div className="mockup-frame">
-                <video
+                <LandingVideo
                   src="./assets/light_mode_mobile_preview_and_parameters_playging_view.mp4"
-                  preload="none"
-                  loop
-                  muted
-                  playsInline
-                  className="bento-video animate-video-on-scroll"
+                  poster="./assets/mobile_dark_mode_custom_section_view.jpeg"
+                  className="bento-video"
                 />
               </div>
             </div>
@@ -217,6 +245,13 @@ export default function Landing({ onStart, onNavigate }) {
           <p>© {new Date().getFullYear()} ResuMe Preview Project.</p>
         </footer>
       </main>
+
+      <ImportModal 
+        isOpen={showImportModal} 
+        onClose={() => setShowImportModal(false)} 
+        onImportSuccess={handleImportSuccess}
+        language={lang}
+      />
     </div>
   );
 }

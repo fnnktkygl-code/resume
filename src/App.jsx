@@ -17,14 +17,12 @@ import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
 import Modal from './components/ui/Modal';
-import QuotaBadge from './components/QuotaBadge';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
 const AIBoldifyModal = lazy(() => import('./components/ui/AIBoldifyModal'));
 const OnboardingModal = lazy(() => import('./components/ui/OnboardingModal'));
 const CVManagerModal = lazy(() => import('./components/ui/CVManagerModal'));
-const JobFinderModal = lazy(() => import('./components/ui/JobFinderModal'));
 import ImportModal from './components/ui/ImportModal';
 
 const STORAGE_KEY = 'resume-builder-data';
@@ -142,7 +140,6 @@ export default function App() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isTailorOpen, setIsTailorOpen] = useState(false);
   const [isBoldifyOpen, setIsBoldifyOpen] = useState(false);
-  const [isJobFinderOpen, setIsJobFinderOpen] = useState(false);
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
@@ -687,17 +684,11 @@ export default function App() {
             <span className="badge">ATS Ready</span>
           </div>
           <div className="header-right">
-            <QuotaBadge />
             <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
 
             {/* Primary action: Import CV */}
             <button className="btn-demo btn-import-primary" onClick={() => setShowImportModal(true)}>
               <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
-            </button>
-
-            {/* S4: Smart Job Search */}
-            <button className="btn-demo btn-job-search" onClick={() => setIsJobFinderOpen(true)} style={{ marginLeft: '8px' }}>
-              <i className="fi fi-rr-search"></i> {t('Job Search AI')}
             </button>
 
             {/* S3: Demos + Clear moved to overflow menu */}
@@ -1321,13 +1312,6 @@ export default function App() {
                 setAiSnapshot(structuredClone(data));
                 setData(newData);
               }}
-            />
-          )}
-          {isJobFinderOpen && (
-            <JobFinderModal
-              isOpen={isJobFinderOpen}
-              onClose={() => setIsJobFinderOpen(false)}
-              data={data}
             />
           )}
           {aiBoldConfig.isOpen && (

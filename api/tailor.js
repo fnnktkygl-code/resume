@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server misconfiguration: GEMINI_API_KEY_MASTER is not defined' });
   }
 
-  const targetLang = language === 'fr' ? 'French' : 'English';
+  const targetLang = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
   
   const cloneData = { ...resumeData };
   delete cloneData.headings;
@@ -77,6 +77,9 @@ Output the fully optimized and tailored resume as a valid JSON object.
   };
 
   try {
+    const { checkAndIncrementQuota } = await import('./firebase.js');
+    await checkAndIncrementQuota();
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -86,7 +89,7 @@ Output the fully optimized and tailored resume as a valid JSON object.
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error("Gemini API Error:", errorData);
       
       if (response.status === 429) {
@@ -113,6 +116,9 @@ Output the fully optimized and tailored resume as a valid JSON object.
     
   } catch (error) {
     console.error("Function Error:", error);
+    if (error.message === 'QUOTA_EXCEEDED') {
+      return res.status(429).json({ error: 'QUOTA_EXCEEDED', message: 'Gemini API quota exceeded' });
+    }
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: error.message || 'An unexpected error occurred' });
   }
 }

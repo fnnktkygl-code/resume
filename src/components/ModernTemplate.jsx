@@ -1,7 +1,11 @@
 import { memo } from 'react';
 import { parseMarkdown } from '../utils/formatText';
 
-function ModernTemplate({ data, layout = {}, language = 'en' }) {
+import { getTranslation } from '../utils/translations';
+
+function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+  const t = (key) => getTranslation(language, key);
+  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
   const validExp = data.experience.filter(e => e.company || e.title);
   const validEdu = data.education.filter(e => e.institution || e.degree);
@@ -23,42 +27,62 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
   };
 
   return (
-    <div className="modern-resume" style={{ fontSize: `${fontSize}pt` }}>
+    <div className="modern-resume" style={{ fontSize: `${fontSize}pt`, fontFamily: layout.fontFamily || 'Inter' }}>
       {/* Left Sidebar */}
       <div className="modern-sidebar">
+        {p.showPhoto && p.photo && (
+          <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }} data-testid="profile-photo-container">
+            <img src={p.photo} alt={p.name || "Profile"} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color, #1B6B3A)` }} />
+          </div>
+        )}
         {p.name && <div className="resume-name">{p.name}</div>}
         {p.tagline && <div className="resume-tagline">{p.tagline}</div>}
 
-        {/* Contact */}
-        <div>
-          <div className="modern-sidebar-section-title">
-            {language === 'fr' ? 'Contact' : 'Contact'}
+        {/* Contact — only render if at least one field is filled */}
+        {(p.email || p.phone || p.location || p.linkedin || p.github || p.website) && (
+          <div>
+            <div className="modern-sidebar-section-title">
+              {t('Contact')}
+            </div>
+            {p.email && <div className="modern-sidebar-item">{p.email}</div>}
+            {p.phone && <div className="modern-sidebar-item">{p.phone}</div>}
+            {p.location && <div className="modern-sidebar-item">{p.location}</div>}
+            {p.linkedin && <div className="modern-sidebar-item">{p.linkedin}</div>}
+            {p.github && <div className="modern-sidebar-item">{p.github}</div>}
+            {p.website && <div className="modern-sidebar-item">{p.website}</div>}
           </div>
-          {p.email && <div className="modern-sidebar-item">{p.email}</div>}
-          {p.phone && <div className="modern-sidebar-item">{p.phone}</div>}
-          {p.location && <div className="modern-sidebar-item">{p.location}</div>}
-          {p.linkedin && <div className="modern-sidebar-item">{p.linkedin}</div>}
-          {p.github && <div className="modern-sidebar-item">{p.github}</div>}
-          {p.website && <div className="modern-sidebar-item">{p.website}</div>}
-        </div>
+        )}
 
         {/* Skills */}
         {hasSkills && (
-          <div>
-            <div className="modern-sidebar-section-title">{h.skills}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('skills') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="modern-sidebar-section-title">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             {data.skills.technical && (
               <div className="modern-sidebar-item">
-                <strong>{h.technical}</strong> {data.skills.technical}
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.technical}</strong>
+                <div className="skills-container">
+                  {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
+                </div>
               </div>
             )}
             {data.skills.soft && (
               <div className="modern-sidebar-item">
-                <strong>{h.interpersonal}</strong> {data.skills.soft}
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.interpersonal}</strong>
+                <div className="skills-container">
+                  {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
+                </div>
               </div>
             )}
             {data.skills.languages && (
               <div className="modern-sidebar-item">
-                <strong>{h.languages}</strong> {data.skills.languages}
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.languages}</strong>
+                <div className="skills-container">
+                  {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
+                </div>
               </div>
             )}
           </div>
@@ -66,8 +90,12 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
 
         {/* Certifications */}
         {validCert.length > 0 && (
-          <div>
-            <div className="modern-sidebar-section-title">{h.certifications}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('certifications') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="modern-sidebar-section-title">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             {validCert.map((c, i) => (
               <div key={i} className="modern-sidebar-item">
                 <strong>{c.name}</strong>
@@ -81,15 +109,23 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
       {/* Right Main */}
       <div className="modern-main" style={{ gap: `${sectionSpacing}px` }}>
         {data.summary && (
-          <div>
-            <div className="resume-section-header">{h.summary}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('summary') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="resume-section-header">{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
             <div>{parseMarkdown(data.summary)}</div>
           </div>
         )}
 
         {validExp.length > 0 && (
-          <div>
-            <div className="resume-section-header">{h.experience}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('experience') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
                 <div key={i}>
@@ -98,7 +134,7 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
                     <span className="resume-dates">
                       {formatDate(exp.startMonth, exp.startYear)}
                       {(exp.startMonth || exp.startYear) && ' — '}
-                      {exp.current ? h.present : formatDate(exp.endMonth, exp.endYear)}
+                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                     </span>
                   </div>
                   <div className="resume-title">{exp.title}</div>
@@ -114,8 +150,12 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
         )}
 
         {validEdu.length > 0 && (
-          <div>
-            <div className="resume-section-header">{h.education}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('education') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
                 <div key={i}>
@@ -135,8 +175,12 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
         )}
 
         {validProj.length > 0 && (
-          <div>
-            <div className="resume-section-header">{h.projects}</div>
+          <div
+            onClick={onSectionClick ? () => onSectionClick('projects') : undefined}
+            className={onSectionClick ? "preview-interactive-section" : ""}
+            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+          >
+            <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
                 <div key={i}>
@@ -159,7 +203,12 @@ function ModernTemplate({ data, layout = {}, language = 'en' }) {
           const validItems = sec.items.filter(i => i.title || i.subtitle || i.description);
           if (!validItems.length) return null;
           return (
-            <div key={sec.id}>
+            <div 
+              key={sec.id}
+              onClick={onSectionClick ? () => onSectionClick(sec.id) : undefined}
+              className={onSectionClick ? "preview-interactive-section" : ""}
+              style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
+            >
               <div className="resume-section-header">{sec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (

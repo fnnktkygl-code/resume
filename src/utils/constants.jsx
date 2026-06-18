@@ -143,7 +143,34 @@ export const DEFAULT_DATA = {
   skills: { technical: '', soft: '', languages: '' },
   projects: [createEmptyProject()],
   certifications: [createEmptyCertification()],
-  customSections: [],
-  sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'],
+  customSections: [
+    {
+      id: 'custom_atouts',
+      label: 'Atouts',
+      items: [
+        {
+          id: 'item_atouts_1',
+          title: '',
+          subtitle: '',
+          date: '',
+          description: ''
+        }
+      ]
+    },
+    {
+      id: 'custom_loisirs',
+      label: 'Loisirs',
+      items: [
+        {
+          id: 'item_loisirs_1',
+          title: '',
+          subtitle: '',
+          date: '',
+          description: ''
+        }
+      ]
+    }
+  ],
+  sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_atouts', 'custom_loisirs'],
 };
 

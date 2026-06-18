@@ -1,47 +1,40 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import Modal from './Modal';
-import { tailorResumeWithProxy } from '../../services/geminiService';
+import { boldifyResumeWithProxy } from '../../services/geminiService';
 import VisualDiff from './VisualDiff';
 
-export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language }) {
+export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess }) {
   const { t } = useTranslation();
-  const [jobDescription, setJobDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [tailoredResult, setTailoredResult] = useState(null);
+  const [boldedResult, setBoldedResult] = useState(null);
 
   useEffect(() => {
     if (!isOpen) {
-      setJobDescription('');
       setError('');
-      setTailoredResult(null);
+      setBoldedResult(null);
       setIsLoading(false);
     }
   }, [isOpen]);
 
-  const handleTailor = async () => {
-    if (!jobDescription.trim()) {
-      setError(t('Please paste a job description.'));
-      return;
-    }
-
+  const handleBoldify = async () => {
     setError('');
     setIsLoading(true);
 
     try {
-      const tailoredData = await tailorResumeWithProxy(data, jobDescription, language);
-      setTailoredResult(tailoredData);
+      const boldedData = await boldifyResumeWithProxy(data);
+      setBoldedResult(boldedData);
     } catch (err) {
-      setError(err.message || t('Failed to generate resume. Please try again.'));
+      setError(err.message || t('Failed to process. Please try again.'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleApply = () => {
-    if (tailoredResult) {
-      onTailorSuccess(tailoredResult);
+    if (boldedResult) {
+      onBoldifySuccess(boldedResult);
       onClose();
     }
   };
@@ -50,13 +43,13 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
     <Modal
       isOpen={isOpen}
       onClose={!isLoading ? onClose : () => {}}
-      title={`✨ ${t('Tailor to Job Description')}`}
+      title={`✨ ${t('AI Smart Bolding')}`}
       actions={
-        tailoredResult ? (
+        boldedResult ? (
           <>
             <button 
               className="btn-secondary" 
-              onClick={() => setTailoredResult(null)}
+              onClick={() => setBoldedResult(null)}
             >
               {t('Cancel')}
             </button>
@@ -78,10 +71,10 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
             </button>
             <button 
               className="btn-primary" 
-              onClick={handleTailor}
-              disabled={isLoading || !jobDescription.trim()}
+              onClick={handleBoldify}
+              disabled={isLoading}
             >
-              {isLoading ? t('Generating...') : t('Generate Tailored CV')}
+              {isLoading ? t('Generating...') : t('Apply Smart Bolding')}
             </button>
           </>
         )
@@ -96,44 +89,18 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
             <p style={{ marginTop: '16px', fontWeight: '500' }}>{t('Optimizing your resume...')}</p>
             <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
           </div>
-        ) : tailoredResult ? (
-          /* Show Diff view */
+        ) : boldedResult ? (
           <div className="animate-fade-in">
             <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
               {t('Please review the edits proposed by the AI before applying:')}
             </p>
-            <VisualDiff original={data} modified={tailoredResult} />
+            <VisualDiff original={data} modified={boldedResult} />
           </div>
         ) : (
-          /* Show JD Input view */
           <>
             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              {t('Paste the job description below. We will use Google Gemini to rewrite your experiences and highlight the most relevant skills.')}
+              {t('Google Gemini will analyze your entire CV to selectively bold core metrics, action verbs, and key technical skills in a clean, minimalist style. This improves readability for recruiters and ATS parsers.')}
             </p>
-
-            <div>
-              <label htmlFor="jd-input" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                {t('Job Description')}
-              </label>
-              <textarea
-                id="jd-input"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                disabled={isLoading}
-                placeholder={t('Paste the full job description here...')}
-                style={{
-                  width: '100%',
-                  minHeight: '150px',
-                  padding: '0.75rem',
-                  borderRadius: 'var(--radius)',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: 'var(--bg-tertiary)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
           </>
         )}
 

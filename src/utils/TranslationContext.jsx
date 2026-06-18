@@ -7,6 +7,7 @@ export const useTranslation = () => {
   const lang = useContext(TranslationContext);
   return {
     t: (key) => getTranslation(lang, key),
-    lang
+    lang,
+    language: lang
   };
 };

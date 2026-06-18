@@ -1,68 +1,262 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from '../utils/TranslationContext';
 import Modal from './ui/Modal';
+import { enhanceWithProxy, translateTextWithProxy } from '../services/geminiService';
+import { parseMarkdown } from '../utils/formatText';
 
-export default function AIBoldModal({ isOpen, onClose, textData, contextType }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
+export default function AIBoldModal({ isOpen, onClose, textData, contextType, onUpdate }) {
+  const { t, language } = useTranslation();
+  const [activeTab, setActiveTab] = useState('enhance'); // 'enhance' or 'translate'
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [targetLang, setTargetLang] = useState(language === 'fr' ? 'en' : 'fr');
+  const [proposedText, setProposedText] = useState('');
 
-  const getPrompt = () => {
-    const contextMap = {
-      summary: "this professional resume summary",
-      experience: "this resume experience bullet point",
-      projects: "this resume project description"
-    };
+  // Auto-run Enhance on open
+  useEffect(() => {
+    if (isOpen && textData) {
+      setActiveTab('enhance');
+      handleEnhance();
+    }
+  }, [isOpen, textData, contextType]);
 
-    const targetContext = contextMap[contextType] || "this resume text";
-
-    return `Act as an expert technical resume writer.
-I have written ${targetContext}, but I need to highlight the most impactful parts to pass ATS parsers and catch a recruiter's eye.
-
-Please review the following text. Wrap the most important keywords, strong action verbs, and quantifiable metrics in markdown bold (**bold text**).
-CRITICAL: DO NOT rewrite, add, or remove any words. Keep my exact phrasing and punctuation identical. ONLY add ** markdown characters around the parts that should be stressed.
-
-Text to enhance:
-"""
-${textData}
-"""
-`;
-  };
-
-  const handleCopy = async () => {
+  const handleEnhance = async () => {
+    setIsGenerating(true);
+    setError('');
     try {
-      await navigator.clipboard.writeText(getPrompt());
-      setCopied(true);
-      setError('');
-      setTimeout(() => setCopied(false), 2000);
+      const result = await enhanceWithProxy(textData, contextType);
+      setProposedText(result);
     } catch (err) {
-      setError(t('Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).'));
+      setError(err.message || t('An error occurred during generation.'));
+    } finally {
+      setIsGenerating(false);
     }
   };
+
+  const handleTranslate = async () => {
+    setIsGenerating(true);
+    setError('');
+    try {
+      const result = await translateTextWithProxy(textData, targetLang);
+      setProposedText(result);
+    } catch (err) {
+      setError(err.message || t('An error occurred during translation.'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleApply = () => {
+    if (onUpdate && proposedText) {
+      onUpdate(proposedText);
+    }
+    onClose();
+  };
+
+  const languagesOptions = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'es', label: 'Español' }
+  ];
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`✨ ${t('AI Smart Bolding')}`}
+      title={`✨ ${t('AI Block Assistant')}`}
       actions={
         <>
-          <button className="btn-secondary" onClick={onClose}>{t('Close')}</button>
-          <button className="btn-primary" onClick={handleCopy}>
-            {copied ? t('Copied!') : t('Copy Prompt')}
+          <button className="btn-secondary" onClick={onClose} disabled={isGenerating}>{t('Cancel')}</button>
+          <button className="btn-primary" onClick={handleApply} disabled={isGenerating || !proposedText}>
+            {t('Apply Changes')}
           </button>
         </>
       }
     >
-      <p>
-        {t('Copy this prompt into ChatGPT or your favorite AI. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.')}
-      </p>
-      
-      <div className="prompt-box">
-        <textarea readOnly value={getPrompt()} />
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Tabs */}
+        <div style={{
+          display: 'flex',
+          borderBottom: '1px solid var(--color-border)',
+          gap: '12px',
+          marginBottom: '4px'
+        }}>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('enhance');
+              handleEnhance();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'enhance' ? '2px solid var(--color-accent)' : '2px solid transparent',
+              color: activeTab === 'enhance' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            ✨ {t('Enhance')}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('translate');
+              setProposedText('');
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'translate' ? '2px solid var(--color-accent)' : '2px solid transparent',
+              color: activeTab === 'translate' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            🌎 {t('Translate')}
+          </button>
+        </div>
 
-      {error && <p style={{ color: 'var(--color-danger)', fontSize: '13px' }}>{error}</p>}
+        {/* Tab Content */}
+        {activeTab === 'translate' && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: 'var(--color-surface-alt)',
+            padding: '12px',
+            borderRadius: '6px',
+            border: '1px solid var(--color-border)'
+          }}>
+            <label style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--color-text-secondary)' }}>
+              {t('Target Language')} :
+            </label>
+            <select
+              value={targetLang}
+              onChange={(e) => setTargetLang(e.target.value)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                fontSize: '12.5px',
+                fontWeight: '550',
+                outline: 'none',
+                minWidth: '120px'
+              }}
+            >
+              {languagesOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.label}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={handleTranslate}
+              disabled={isGenerating}
+              style={{ padding: '6px 12px', fontSize: '12.5px' }}
+            >
+              {t('Translate')}
+            </button>
+          </div>
+        )}
+
+        {isGenerating ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px 0' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="ai-shimmer-loading" style={{ height: '16px', width: '30%', borderRadius: '4px', backgroundColor: 'var(--color-surface-alt)' }} />
+              <div className="ai-shimmer-loading" style={{ height: '60px', width: '100%', borderRadius: '6px', backgroundColor: 'var(--color-surface-alt)' }} />
+            </div>
+            <p style={{ textAlign: 'center', marginTop: '12px', fontSize: '13px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>
+              {activeTab === 'enhance' ? t('Optimizing text with Gemini...') : t('Translating...')}
+            </p>
+          </div>
+        ) : error ? (
+          <div style={{ color: 'var(--color-danger)', padding: '20px 0', textAlign: 'center' }}>
+            <p>{error}</p>
+            {activeTab === 'enhance' ? (
+              <button className="btn-secondary" onClick={handleEnhance} style={{ marginTop: '8px' }}>Re-try</button>
+            ) : (
+              <button className="btn-secondary" onClick={handleTranslate} style={{ marginTop: '8px' }}>Re-try</button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Before / After Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--color-text-secondary)' }}>
+                  {t('Original Text')}
+                </label>
+                <div style={{ 
+                  padding: '12px', 
+                  backgroundColor: 'var(--color-surface-alt)', 
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: 'var(--color-text-secondary)',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: '1.5'
+                }}>
+                  {parseMarkdown(textData)}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--color-accent)' }}>
+                  {t('Proposed Text')}
+                </label>
+                <textarea 
+                  value={proposedText}
+                  onChange={(e) => setProposedText(e.target.value)}
+                  placeholder={activeTab === 'translate' ? t('Choose target language and translate...') : ''}
+                  style={{ 
+                    width: '100%', 
+                    minHeight: '120px', 
+                    padding: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--color-border)',
+                    fontFamily: 'inherit',
+                    fontSize: '13px',
+                    lineHeight: '1.5',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              {proposedText && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--color-success)' }}>
+                    {t('Preview')}
+                  </label>
+                  <div style={{ 
+                    padding: '12px', 
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)', 
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    color: 'var(--color-text)',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: '1.5',
+                    minHeight: '40px'
+                  }}>
+                    {parseMarkdown(proposedText)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }

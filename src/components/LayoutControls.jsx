@@ -1,5 +1,13 @@
 import { useTranslation } from '../utils/TranslationContext';
 
+const COLOR_PALETTES = [
+  { name: 'Navy Blue', value: '#0F3A8C' },
+  { name: 'Emerald Green', value: '#1B6B3A' },
+  { name: 'Deep Burgundy', value: '#800020' },
+  { name: 'Slate Gray', value: '#475569' },
+  { name: 'Minimalist Charcoal', value: '#111827' }
+];
+
 export default function LayoutControls({ layout, onChange }) {
   const { t } = useTranslation();
 
@@ -15,7 +23,9 @@ export default function LayoutControls({ layout, onChange }) {
       paddingY: 0.75,
       lineHeight: 1.45,
       sectionSpacing: 10,
-      itemSpacing: 8
+      itemSpacing: 8,
+      accentColor: '#1B6B3A',
+      fontFamily: 'Inter'
     });
   };
 
@@ -24,6 +34,57 @@ export default function LayoutControls({ layout, onChange }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div style={{ fontWeight: 600, fontSize: '13px' }}>⚙️ {t('Layout Settings')}</div>
         <button className="btn-secondary" onClick={resetLayout} style={{ padding: '4px 8px', fontSize: '11px' }}>{t('Reset Layout')}</button>
+      </div>
+
+      {/* Accent Color & Font Family Selection */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }}>{t('Accent Color')}</label>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+            {COLOR_PALETTES.map((palette) => (
+              <button
+                key={palette.value}
+                type="button"
+                onClick={() => handleUpdate('accentColor', palette.value)}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: palette.value,
+                  border: layout.accentColor === palette.value ? '2px solid var(--color-border-focus)' : '1px solid var(--color-border)',
+                  cursor: 'pointer',
+                  transform: layout.accentColor === palette.value ? 'scale(1.15)' : 'scale(1)',
+                  transition: 'transform 0.15s ease, border 0.15s ease',
+                  boxShadow: layout.accentColor === palette.value ? 'var(--shadow-sm)' : 'none'
+                }}
+                title={t(palette.name)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="font-select">{t('Font Family')}</label>
+          <select
+            id="font-select"
+            value={layout.fontFamily || 'Inter'}
+            onChange={(e) => handleUpdate('fontFamily', e.target.value)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="Inter">{t('Classic Sans (Inter)')}</option>
+            <option value="Fraunces, Georgia, serif">{t('Elegant Serif (Fraunces)')}</option>
+            <option value="JetBrains Mono, monospace">{t('Modern Mono (JetBrains)')}</option>
+          </select>
+        </div>
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>

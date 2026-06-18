@@ -1,9 +1,14 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
-import RecruiterTemplate from './RecruiterTemplate';
+import NjmTemplate from './NjmTemplate';
+import CreativeTemplate from './CreativeTemplate';
+import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown } from '../utils/formatText';
+import { getTranslation } from '../utils/translations';
 
-function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove }) {
+function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick }) {
+  const t = (key) => getTranslation(language, key);
+  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
   const validExp = data.experience.filter(e => e.company || e.title);
@@ -56,7 +61,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     const observer = new ResizeObserver(() => {
       frame = requestAnimationFrame(() => {
         if (!contentRef.current) return;
-        const innerH = contentRef.current.offsetHeight;
+        let innerH = contentRef.current.offsetHeight;
+        if (template === 'modern') {
+          const sidebar = contentRef.current.querySelector('.modern-sidebar');
+          const main = contentRef.current.querySelector('.modern-main');
+          innerH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
+        }
         const totalH = innerH + (paddingY * 2 * 96);
         const neededPages = Math.max(1, Math.ceil(totalH / 1056));
         setPagesCount(neededPages);
@@ -67,7 +77,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [hasContent, paddingY, fontSize, lineHeight, paddingX, sectionSpacing, itemSpacing]);
+  }, [hasContent, paddingY, fontSize, lineHeight, paddingX, sectionSpacing, itemSpacing, template]);
 
   const pageWidth = 816;
   const pageHeight = 1056;
@@ -114,12 +124,18 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       onDragStart: () => handleDragStart(sectionId),
       onDragOver: (e) => handleDragOver(e, sectionId),
       onDragEnd: handleDragEnd,
-      className: `draggable-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`,
-    } : {};
+      className: `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`,
+      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      style: onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {}
+    } : {
+      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      className: onSectionClick && !printMode ? 'preview-interactive-section' : undefined,
+      style: onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {}
+    };
 
     const DragHandleWithActions = () => (
       <div className="section-actions" aria-hidden="true">
-        <span className="drag-handle" title={language === 'fr' ? 'Faites glisser pour réordonner' : 'Drag to reorder'}>
+        <span className="drag-handle" title={t('Drag to reorder')}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>
             <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
@@ -131,7 +147,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             e.stopPropagation();
             onSectionRemove(sectionId);
           }}
-          title={language === 'fr' ? 'Supprimer' : 'Delete'}
+          title={t('Delete')}
         >
           ✕
         </button>
@@ -144,7 +160,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="summary" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.summary}</div>
+            <div className="resume-section-header">{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
             <div>{parseMarkdown(data.summary)}</div>
           </div>
         );
@@ -153,7 +169,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="experience" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.experience}</div>
+            <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
                 <div key={i}>
@@ -162,7 +178,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                     <span className="resume-dates">
                       {formatDate(exp.startMonth, exp.startYear)}
                       {(exp.startMonth || exp.startYear) && ' — '}
-                      {exp.current ? h.present : formatDate(exp.endMonth, exp.endYear)}
+                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                     </span>
                   </div>
                   <div className="resume-title">{exp.title}</div>
@@ -181,7 +197,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="education" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.education}</div>
+            <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
                 <div key={i}>
@@ -204,11 +220,32 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="skills" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.skills}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
-              {data.skills.technical && <div><strong>{h.technical}</strong> {data.skills.technical}</div>}
-              {data.skills.soft && <div><strong>{h.interpersonal}</strong> {data.skills.soft}</div>}
-              {data.skills.languages && <div><strong>{h.languages}</strong> {data.skills.languages}</div>}
+            <div className="resume-section-header">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/1.5)}px` }}>
+              {data.skills.technical && (
+                <div>
+                  <strong>{h.technical}</strong>
+                  <div className="skills-container">
+                    {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
+              {data.skills.soft && (
+                <div>
+                  <strong>{h.interpersonal}</strong>
+                  <div className="skills-container">
+                    {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
+              {data.skills.languages && (
+                <div>
+                  <strong>{h.languages}</strong>
+                  <div className="skills-container">
+                    {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -217,7 +254,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="projects" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.projects}</div>
+            <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
                 <div key={i}>
@@ -240,7 +277,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         return (
           <div key="certifications" {...wrapProps}>
             {isDraggable && <DragHandleWithActions />}
-            <div className="resume-section-header">{h.certifications}</div>
+            <div className="resume-section-header">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
               {validCert.map((c, i) => (
                 <div key={i} className="resume-bullet">
@@ -283,6 +320,22 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     }
   };
 
+  const hexToRgb = (hex) => {
+    if (!hex) return '27, 107, 58';
+    let cleanHex = hex.replace('#', '');
+    if (cleanHex.length === 3) {
+      cleanHex = cleanHex.split('').map(char => char + char).join('');
+    }
+    const r = parseInt(cleanHex.slice(0, 2), 16);
+    const g = parseInt(cleanHex.slice(2, 4), 16);
+    const b = parseInt(cleanHex.slice(4, 6), 16);
+    return isNaN(r) ? '27, 107, 58' : `${r}, ${g}, ${b}`;
+  };
+
+  const accentColor = layout.accentColor || '#1B6B3A';
+  const fontFamily = layout.fontFamily || 'Inter';
+  const accentRgb = hexToRgb(accentColor);
+
   const resumePageStyles = {
     width: `${pageWidth}px`,
     height: printMode ? 'auto' : `${pagesCount * pageHeight}px`,
@@ -292,27 +345,45 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     fontSize: `${fontSize}pt`,
     lineHeight: lineHeight,
     padding: template === 'modern' ? '0' : `${paddingY}in ${paddingX}in`,
-    backgroundImage: (!printMode && pagesCount > 1 && template === 'standard') 
-      ? `repeating-linear-gradient(to bottom, transparent, transparent 1054px, rgba(128,128,128,0.4) 1054px, rgba(128,128,128,0.4) 1056px)` 
-      : 'none',
+    fontFamily: fontFamily,
+    '--resume-accent-color': accentColor,
+    '--resume-accent-rgb': accentRgb,
+    '--resume-font-family': fontFamily,
   };
 
-  const emptyText = language === 'fr' 
-    ? 'Commencez à remplir vos informations pour voir votre CV apparaître ici' 
-    : 'Start filling in your details to see your resume appear here';
+  const emptyText = t('empty_resume_message');
 
   return (
-    <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%' }}>
-      <div style={{ minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale}px`, transition: 'min-height 0.2s ease-out' }}>
+    <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%', position: 'relative' }}>
+      <div style={{ position: 'relative', minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale}px`, transition: 'min-height 0.2s ease-out' }}>
         <div className="resume-page" style={resumePageStyles}>
-          {template === 'modern' ? (
-            <ModernTemplate data={data} layout={layout} language={language} />
-          ) : template === 'recruiter' ? (
+          {!hasContent ? (
+            <div ref={contentRef} className="resume-empty">
+              {emptyText}
+            </div>
+          ) : template === 'modern' ? (
+            <div ref={contentRef} style={{ height: '100%' }}>
+              <ModernTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+            </div>
+          ) : template === 'njm' ? (
             <div ref={contentRef}>
-              <RecruiterTemplate data={data} layout={layout} language={language} />
+              <NjmTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+            </div>
+          ) : template === 'creative' ? (
+            <div ref={contentRef}>
+              <CreativeTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+            </div>
+          ) : template === 'minimalist' ? (
+            <div ref={contentRef}>
+              <MinimalistTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
             </div>
           ) : (
             <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+              {p.showPhoto && p.photo && (
+                <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(sectionSpacing / 2)}px` }} data-testid="profile-photo-container">
+                  <img src={p.photo} alt={p.name || "Profile"} style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color)` }} />
+                </div>
+              )}
               {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
               {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
               {hasContact && (
@@ -327,15 +398,53 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
               )}
 
               {sectionOrder.map(sectionId => renderSection(sectionId))}
-
-              {!hasContent && (
-                <div className="resume-empty">
-                  {emptyText}
-                </div>
-              )}
             </div>
           )}
         </div>
+
+        {/* Page breaks */}
+        {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {
+          const topPos = (idx + 1) * pageHeight * scale;
+          return (
+            <div
+              key={idx}
+              className="preview-page-break"
+              style={{
+                position: 'absolute',
+                top: `${topPos}px`,
+                left: 0,
+                right: 0,
+                height: '24px',
+                marginTop: '-12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                pointerEvents: 'none'
+              }}
+            >
+              <div style={{ width: '100%', borderTop: '2px dashed var(--color-text-muted)', opacity: 0.5 }} />
+              <span style={{
+                position: 'absolute',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                padding: '4px 12px',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                boxShadow: 'var(--shadow-md)',
+                textTransform: 'uppercase',
+                pointerEvents: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                ✂️ {t('Page')} {idx + 1} / {idx + 2}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

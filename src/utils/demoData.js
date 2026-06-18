@@ -435,3 +435,177 @@ export const DEMO_DATA_2_PAGES_FR = {
     },
   ],
 };
+
+export const DEMO_DATA_1_PAGE_ES = {
+  headings: HEADINGS_DEMO,
+  personal: {
+    name: 'Hoshi Fenneko',
+    tagline: 'Desarrollador Full-Stack Senior',
+    email: 'hoshi.fenneko@email.es',
+    phone: '+34 612 34 56 78',
+    location: 'Madrid, España',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
+  },
+  summary: 'Desarrollador full-stack apasionado con más de 7 años de experiencia en el diseño de arquitecturas web escalables. Experto en JavaScript/TypeScript (React, Node.js) y arquitecturas Cloud. Enfocado en el rendimiento, la accesibilidad y la calidad del código (Clean Code, TDD).',
+  experience: [
+    {
+      id: 1,
+      company: 'Cabify',
+      title: 'Desarrollador Full-Stack Senior',
+      startMonth: 'Marzo',
+      startYear: '2021',
+      endMonth: '',
+      endYear: '',
+      current: true,
+      bullets: [
+        'Optimización del rendimiento de la aplicación móvil, reduciendo el tiempo de carga en un 40% para más de 10 millones de usuarios.',
+        'Dirección técnica de la migración hacia una arquitectura de micro-frontends con Module Federation.',
+      ],
+    },
+    {
+      id: 2,
+      company: 'Zara',
+      title: 'Desarrollador Web Full-Stack',
+      startMonth: 'Junio',
+      startYear: '2018',
+      endMonth: 'Febrero',
+      endYear: '2021',
+      current: false,
+      bullets: [
+        'Desarrollo de nuevas funcionalidades para la plataforma web, aumentando la interacción de los usuarios en un 15%.',
+        'Mejora de la cobertura de pruebas unitarias y de integración al 90% en módulos críticos.',
+      ],
+    },
+  ],
+  education: [
+    {
+      id: 1,
+      institution: 'Universidad Politécnica de Madrid',
+      degree: 'Grado en Ingeniería Informática',
+      field: 'Informática',
+      startYear: '2015',
+      endYear: '2018',
+    },
+  ],
+  skills: {
+    technical: 'React, Next.js, Node.js, TypeScript, PostgreSQL, Docker, AWS, GraphQL',
+    soft: 'Mentoría, Agilidad, Design Thinking, Liderazgo Técnico',
+    languages: 'Español (Nativo), Inglés (C1 - Fluido)',
+  },
+  projects: [
+    {
+      id: 1,
+      name: 'MadridTransit',
+      description: 'Aplicación de código abierto para la visualización en tiempo real del transporte público.',
+      techStack: 'React, Leaflet, Node.js',
+      link: 'github.com/hoshifenneko/madridtransit',
+      highlights: [
+        'Alcanzó 2.4k estrellas en GitHub a los 8 meses de su lanzamiento',
+      ],
+    },
+  ],
+  certifications: [],
+};
+
+export const DEMO_DATA_2_PAGES_ES = {
+  headings: HEADINGS_DEMO,
+  personal: {
+    name: 'Hoshi Fenneko',
+    tagline: 'Staff Engineer y Arquitecto de Soluciones Cloud',
+    email: 'hoshi.fenneko@email.es',
+    phone: '+34 612 34 56 78',
+    location: 'Madrid, España',
+    linkedin: 'linkedin.com/in/hoshifenneko',
+    github: 'github.com/hoshifenneko',
+    website: 'hoshifenneko.dev',
+  },
+  summary: 'Arquitecto y desarrollador senior con más de 10 años de experiencia en el ecosistema tecnológico. Especialista en escalabilidad de startups (SaaS, FinTech) y modernización de arquitecturas heredadas. Apasionado por la excelencia operativa y el desarrollo de equipos. Co-organizador de meetups de tecnología y colaborador activo en proyectos de código abierto.',
+  experience: [
+    {
+      id: 1,
+      company: 'Qonto',
+      title: 'Staff Software Engineer',
+      startMonth: 'Enero',
+      startYear: '2021',
+      endMonth: '',
+      endYear: '',
+      current: true,
+      bullets: [
+        'Rediseño completo del sistema de transacciones bancarias, incrementando la velocidad de procesamiento en un 500% sin interrupciones.',
+        'Mentoría técnica de 15 ingenieros, estableciendo estándares de código y revisiones de arquitectura en todo el equipo.',
+        'Creación de un flujo de CI/CD automatizado, reduciendo los tiempos de despliegue de 2 días a 15 minutos.',
+      ],
+    },
+    {
+      id: 2,
+      company: 'OVHcloud',
+      title: 'Arquitecto Cloud / Lead Developer',
+      startMonth: 'Agosto',
+      startYear: '2017',
+      endMonth: 'Diciembre',
+      endYear: '2020',
+      current: false,
+      bullets: [
+        'Diseño e implementación de una solución de almacenamiento distribuido altamente disponible en Kubernetes.',
+        'Optimización del sistema de facturación multi-región para millones de transacciones mensuales en más de 20 países.',
+      ],
+    },
+    {
+      id: 3,
+      company: 'Criteo',
+      title: 'Software Engineer',
+      startMonth: 'Septiembre',
+      startYear: '2014',
+      endMonth: 'Julio',
+      endYear: '2017',
+      current: false,
+      bullets: [
+        'Desarrollo de algoritmos de ofertas en tiempo real (real-time bidding) procesando petabytes de datos semanales.',
+        'Reducción de la latencia media de los servicios de recomendación en 20ms.',
+      ],
+    },
+  ],
+  education: [
+    {
+      id: 1,
+      institution: 'Universidad Politécnica de Madrid',
+      degree: 'Grado en Ingeniería Informática',
+      field: 'Informática',
+      startYear: '2010',
+      endYear: '2014',
+    },
+  ],
+  skills: {
+    technical: 'React, Next.js, Node.js, TypeScript, PostgreSQL, Docker, AWS, GraphQL',
+    soft: 'Mentoría, Agilidad, Design Thinking, Liderazgo Técnico',
+    languages: 'Español (Nativo), Inglés (C1 - Fluido)',
+  },
+  projects: [
+    {
+      id: 1,
+      name: 'MadridTransit',
+      description: 'Aplicación de código abierto para la visualización en tiempo real del transporte público.',
+      techStack: 'React, Leaflet, Node.js',
+      link: 'github.com/hoshifenneko/madridtransit',
+      highlights: [
+        'Alcanzó 2.4k estrellas en GitHub a los 8 meses de su lanzamiento',
+      ],
+    },
+  ],
+  certifications: [
+    {
+      id: 1,
+      name: 'AWS Certified Solutions Architect – Professional',
+      issuer: 'Amazon Web Services',
+      date: 'Dic 2023',
+    },
+    {
+      id: 2,
+      name: 'Google Cloud Professional Cloud Architect',
+      issuer: 'Google Cloud',
+      date: 'May 2022',
+    },
+  ],
+};

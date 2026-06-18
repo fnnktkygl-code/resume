@@ -90,7 +90,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist }) {
                       <TextArea
                         value={bullet}
                         onChange={(v) => updateBullet(ei, bi, v)}
-                        onAIAssist={() => onAIAssist?.(bullet)}
+                        onAIAssist={() => onAIAssist?.(bullet, ei, bi)}
                         placeholder="Led migration of monolithic API to microservices, reducing deploy times by 70% and improving uptime to 99.95%"
                         rows={2}
                       />
