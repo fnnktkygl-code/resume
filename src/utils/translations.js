@@ -67,6 +67,9 @@ export const TRANSLATIONS = {
     'Full Screen Preview': 'Full Screen Preview',
     'Expand Editor': 'Expand Editor',
     'Collapse Editor': 'Collapse Editor',
+    'Delete Spacer': 'Delete Spacer',
+    'Spacer': 'Spacer',
+    'Page Break Spacer': 'Page Break Spacer',
 
     // Sidebar Navigation
     'Personal': 'Personal',
@@ -511,6 +514,9 @@ export const TRANSLATIONS = {
     'Full Screen Preview': 'Aperçu en Plein Écran',
     'Expand Editor': 'Agrandir l\'éditeur',
     'Collapse Editor': 'Réduire l\'éditeur',
+    'Delete Spacer': 'Supprimer l\'espacement',
+    'Spacer': 'Espacement',
+    'Page Break Spacer': 'Saut de page',
 
     // Sidebar Navigation
     'Personal': 'Infos de contact',
@@ -939,6 +945,9 @@ export const TRANSLATIONS = {
     'Full Screen Preview': 'Vista Previa en Pantalla Completa',
     'Expand Editor': 'Expandir editor',
     'Collapse Editor': 'Contraer editor',
+    'Delete Spacer': 'Eliminar Espaciador',
+    'Spacer': 'Espaciador',
+    'Page Break Spacer': 'Salto de página',
 
     // Sidebar Navigation
     'Personal': 'Información personal',

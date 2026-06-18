@@ -375,7 +375,7 @@ export default function App() {
   }, [undo, redo]);
   const removeSection = useCallback((sectionId) => {
     setData(prev => {
-      const isCustom = sectionId.startsWith('custom_');
+      const isCustom = sectionId.startsWith('custom_') || sectionId.startsWith('spacer_');
       return {
         ...prev,
         sectionOrder: prev.sectionOrder.filter(id => id !== sectionId),
@@ -1046,6 +1046,7 @@ export default function App() {
                     const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
                     setData({ ...data, customSections: mapped });
                   }} 
+                  onDelete={() => setSectionToDelete(currentId)}
                 />
               )}
 

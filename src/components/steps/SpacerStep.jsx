@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SpacerStep({ data, onChange }) {
+export default function SpacerStep({ data, onChange, onDelete }) {
   const { t } = useTranslation();
 
   const handleHeightChange = (e) => {
@@ -11,6 +11,16 @@ export default function SpacerStep({ data, onChange }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+          <button 
+            type="button" 
+            className="btn-secondary" 
+            onClick={onDelete} 
+            style={{ padding: '4px 8px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}
+          >
+            <i className="fi fi-rr-trash"></i> {t('Delete Spacer')}
+          </button>
+        </div>
         <div style={{ marginBottom: '12px' }}>
           <div className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>{t('Spacer Height')}</span>

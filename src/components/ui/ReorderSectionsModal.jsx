@@ -36,6 +36,9 @@ export default function ReorderSectionsModal({ isOpen, onClose, sectionOrder, cu
       const sec = customSections?.find(s => s.id === id);
       return sec?.label || 'Custom';
     }
+    if (id.startsWith('spacer_')) {
+      return t('Spacer');
+    }
     return id;
   };
 
