@@ -63,6 +63,7 @@ ABSOLUTE RULES:
 5. Never produce templated tips like "Add metrics to your bullets" without specifying WHICH bullet and WHAT kind of metric makes sense for their job.
 6. Each tip should feel like it was written by a recruiter who specializes in THEIR industry.
 7. Tips MUST be in ${targetLang}.
+8. CRITICAL LANGUAGE RULE: You MUST write the output tips entirely in ${targetLang}. Do NOT write them in English unless the target language is English. If the target language is French, write them in French. If the target language is Spanish, write them in Spanish.
 
 OUTPUT FORMAT — Return ONLY this JSON:
 {

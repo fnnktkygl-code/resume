@@ -151,6 +151,42 @@ export default function App() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [importSnapshot, setImportSnapshot] = useState(() => {
+    try {
+      const listSaved = localStorage.getItem('resume-builder-cv-list');
+      const activeId = localStorage.getItem('resume-builder-active-cv-id') || 'default';
+      if (listSaved) {
+        const parsed = JSON.parse(listSaved);
+        const activeCv = parsed.find(c => c.id === activeId);
+        return activeCv?.importSnapshot || null;
+      }
+    } catch {}
+    return null;
+  });
+
+  const [fullscreenPageIndex, setFullscreenPageIndex] = useState(0);
+  const [fullscreenZoom, setFullscreenZoom] = useState(1.0);
+  const [editorPagesCount, setEditorPagesCount] = useState(1);
+  const [isPreviewHeaderCollapsed, setIsPreviewHeaderCollapsed] = useState(false);
+  const [viewportSize, setViewportSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const onboarded = localStorage.getItem('resume-builder-onboarded');
     if (!onboarded) {
@@ -224,7 +260,8 @@ export default function App() {
           return {
             ...cv,
             lastModified: Date.now(),
-            data: data
+            data: data,
+            importSnapshot: importSnapshot
           };
         }
         return cv;
@@ -232,7 +269,7 @@ export default function App() {
       localStorage.setItem('resume-builder-cv-list', JSON.stringify(updated));
       return updated;
     });
-  }, [data, activeCvId]);
+  }, [data, activeCvId, importSnapshot]);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
@@ -357,6 +394,10 @@ export default function App() {
     return Boolean(hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length);
   }, [data]);
 
+  const calculatedFullscreenScale = useMemo(() => {
+    return Math.min((viewportSize.width - 48) / 816, (viewportSize.height - 110) / 1056);
+  }, [viewportSize]);
+
   // Theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -472,7 +513,7 @@ export default function App() {
 
   const handleImport = useCallback((imported) => {
     const defaultData = structuredClone(DEFAULT_DATA);
-    setData({
+    const newData = {
       ...defaultData,
       ...imported,
       headings: { ...defaultData.headings, ...imported.headings },
@@ -481,11 +522,14 @@ export default function App() {
       projects: imported.projects || DEFAULT_DATA.projects,
       certifications: imported.certifications || DEFAULT_DATA.certifications,
       sectionOrder: imported.sectionOrder || DEFAULT_SECTION_ORDER,
-    });
+    };
+    setData(newData);
+    setImportSnapshot(newData);
   }, []);
 
   const clearData = () => {
     setData({ ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] });
+    setImportSnapshot(null);
     setStep(0);
     setShowClearConfirm(false);
   };
@@ -521,6 +565,7 @@ export default function App() {
     if (target) {
       setActiveCvId(id);
       setData(target.data);
+      setImportSnapshot(target.importSnapshot || null);
       localStorage.setItem('resume-builder-active-cv-id', id);
       setStep(0);
       setIsCvManagerOpen(false);
@@ -937,234 +982,287 @@ export default function App() {
           </div>
 
           {/* Right: Live Preview */}
-            <aside className="preview-panel" aria-label={t('Live Preview')}>
-              <div className="preview-sticky-header">
+            <aside className={`preview-panel ${isPreviewHeaderCollapsed ? 'preview-panel--collapsed' : ''}`} aria-label={t('Live Preview')}>
+              <div className={`preview-sticky-header ${isPreviewHeaderCollapsed ? 'preview-sticky-header--collapsed' : ''}`}>
                 <div className="preview-header">
                   <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
-                  <div className="preview-controls">
-                    <div className="control-group">
-                      <button 
-                        className={`control-btn ${language === 'en' ? 'active' : ''}`}
-                        onClick={() => handleLanguageChange('en')}
-                        aria-label="Switch to English"
-                      >EN</button>
-                      <button 
-                        className={`control-btn ${language === 'fr' ? 'active' : ''}`}
-                        onClick={() => handleLanguageChange('fr')}
-                        aria-label="Switch to French"
-                      >FR</button>
-                      <button 
-                        className={`control-btn ${language === 'es' ? 'active' : ''}`}
-                        onClick={() => handleLanguageChange('es')}
-                        aria-label="Switch to Spanish"
-                      >ES</button>
-                    </div>
-
-                    <div className="control-group" style={{ gap: '4px' }}>
-                      <button 
-                        className="control-btn" 
-                        onClick={undo} 
-                        disabled={past.length === 0}
-                        title={t('Undo (Ctrl+Z)')}
-                        style={{ opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
-                        aria-label="Undo"
-                      >
-                        ↩
-                      </button>
-                      <button 
-                        className="control-btn" 
-                        onClick={redo} 
-                        disabled={future.length === 0}
-                        title={t('Redo (Ctrl+Y)')}
-                        style={{ opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
-                        aria-label="Redo"
-                      >
-                        ↪
-                      </button>
-                    </div>
-
-                    <div className="control-divider" aria-hidden="true" />
-
-                     {/* Template picker — compact dropdown */}
-                     {(() => {
-                       const TEMPLATES = [
-                         { id: 'standard',  name: 'Classic',    badgeType: 'ats',      badgeText: t('ATS-Friendly') },
-                         { id: 'modern',    name: 'Modern',     badgeType: 'ats',      badgeText: t('ATS-Friendly') },
-                         { id: 'njm',       name: 'NJM',        badgeType: 'flagship', badgeText: t("Creator's Favorite") },
-                         { id: 'creative',  name: 'Creative',   badgeType: 'design',   badgeText: t('Visual Design') },
-                         { id: 'minimalist',name: 'Minimalist', badgeType: 'ats',      badgeText: t('ATS-Friendly') },
-                       ];
-                       const activeTpl = TEMPLATES.find(t => t.id === template) || TEMPLATES[0];
-                       const getBadgeColors = (badgeType, isActive) => {
-                         if (isActive) return { bg: 'rgba(255,255,255,0.18)', color: '#fff', border: 'rgba(255,255,255,0.35)' };
-                         if (badgeType === 'flagship') return { bg: 'rgba(var(--color-accent-rgb,99,102,241),0.1)', color: 'var(--color-accent)', border: 'rgba(var(--color-accent-rgb,99,102,241),0.25)' };
-                         if (badgeType === 'design')   return { bg: 'rgba(245,158,11,0.1)', color: 'rgb(245,158,11)', border: 'rgba(245,158,11,0.25)' };
-                         return { bg: 'rgba(16,185,129,0.1)', color: 'rgb(16,185,129)', border: 'rgba(16,185,129,0.25)' };
-                       };
-                       const activeBadge = getBadgeColors(activeTpl.badgeType, false);
-                       return (
-                         <div className="tpl-dropdown-wrap" ref={templateDropdownRef}>
-                           <button
-                             className="tpl-dropdown-trigger"
-                             onClick={() => setIsTemplateDropdownOpen(o => !o)}
-                             aria-haspopup="listbox"
-                             aria-expanded={isTemplateDropdownOpen}
-                             title={t('Choose Template')}
-                           >
-                             <span className="tpl-trigger-name">{activeTpl.name}</span>
-                             <span className="tpl-trigger-badge" style={{ background: activeBadge.bg, color: activeBadge.color, border: `1px solid ${activeBadge.border}` }}>
-                               {activeTpl.badgeText}
-                             </span>
-                             <i className={`fi ${isTemplateDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'} tpl-trigger-chevron`}></i>
-                           </button>
-                           {isTemplateDropdownOpen && (
-                             <ul className="tpl-dropdown-menu" role="listbox">
-                               {TEMPLATES.map(tpl => {
-                                 const isActive = template === tpl.id;
-                                 const badge = getBadgeColors(tpl.badgeType, isActive);
-                                 return (
-                                   <li key={tpl.id} role="option" aria-selected={isActive}>
-                                     <button
-                                       className={`tpl-option${isActive ? ' tpl-option--active' : ''}`}
-                                       onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
-                                     >
-                                       <span className="tpl-option-name">{tpl.name}</span>
-                                       <span className="tpl-option-badge" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
-                                         {tpl.badgeText}
-                                       </span>
-                                     </button>
-                                   </li>
-                                 );
-                               })}
-                             </ul>
-                           )}
-                         </div>
-                       );
-                     })()}
-
-                    <div className="control-divider" aria-hidden="true" />
-
-                    <div className="control-group">
-                      <button 
-                        className={`control-btn ${layout.isCompact ? 'active' : ''}`}
-                        onClick={() => setLayout(prev => ({
-                          ...prev,
-                          isCompact: !prev.isCompact,
-                          fontSize: prev.isCompact ? 10.5 : 9.5,
-                          paddingX: prev.isCompact ? 0.75 : 0.5,
-                          paddingY: prev.isCompact ? 0.75 : 0.5,
-                          lineHeight: prev.isCompact ? 1.45 : 1.25,
-                          sectionSpacing: prev.isCompact ? 10 : 4,
-                          itemSpacing: prev.isCompact ? 8 : 4
-                        }))}
-                      >
-                        📐 {layout.isCompact ? t('Normal') : t('Compact')}
-                      </button>
-                      <button 
-                        className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
-                        onClick={() => setIsLayoutOpen(!isLayoutOpen)}
-                        aria-expanded={isLayoutOpen}
-                      >
-                        <i className="fi fi-rr-settings"></i>
-                      </button>
-                    </div>
-
-                    <div className="control-divider" aria-hidden="true" />
-
-                    {/* A2: snapshot saved before tailor opens */}
-                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI rewrites your resume to match a specific job description')}>
-                      <button className="control-btn" onClick={() => { setIsTailorOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                        ✨ {t('Tailor to Job')}
-                      </button>
-                    </div>
-
-                    {/* A2: snapshot saved before translation opens */}
-                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI translates your entire resume to the other language')}>
-                      <button className="control-btn" onClick={() => { setIsAIOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                        <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
-                      </button>
-                    </div>
-
-                    {/* S2: Smart Bolding whole CV */}
-                    <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI Smart Bolding')}>
-                      <button className="control-btn" onClick={() => { setIsBoldifyOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                        <b>B</b> {t('AI Smart Bolding')}
-                      </button>
-                    </div>
-
-                    {/* A2: Undo AI changes button — appears only when snapshot is available */}
-                    {aiSnapshot && (
-                      <button
-                        className="control-btn ai-undo-btn"
-                        onClick={restoreSnapshot}
-                        title={t('Undo AI changes and restore previous version')}
-                      >
-                        ↩ {t('Undo AI')}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
-                
-                {/* S1: Direct export — no confirmation modal */}
-                <div className="preview-export-bar" style={{ position: 'relative' }}>
-                  <div className="export-split-button" style={{ display: 'flex', width: '100%', gap: '1px' }}>
+                  {isPreviewHeaderCollapsed ? (
                     <button 
-                      type="button"
-                      className="btn-export btn-export-primary" 
-                      onClick={() => setTimeout(() => window.print(), 100)}
-                      title={t('Print / Save as PDF')}
-                      style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                      className="control-btn"
+                      onClick={() => setIsPreviewHeaderCollapsed(false)}
+                      title={t('Expand Header')}
+                      aria-label="Expand Header"
+                      style={{ padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700' }}
                     >
-                      <i className="fi fi-rr-print"></i> {t('Export PDF')}
+                      <i className="fi fi-rr-angle-small-down"></i> {t('Show Controls')}
                     </button>
-                    <button
-                      type="button"
-                      className="btn-export btn-export-primary"
-                      onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-                      style={{ 
-                        flex: '0 0 auto',
-                        padding: '0 12px', 
-                        borderTopLeftRadius: 0, 
-                        borderBottomLeftRadius: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      aria-expanded={isExportDropdownOpen}
-                      aria-label="Export options"
-                    >
-                      <i className={`fi ${isExportDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'}`}></i>
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="preview-controls">
+                      <div className="control-group">
+                        <button 
+                          className={`control-btn ${language === 'en' ? 'active' : ''}`}
+                          onClick={() => handleLanguageChange('en')}
+                          aria-label="Switch to English"
+                        >EN</button>
+                        <button 
+                          className={`control-btn ${language === 'fr' ? 'active' : ''}`}
+                          onClick={() => handleLanguageChange('fr')}
+                          aria-label="Switch to French"
+                        >FR</button>
+                        <button 
+                          className={`control-btn ${language === 'es' ? 'active' : ''}`}
+                          onClick={() => handleLanguageChange('es')}
+                          aria-label="Switch to Spanish"
+                        >ES</button>
+                      </div>
 
-                  {isExportDropdownOpen && (
-                    <div className="export-dropdown-menu">
+                      <div className="control-group" style={{ gap: '4px' }}>
+                        <button 
+                          className="control-btn" 
+                          onClick={undo} 
+                          disabled={past.length === 0}
+                          title={t('Undo (Ctrl+Z)')}
+                          style={{ opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
+                          aria-label="Undo"
+                        >
+                          ↩
+                        </button>
+                        <button 
+                          className="control-btn" 
+                          onClick={redo} 
+                          disabled={future.length === 0}
+                          title={t('Redo (Ctrl+Y)')}
+                          style={{ opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
+                          aria-label="Redo"
+                        >
+                          ↪
+                        </button>
+                      </div>
+
+                      <div className="control-divider" aria-hidden="true" />
+
+                       {/* Template picker — compact dropdown */}
+                       {(() => {
+                         const TEMPLATES = [
+                           { id: 'standard',  name: 'Classic',    badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                           { id: 'modern',    name: 'Modern',     badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                           { id: 'njm',       name: 'NJM',        badgeType: 'flagship', badgeText: t("Creator's Favorite") },
+                           { id: 'creative',  name: 'Creative',   badgeType: 'design',   badgeText: t('Visual Design') },
+                           { id: 'minimalist',name: 'Minimalist', badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                         ];
+                         const activeTpl = TEMPLATES.find(t => t.id === template) || TEMPLATES[0];
+                         const getBadgeColors = (badgeType, isActive) => {
+                           if (isActive) return { bg: 'rgba(255,255,255,0.18)', color: '#fff', border: 'rgba(255,255,255,0.35)' };
+                           if (badgeType === 'flagship') return { bg: 'rgba(var(--color-accent-rgb,99,102,241),0.1)', color: 'var(--color-accent)', border: 'rgba(var(--color-accent-rgb,99,102,241),0.25)' };
+                           if (badgeType === 'design')   return { bg: 'rgba(245,158,11,0.1)', color: 'rgb(245,158,11)', border: 'rgba(245,158,11,0.25)' };
+                           return { bg: 'rgba(16,185,129,0.1)', color: 'rgb(16,185,129)', border: 'rgba(16,185,129,0.25)' };
+                         };
+                         const activeBadge = getBadgeColors(activeTpl.badgeType, false);
+                         return (
+                           <div className="tpl-dropdown-wrap" ref={templateDropdownRef}>
+                             <button
+                               className="tpl-dropdown-trigger"
+                               onClick={() => setIsTemplateDropdownOpen(o => !o)}
+                               aria-haspopup="listbox"
+                               aria-expanded={isTemplateDropdownOpen}
+                               title={t('Choose Template')}
+                             >
+                               <span className="tpl-trigger-name">{activeTpl.name}</span>
+                               <span className="tpl-trigger-badge" style={{ background: activeBadge.bg, color: activeBadge.color, border: `1px solid ${activeBadge.border}` }}>
+                                 {activeTpl.badgeText}
+                               </span>
+                               <i className={`fi ${isTemplateDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'} tpl-trigger-chevron`}></i>
+                             </button>
+                             {isTemplateDropdownOpen && (
+                               <ul className="tpl-dropdown-menu" role="listbox">
+                                 {TEMPLATES.map(tpl => {
+                                   const isActive = template === tpl.id;
+                                   const badge = getBadgeColors(tpl.badgeType, isActive);
+                                   return (
+                                     <li key={tpl.id} role="option" aria-selected={isActive}>
+                                       <button
+                                         className={`tpl-option${isActive ? ' tpl-option--active' : ''}`}
+                                         onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
+                                       >
+                                         <span className="tpl-option-name">{tpl.name}</span>
+                                         <span className="tpl-option-badge" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                           {tpl.badgeText}
+                                         </span>
+                                       </button>
+                                     </li>
+                                   );
+                                 })}
+                               </ul>
+                             )}
+                           </div>
+                         );
+                       })()}
+
+                      <div className="control-divider" aria-hidden="true" />
+
+                      <div className="control-group">
+                        <button 
+                          className={`control-btn ${layout.isCompact ? 'active' : ''}`}
+                          onClick={() => setLayout(prev => ({
+                            ...prev,
+                            isCompact: !prev.isCompact,
+                            fontSize: prev.isCompact ? 10.5 : 9.5,
+                            paddingX: prev.isCompact ? 0.75 : 0.5,
+                            paddingY: prev.isCompact ? 0.75 : 0.5,
+                            lineHeight: prev.isCompact ? 1.45 : 1.25,
+                            sectionSpacing: prev.isCompact ? 10 : 4,
+                            itemSpacing: prev.isCompact ? 8 : 4
+                          }))}
+                        >
+                          📐 {layout.isCompact ? t('Normal') : t('Compact')}
+                        </button>
+                        <button 
+                          className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
+                          onClick={() => setIsLayoutOpen(!isLayoutOpen)}
+                          aria-expanded={isLayoutOpen}
+                        >
+                          <i className="fi fi-rr-settings"></i>
+                        </button>
+                        <button 
+                          className="control-btn"
+                          onClick={() => {
+                            setFullscreenPageIndex(0);
+                            setFullscreenZoom(1.0);
+                            setIsFullscreenPreview(true);
+                          }}
+                          title={t('Fullscreen Preview')}
+                        >
+                          ⛶
+                        </button>
+                      </div>
+
+                      {importSnapshot && (
+                        <>
+                          <div className="control-divider" aria-hidden="true" />
+                          <div className="control-group">
+                            <button 
+                              className="control-btn"
+                              onClick={() => setShowBeforeAfter(true)}
+                              title={t('Compare Before/After')}
+                              style={{ color: 'var(--color-accent)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <span>⚖️</span> {t('Before / After')}
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="control-divider" aria-hidden="true" />
+
+                      {/* A2: snapshot saved before tailor opens */}
+                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI rewrites your resume to match a specific job description')}>
+                        <button className="control-btn" onClick={() => { setIsTailorOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                          ✨ {t('Tailor to Job')}
+                        </button>
+                      </div>
+
+                      {/* A2: snapshot saved before translation opens */}
+                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI translates your entire resume to the other language')}>
+                        <button className="control-btn" onClick={() => { setIsAIOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                          <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
+                        </button>
+                      </div>
+
+                      {/* S2: Smart Bolding whole CV */}
+                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI Smart Bolding')}>
+                        <button className="control-btn" onClick={() => { setIsBoldifyOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
+                          <b>B</b> {t('AI Smart Bolding')}
+                        </button>
+                      </div>
+
+                      {/* A2: Undo AI changes button — appears only when snapshot is available */}
+                      {aiSnapshot && (
+                        <button
+                          className="control-btn ai-undo-btn"
+                          onClick={restoreSnapshot}
+                          title={t('Undo AI changes and restore previous version')}
+                        >
+                          ↩ {t('Undo AI')}
+                        </button>
+                      )}
+
+                      <div className="control-divider" aria-hidden="true" />
+                      
                       <button 
-                        type="button"
-                        className="dropdown-item" 
-                        onClick={() => { try { exportDocx(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                        className="control-btn"
+                        onClick={() => setIsPreviewHeaderCollapsed(true)}
+                        title={t('Collapse Header')}
+                        aria-label="Collapse Header"
+                        style={{ padding: '4px 6px' }}
                       >
-                        <i className="fi fi-rr-file-word"></i> {t('Download as Word (DOC)')}
-                      </button>
-                      <button 
-                        type="button"
-                        className="dropdown-item" 
-                        onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
-                      >
-                        <i className="fi fi-rr-file-code"></i> {t('Download as Markdown')}
-                      </button>
-                      <button 
-                        type="button"
-                        className="dropdown-item" 
-                        onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
-                      >
-                        <i className="fi fi-rr-disk"></i> {t('Download as JSON')}
+                        <i className="fi fi-rr-angle-small-up"></i>
                       </button>
                     </div>
                   )}
                 </div>
+
+                {!isPreviewHeaderCollapsed && isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
+                
+                {/* S1: Direct export — no confirmation modal */}
+                {!isPreviewHeaderCollapsed && (
+                  <div className="preview-export-bar" style={{ position: 'relative' }}>
+                    <div className="export-split-button" style={{ display: 'flex', width: '100%', gap: '1px' }}>
+                      <button 
+                        type="button"
+                        className="btn-export btn-export-primary" 
+                        onClick={() => setTimeout(() => window.print(), 100)}
+                        title={t('Print / Save as PDF')}
+                        style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                      >
+                        <i className="fi fi-rr-print"></i> {t('Export PDF')}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-export btn-export-primary"
+                        onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                        style={{ 
+                          flex: '0 0 auto',
+                          padding: '0 12px', 
+                          borderTopLeftRadius: 0, 
+                          borderBottomLeftRadius: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        aria-expanded={isExportDropdownOpen}
+                        aria-label="Export options"
+                      >
+                        <i className={`fi ${isExportDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'}`}></i>
+                      </button>
+                    </div>
+
+                    {isExportDropdownOpen && (
+                      <div className="export-dropdown-menu">
+                        <button 
+                          type="button"
+                          className="dropdown-item" 
+                          onClick={() => { try { exportDocx(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                        >
+                          <i className="fi fi-rr-file-word"></i> {t('Download as Word (DOC)')}
+                        </button>
+                        <button 
+                          type="button"
+                          className="dropdown-item" 
+                          onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                        >
+                          <i className="fi fi-rr-file-code"></i> {t('Download as Markdown')}
+                        </button>
+                        <button 
+                          type="button"
+                          className="dropdown-item" 
+                          onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                        >
+                          <i className="fi fi-rr-disk"></i> {t('Download as JSON')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <ResumePreview 
                 data={data} 
@@ -1174,6 +1272,7 @@ export default function App() {
                 onSectionReorder={handleSectionReorder}
                 onSectionRemove={setSectionToDelete}
                 onSectionClick={handleSectionClick}
+                onPagesCountChange={setEditorPagesCount}
                 compact 
               />
             </aside>
@@ -1466,6 +1565,186 @@ export default function App() {
         <div id="resume-print" style={{ display: 'none' }}>
           <ResumePreview data={data} layout={layout} language={language} template={template} printMode />
         </div>
+
+        {/* Fullscreen Preview overlay */}
+        {isFullscreenPreview && (() => {
+          const scale = calculatedFullscreenScale;
+          const displayScale = scale * fullscreenZoom;
+          return (
+            <div className="fullscreen-preview-overlay" role="dialog" aria-modal="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="fullscreen-preview-toolbar">
+                <div className="fullscreen-toolbar-title" style={{ flex: '1 1 0' }}>
+                  <span>⛶</span> {t('Fullscreen Preview')}
+                </div>
+                
+                {editorPagesCount > 1 && (
+                  <div className="fullscreen-toolbar-pagination" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '0 0 auto' }}>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setFullscreenPageIndex(p => Math.max(0, p - 1))}
+                      disabled={fullscreenPageIndex === 0}
+                      style={{ opacity: fullscreenPageIndex === 0 ? 0.4 : 1, cursor: fullscreenPageIndex === 0 ? 'not-allowed' : 'pointer' }}
+                    >
+                      <i className="fi fi-rr-angle-left"></i>
+                    </button>
+                    <span style={{ color: '#fff', fontSize: '14px', fontWeight: '600', minWidth: '80px', textAlign: 'center' }}>
+                      {fullscreenPageIndex + 1} / {editorPagesCount}
+                    </span>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setFullscreenPageIndex(p => Math.min(editorPagesCount - 1, p + 1))}
+                      disabled={fullscreenPageIndex === editorPagesCount - 1}
+                      style={{ opacity: fullscreenPageIndex === editorPagesCount - 1 ? 0.4 : 1, cursor: fullscreenPageIndex === editorPagesCount - 1 ? 'not-allowed' : 'pointer' }}
+                    >
+                      <i className="fi fi-rr-angle-right"></i>
+                    </button>
+                  </div>
+                )}
+
+                <div className="fullscreen-toolbar-actions" style={{ flex: '1 1 0', justifyContent: 'flex-end' }}>
+                  <div className="control-group" style={{ gap: '4px', background: 'rgba(255,255,255,0.1)', padding: '2px', borderRadius: '6px', marginRight: '16px' }}>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setFullscreenZoom(z => Math.max(0.5, z - 0.1))}
+                      disabled={fullscreenZoom <= 0.5}
+                      style={{ border: 'none', background: 'transparent', color: '#fff' }}
+                      title={t('Zoom Out')}
+                    >
+                      -
+                    </button>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setFullscreenZoom(1.0)}
+                      style={{ border: 'none', background: 'transparent', color: '#fff', minWidth: '55px', fontSize: '11px', fontWeight: '700' }}
+                      title={t('Reset Zoom')}
+                    >
+                      {Math.round(fullscreenZoom * 100)}%
+                    </button>
+                    <button 
+                      className="control-btn"
+                      onClick={() => setFullscreenZoom(z => Math.min(2.0, z + 0.1))}
+                      disabled={fullscreenZoom >= 2.0}
+                      style={{ border: 'none', background: 'transparent', color: '#fff' }}
+                      title={t('Zoom In')}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => setTimeout(() => window.print(), 100)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <i className="fi fi-rr-print"></i> {t('Export PDF')}
+                  </button>
+                  <button 
+                    className="btn-secondary" 
+                    onClick={() => setIsFullscreenPreview(false)}
+                    style={{ minWidth: 'auto', padding: '8px 16px' }}
+                  >
+                    {t('Close')}
+                  </button>
+                </div>
+              </div>
+              
+              <div 
+                className="fullscreen-preview-content" 
+                style={{ 
+                  width: `${816 * displayScale}px`, 
+                  height: `${1056 * displayScale}px`, 
+                  overflow: 'hidden', 
+                  position: 'relative' 
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '816px',
+                  height: `${editorPagesCount * 1056}px`,
+                  transform: `scale(${displayScale})`,
+                  transformOrigin: 'top left'
+                }}>
+                  <div style={{
+                    transform: `translateY(${-fullscreenPageIndex * 1056}px)`,
+                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>
+                    <ResumePreview 
+                      data={data} 
+                      layout={layout} 
+                      language={language} 
+                      template={template}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Before/After Comparison overlay */}
+        {showBeforeAfter && importSnapshot && (
+          <div className="before-after-overlay" role="dialog" aria-modal="true">
+            <div className="fullscreen-preview-toolbar">
+              <div className="fullscreen-toolbar-title">
+                <span>⚖️</span> {t('Compare Before/After')}
+              </div>
+              <div className="fullscreen-toolbar-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => {
+                    if (window.confirm(t('Are you sure?') + '\n' + t('This action cannot be undone.'))) {
+                      setImportSnapshot(null);
+                      setShowBeforeAfter(false);
+                    }
+                  }}
+                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', marginRight: '12px' }}
+                >
+                  🗑️ {t('Clear Original')}
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => setShowBeforeAfter(false)}
+                  style={{ minWidth: 'auto', padding: '8px 16px' }}
+                >
+                  {t('Close')}
+                </button>
+              </div>
+            </div>
+            <div className="before-after-wrapper">
+              <div className="before-after-column">
+                <div className="before-after-label">
+                  <span>{t('Original (Imported)')}</span>
+                </div>
+                <div className="before-after-preview-container">
+                  <ResumePreview 
+                    data={importSnapshot} 
+                    layout={layout} 
+                    language={language} 
+                    template={template}
+                    compact
+                  />
+                </div>
+              </div>
+              
+              <div className="before-after-column">
+                <div className="before-after-label">
+                  <span>{t('Current')}</span>
+                </div>
+                <div className="before-after-preview-container">
+                  <ResumePreview 
+                    data={data} 
+                    layout={layout} 
+                    language={language} 
+                    template={template}
+                    compact
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </TranslationContext.Provider>
   );

@@ -6,7 +6,7 @@ import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
-function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick }) {
+function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick, onPagesCountChange }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
@@ -40,6 +40,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
   const [pagesCount, setPagesCount] = useState(1);
   const [draggedSection, setDraggedSection] = useState(null);
   const [dragOverSection, setDragOverSection] = useState(null);
+
+  useEffect(() => {
+    if (onPagesCountChange) {
+      onPagesCountChange(pagesCount);
+    }
+  }, [pagesCount, onPagesCountChange]);
 
   useEffect(() => {
     if (printMode || !wrapperRef.current) return;
@@ -414,18 +420,20 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         {/* Page break gutters */}
         {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {
           const topPos = (idx + 1) * pageHeight * scale;
+          const gutterHeight = 32 * scale;
           return (
             <div
               key={idx}
               style={{
                 position: 'absolute',
-                top: `${topPos}px`,
-                left: 0,
-                right: 0,
-                height: `${24 * scale}px`,
+                top: `${topPos - gutterHeight / 2}px`,
+                left: `-${24 * scale}px`,
+                right: `-${24 * scale}px`,
+                height: `${gutterHeight}px`,
                 backgroundColor: 'var(--color-bg)',
-                borderTop: '2px dashed var(--color-border)',
-                borderBottom: '2px dashed var(--color-border)',
+                borderTop: '1px solid var(--color-border)',
+                borderBottom: '1px solid var(--color-border)',
+                boxShadow: '0 -4px 8px -4px rgba(0,0,0,0.1), 0 4px 8px -4px rgba(0,0,0,0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
