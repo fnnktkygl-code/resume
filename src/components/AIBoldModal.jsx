@@ -1,31 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useTranslation } from '../utils/TranslationContext';
+import Modal from './ui/Modal';
 
 export default function AIBoldModal({ isOpen, onClose, textData, contextType }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
-  const modalRef = useRef(null);
-  const previousFocusRef = useRef(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      previousFocusRef.current = document.activeElement;
-      requestAnimationFrame(() => modalRef.current?.focus());
-
-      const handleKeyDown = (e) => {
-        if (e.key === 'Escape') onClose();
-      };
-
-      document.addEventListener('keydown', handleKeyDown);
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown);
-        previousFocusRef.current?.focus();
-      };
-    }
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   const getPrompt = () => {
     const contextMap = {
@@ -61,26 +41,28 @@ ${textData}
   };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true">
-      <div className="modal-content" ref={modalRef} tabIndex={-1}>
-        <h2>✨ {t('AI Smart Bolding')}</h2>
-        <p>
-          {t('Copy this prompt into ChatGPT or your favorite AI. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.')}
-        </p>
-        
-        <div className="prompt-box">
-          <textarea readOnly value={getPrompt()} />
-        </div>
-
-        {error && <p style={{ color: 'var(--color-danger)', fontSize: '13px' }}>{error}</p>}
-
-        <div className="modal-actions">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`✨ ${t('AI Smart Bolding')}`}
+      actions={
+        <>
           <button className="btn-secondary" onClick={onClose}>{t('Close')}</button>
           <button className="btn-primary" onClick={handleCopy}>
             {copied ? t('Copied!') : t('Copy Prompt')}
           </button>
-        </div>
+        </>
+      }
+    >
+      <p>
+        {t('Copy this prompt into ChatGPT or your favorite AI. It will analyze your text and automatically wrap the most critical metrics and impact verbs in markdown bold.')}
+      </p>
+      
+      <div className="prompt-box">
+        <textarea readOnly value={getPrompt()} />
       </div>
-    </div>
+
+      {error && <p style={{ color: 'var(--color-danger)', fontSize: '13px' }}>{error}</p>}
+    </Modal>
   );
 }

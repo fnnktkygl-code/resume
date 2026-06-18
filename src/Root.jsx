@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import App from './App.jsx';
+const App = lazy(() => import('./App.jsx'));
 import Landing from './components/Landing.jsx';
 
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy.jsx'));
@@ -26,7 +26,7 @@ export default function Root() {
     window.location.hash = target === 'landing' ? '' : target;
   };
 
-  if (view === 'app') return <App />;
+  if (view === 'app') return <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>Loading Editor...</div>}><App /></Suspense>;
 
   const lazyPage = (() => {
     switch (view) {

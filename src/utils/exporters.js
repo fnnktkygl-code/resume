@@ -87,6 +87,10 @@ export function exportJson(data) {
 
 export function importJson(file) {
   return new Promise((resolve, reject) => {
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error('File size exceeds the 5MB limit.'));
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       try {

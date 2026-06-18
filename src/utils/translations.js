@@ -6,6 +6,48 @@ export const TRANSLATIONS = {
     'Year': 'Year',
     'Close': 'Close',
 
+    
+    // Landing
+    'Build CV': 'Build CV',
+    'Craft your story.': 'Craft your story.',
+    'Land the job.': 'Land the job.',
+    'A meticulously designed, privacy-first resume builder right in your browser. Real-time preview, intelligent translations, and absolute control.': 'A meticulously designed, privacy-first resume builder right in your browser. Real-time preview, intelligent translations, and absolute control.',
+    'Start Building Free': 'Start Building Free',
+    'Take a Tour': 'Take a Tour',
+    'Pro-level tools.': 'Pro-level tools.',
+    'Everything you need, intelligently organized for your device.': 'Everything you need, intelligently organized for your device.',
+    'Desktop Canvas': 'Desktop Canvas',
+    'A panoramic interface designed for precision editing and rapid workflow.': 'A panoramic interface designed for precision editing and rapid workflow.',
+    'Adaptive Editor': 'Adaptive Editor',
+    'Toggle sections, reorder freely, and see updates instantly without reload.': 'Toggle sections, reorder freely, and see updates instantly without reload.',
+    'Precision Control': 'Precision Control',
+    'Fine-tune every aspect of your timeline, adjust ATS-friendly margins, and effortlessly switch themes with our advanced parameter engine.': 'Fine-tune every aspect of your timeline, adjust ATS-friendly margins, and effortlessly switch themes with our advanced parameter engine.',
+    'Mobile Freedom': 'Mobile Freedom',
+    'Create, update, and preview your CV natively on your phone. No compromises.': 'Create, update, and preview your CV natively on your phone. No compromises.',
+    'Flawless on Mobile': 'Flawless on Mobile',
+    'Edit your CV seamlessly on the go.': 'Edit your CV seamlessly on the go.',
+
+    
+    // Landing
+    'Build CV': 'Créer mon CV',
+    'Craft your story.': 'Écrivez votre histoire.',
+    'Land the job.': 'Décrochez le job.',
+    'A meticulously designed, privacy-first resume builder right in your browser. Real-time preview, intelligent translations, and absolute control.': 'Un créateur de CV premium et soucieux de la vie privée, directement dans votre navigateur. Aperçu en temps réel, traductions intelligentes et contrôle absolu.',
+    'Start Building Free': 'Créer gratuitement',
+    'Take a Tour': 'Découvrir',
+    'Pro-level tools.': 'Des outils de pro.',
+    'Everything you need, intelligently organized for your device.': 'Tout ce dont vous avez besoin, organisé intelligemment pour votre appareil.',
+    'Desktop Canvas': 'Canevas Bureau',
+    'A panoramic interface designed for precision editing and rapid workflow.': "Une interface panoramique conçue pour l'édition de précision et un flux de travail rapide.",
+    'Adaptive Editor': 'Éditeur adaptatif',
+    'Toggle sections, reorder freely, and see updates instantly without reload.': 'Basculez les sections, réorganisez librement et voyez les mises à jour instantanément.',
+    'Precision Control': 'Contrôle de précision',
+    'Fine-tune every aspect of your timeline, adjust ATS-friendly margins, and effortlessly switch themes with our advanced parameter engine.': 'Ajustez les marges compatibles ATS et changez de thème sans effort avec notre moteur de paramètres avancé.',
+    'Mobile Freedom': 'Liberté Mobile',
+    'Create, update, and preview your CV natively on your phone. No compromises.': 'Créez, mettez à jour et prévisualisez votre CV nativement sur votre téléphone. Sans compromis.',
+    'Flawless on Mobile': 'Parfait sur Mobile',
+    'Edit your CV seamlessly on the go.': 'Modifiez votre CV en toute fluidité, où que vous soyez.',
+
     // Header
     'All data stays in your browser': 'All data stays in your browser',
     '1-Page Demo': '1-Page Demo',
@@ -134,6 +176,22 @@ export const TRANSLATIONS = {
     'Copy Prompt': 'Copy Prompt',
     'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).': 'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).',
     'AI prompt text': 'AI prompt text',
+
+    // AI Tailor
+    'Tailor to Job Description': 'Tailor to Job Description',
+    'Tailor to Job': 'Tailor to Job',
+    'Paste the job description below. We will use Google Gemini to rewrite your experiences and highlight the most relevant skills.': 'Paste the job description below. We will use Google Gemini to rewrite your experiences and highlight the most relevant skills.',
+    'Job Description': 'Job Description',
+    'Paste the full job description here...': 'Paste the full job description here...',
+    'Gemini API Key': 'Gemini API Key',
+    'Get one here': 'Get one here',
+    'Your key is stored securely in your browser and is never sent to our servers.': 'Your key is stored securely in your browser and is never sent to our servers.',
+    'Please paste a job description.': 'Please paste a job description.',
+    'API key is required.': 'API key is required.',
+    'Generating...': 'Generating...',
+    'Generate Tailored CV': 'Generate Tailored CV',
+    'Failed to generate resume. Please check your API key and try again.': 'Failed to generate resume. Please check your API key and try again.',
+    'Our free daily quota has been reached. Please enter your own Gemini API key below to continue.': 'Our free daily quota has been reached. Please enter your own Gemini API key below to continue.',
 
     // Layout
     'Font Size': 'Font Size',
@@ -317,6 +375,22 @@ export const TRANSLATIONS = {
     'Copy Prompt': 'Copier le Prompt',
     'Could not copy automatically. Please select the text and copy manually (Ctrl+C / Cmd+C).': 'Impossible de copier automatiquement. Sélectionnez le texte et copiez manuellement (Ctrl+C / Cmd+C).',
     'AI prompt text': 'Texte du prompt IA',
+
+    // AI Tailor
+    'Tailor to Job Description': "Adapter à l'Offre d'Emploi",
+    'Tailor to Job': "Adapter à l'Offre",
+    'Paste the job description below. We will use Google Gemini to rewrite your experiences and highlight the most relevant skills.': "Collez la description de l'offre ci-dessous. Nous utiliserons Google Gemini pour réécrire vos expériences et mettre en valeur les compétences les plus pertinentes.",
+    'Job Description': "Description de l'Offre",
+    'Paste the full job description here...': "Collez le texte complet de l'offre ici...",
+    'Gemini API Key': 'Clé API Gemini',
+    'Get one here': "L'obtenir ici",
+    'Your key is stored securely in your browser and is never sent to our servers.': 'Votre clé est stockée de manière sécurisée dans votre navigateur et n\'est jamais envoyée à nos serveurs.',
+    'Please paste a job description.': "Veuillez coller la description de l'offre.",
+    'API key is required.': "La clé API est requise.",
+    'Generating...': "Génération en cours...",
+    'Generate Tailored CV': 'Générer le CV Sur-Mesure',
+    'Failed to generate resume. Please check your API key and try again.': "Échec de la génération. Veuillez vérifier votre clé API et réessayer.",
+    'Our free daily quota has been reached. Please enter your own Gemini API key below to continue.': "Notre quota gratuit journalier est atteint. Veuillez entrer votre propre clé API Gemini ci-dessous pour continuer.",
 
     // Layout
     'Font Size': 'Taille de police',

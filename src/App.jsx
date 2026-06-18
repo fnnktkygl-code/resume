@@ -16,8 +16,10 @@ import { sanitizeResumeData } from './utils/sanitize';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
+import Modal from './components/ui/Modal';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
+const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
 
 const STORAGE_KEY = 'resume-builder-data';
 const THEME_KEY = 'resume-builder-theme';
@@ -100,6 +102,7 @@ export default function App() {
   const [layout, setLayout] = useState(loadLayout);
   const [template, setTemplate] = useState(loadTemplate);
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [isTailorOpen, setIsTailorOpen] = useState(false);
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
@@ -519,6 +522,10 @@ export default function App() {
 
                     <div className="control-divider" aria-hidden="true" />
 
+                    <button className="control-btn" onClick={() => setIsTailorOpen(true)}>
+                      ✨ {t('Tailor to Job')}
+                    </button>
+
                     <button className="control-btn" onClick={() => setIsAIOpen(true)}>
                       <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
                     </button>
@@ -756,6 +763,15 @@ export default function App() {
               language={language} 
             />
           )}
+          {isTailorOpen && (
+            <AITailorModal 
+              isOpen={isTailorOpen} 
+              onClose={() => setIsTailorOpen(false)} 
+              data={data} 
+              language={language}
+              onTailorSuccess={(newData) => setData(newData)}
+            />
+          )}
           {aiBoldConfig.isOpen && (
             <AIBoldModal
               isOpen={aiBoldConfig.isOpen}
@@ -774,59 +790,90 @@ export default function App() {
           </div>
         )}
 
-        {/* Section delete confirmation modal */}
-        {sectionToDelete && (
-          <div className="modal-overlay" role="dialog" aria-modal="true">
-            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
-                {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
-              </h2>
-              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
-                {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
-              </p>
-              <div className="modal-actions" style={{ justifyContent: 'center' }}>
-                <button className="btn-secondary" onClick={() => setSectionToDelete(null)}>{t('Cancel')}</button>
-                <button 
-                  className="btn-primary" 
-                  onClick={() => removeSection(sectionToDelete)} 
-                  style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
-                >
-                  {t('Confirm')}
-                </button>
-              </div>
+        <Modal
+          isOpen={!!sectionToDelete}
+          onClose={() => setSectionToDelete(null)}
+          title={
+            <span style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
+              {language === 'fr' ? 'Supprimer cette section ?' : 'Remove this section?'}
+            </span>
+          }
+          actions={
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '12px' }}>
+              <button className="btn-secondary" onClick={() => setSectionToDelete(null)}>{t('Cancel')}</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => removeSection(sectionToDelete)} 
+                style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
+              >
+                {t('Confirm')}
+              </button>
             </div>
-          </div>
-        )}
+          }
+        >
+          <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
+            {language === 'fr' ? 'Cette action retirera la section de votre CV. Vous pourrez la rajouter plus tard.' : 'This action will remove the section from your resume. You can add it back later.'}
+          </p>
+        </Modal>
 
-        {/* Export confirmation dialog */}
-        {showExportConfirm && (
-          <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="export-confirm-title">
-            <div className="modal-content" style={{ maxWidth: '440px', textAlign: 'center' }}>
-              <h2 id="export-confirm-title" style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{exportConfig.icon}</span> 
-                {exportConfig.title}
-              </h2>
-              <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px' }}>
-                {exportConfig.message}
-              </p>
-              <div className="modal-actions" style={{ justifyContent: 'center' }}>
-                <button className="btn-secondary" onClick={() => setShowExportConfirm(false)}>{t('Cancel')}</button>
-                <button 
-                  className="btn-primary" 
-                  onClick={() => {
-                    setShowExportConfirm(false);
-                    if (exportConfig.action) exportConfig.action();
-                  }} 
-                  style={{ padding: '10px 24px', fontSize: '14px' }}
-                >
-                  {t('Confirm')}
-                </button>
-              </div>
+        <Modal
+          isOpen={showExportConfirm}
+          onClose={() => setShowExportConfirm(false)}
+          ariaLabelledby="export-confirm-title"
+          title={
+            <span id="export-confirm-title" style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{exportConfig.icon}</span> 
+              {exportConfig.title}
+            </span>
+          }
+          actions={
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '12px' }}>
+              <button className="btn-secondary" onClick={() => setShowExportConfirm(false)}>{t('Cancel')}</button>
+              <button 
+                className="btn-primary" 
+                onClick={() => {
+                  setShowExportConfirm(false);
+                  if (exportConfig.action) exportConfig.action();
+                }} 
+                style={{ padding: '10px 24px', fontSize: '14px' }}
+              >
+                {t('Confirm')}
+              </button>
             </div>
-          </div>
-        )}
+          }
+        >
+          <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
+            {exportConfig.message}
+          </p>
+        </Modal>
 
+        <Modal
+          isOpen={showClearConfirm}
+          onClose={() => setShowClearConfirm(false)}
+          title={
+            <span style={{ fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ color: '#ef4444', display: 'flex' }}><i className="fi fi-rr-trash"></i></span> 
+              {language === 'fr' ? 'Effacer toutes les données ?' : 'Clear all data?'}
+            </span>
+          }
+          actions={
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '12px' }}>
+              <button className="btn-secondary" onClick={() => setShowClearConfirm(false)}>{t('Cancel')}</button>
+              <button 
+                className="btn-primary" 
+                onClick={clearData} 
+                style={{ padding: '10px 24px', fontSize: '14px', background: '#ef4444', borderColor: '#ef4444' }}
+              >
+                {t('Confirm')}
+              </button>
+            </div>
+          }
+        >
+          <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px', fontSize: '14px', textAlign: 'center' }}>
+            {language === 'fr' ? 'Toutes les données de votre CV seront définitivement perdues.' : 'All your resume data will be permanently lost.'}
+          </p>
+        </Modal>
         {/* Print-only resume */}
         <div id="resume-print" style={{ display: 'none' }}>
           <ResumePreview data={data} layout={layout} language={language} template={template} printMode />
