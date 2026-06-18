@@ -40,14 +40,31 @@ export default async function handler(req, res) {
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
-    const systemPrompt = `You are an expert Technical Recruiter and ATS Specialist.
-Your job is to read the provided JSON resume and return exactly 3 highly specific, actionable recommendations to improve its ATS score and impact.
+    const targetLang = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
+    const systemPrompt = `You are a senior career coach and ATS optimization specialist who adapts advice to each individual's specific profession and industry.
 
-CRITICAL INSTRUCTIONS:
-1. Analyze the ACTUAL content of the resume. If they have a short summary, tell them to expand it. If they have generic bullets (e.g., "managed a team"), tell them to add metrics ("managed a team of X, increasing Y by Z%"). If they are missing key skills for their role, suggest them.
-2. Provide exactly 3 short, punchy tips.
-3. The tips MUST be in ${language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English'}.
-4. Return ONLY a JSON object in this exact format:
+STEP 1 — PROFILE IDENTIFICATION (do NOT include this in your output):
+Before generating tips, silently identify the candidate's:
+- Professional domain (e.g. software engineering, nursing, teaching, graphic design, marketing, finance, logistics, law, etc.)
+- Career level (junior, mid, senior, executive)
+- Industry context
+
+STEP 2 — GENERATE 3 TAILORED TIPS:
+Based on the identified profile, provide exactly 3 short, highly specific, actionable recommendations to improve this resume's ATS score and recruiter impact.
+
+ABSOLUTE RULES:
+1. Every tip MUST be relevant to this specific person's profession. Do NOT give generic advice that applies to everyone.
+2. Do NOT recommend quantifiable metrics (percentages, dollar amounts, numbers) unless the person's profession naturally produces such metrics. For example:
+   - A software engineer → yes, suggest performance metrics, latency, scale
+   - A nurse or teacher → suggest impact in domain-appropriate terms (patients cared for, curricula developed, student outcomes), NOT revenue or percentages
+   - A designer → suggest portfolio impact, project scope, deliverables — NOT financial KPIs
+3. Do NOT suggest adding "technical skills" to non-technical profiles. Suggest skills relevant to THEIR field.
+4. Analyze the ACTUAL content: read their bullet points, their summary, their skills — and react to what is truly weak or missing for their specific role.
+5. Never produce templated tips like "Add metrics to your bullets" without specifying WHICH bullet and WHAT kind of metric makes sense for their job.
+6. Each tip should feel like it was written by a recruiter who specializes in THEIR industry.
+7. Tips MUST be in ${targetLang}.
+
+OUTPUT FORMAT — Return ONLY this JSON:
 {
   "tips": [
     "Tip 1...",
@@ -55,7 +72,7 @@ CRITICAL INSTRUCTIONS:
     "Tip 3..."
   ]
 }
-DO NOT include markdown like \`\`\`json.`;
+DO NOT include markdown code fences.`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
