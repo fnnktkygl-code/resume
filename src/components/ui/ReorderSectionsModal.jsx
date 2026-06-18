@@ -60,7 +60,9 @@ export default function ReorderSectionsModal({ isOpen, onClose, sectionOrder, cu
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-md)',
           padding: '8px',
-          backgroundColor: 'var(--color-surface-alt)'
+          backgroundColor: 'var(--color-surface-alt)',
+          maxHeight: '50vh',
+          overflowY: 'auto'
         }}>
           {sectionOrder.map((sectionId, index) => (
             <div 
