@@ -908,12 +908,12 @@ export default function App() {
             <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
 
             {/* Cover Letter Generator */}
-            <button className="btn-demo" style={{ marginRight: '8px', border: '1px solid var(--color-border)' }} onClick={() => setIsCoverLetterModalOpen(true)}>
+            <button className="btn-demo desktop-only" style={{ marginRight: '8px', border: '1px solid var(--color-border)' }} onClick={() => setIsCoverLetterModalOpen(true)}>
               <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
             </button>
 
             {/* Primary action: Import CV */}
-            <button className="btn-demo btn-import-primary" onClick={() => setShowImportModal(true)}>
+            <button className="btn-demo btn-import-primary desktop-only" onClick={() => setShowImportModal(true)}>
               <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
             </button>
 
@@ -929,6 +929,12 @@ export default function App() {
               </button>
               <div className={`mobile-menu-dropdown header-dropdown${mobileMenuOpen ? ' open' : ''}`}>
                 <div className="dropdown-section-label">{t('My Documents')}</div>
+                <button className="btn-demo dropdown-item mobile-only" onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}>
+                  <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
+                </button>
+                <button className="btn-demo dropdown-item mobile-only" onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}>
+                  <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
+                </button>
                 <button className="btn-demo dropdown-item" onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}>
                   <i className="fi fi-rr-folder"></i> {t('Manage My Resumes')}
                 </button>
