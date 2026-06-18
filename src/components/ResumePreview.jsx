@@ -133,47 +133,65 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     setDragOverSection(null);
   }, []);
 
-  // Section renderers
-  const renderSection = (sectionId) => {
+  const SectionWrapper = ({ sectionId, className, style, children }) => {
     const isDraggable = !printMode && onSectionReorder;
+    
+    const dragClass = isDraggable 
+      ? `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`
+      : (onSectionClick && !printMode ? 'preview-interactive-section' : '');
+      
+    const combinedClassName = `${dragClass} ${className || ''}`.trim();
+    
+    const interactiveStyle = onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
+    const combinedStyle = { ...interactiveStyle, ...(style || {}) };
+
     const wrapProps = isDraggable ? {
       draggable: true,
       onDragStart: (e) => handleDragStart(e, sectionId),
       onDragOver: (e) => handleDragOver(e, sectionId),
       onDrop: (e) => handleDrop(e, sectionId),
       onDragEnd: handleDragEnd,
-      className: `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`,
+      className: combinedClassName,
       onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
-      style: onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {}
+      style: combinedStyle
     } : {
+      className: combinedClassName,
       onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
-      className: onSectionClick && !printMode ? 'preview-interactive-section' : undefined,
-      style: onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {}
+      style: combinedStyle
     };
 
-    const DragHandleWithActions = () => (
-      <div className="section-actions" aria-hidden="true">
-        <span className="drag-handle" title={t('Drag to reorder')}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
-            <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
-          </svg>
-        </span>
-        <button 
-          className="section-delete" 
-          onClick={(e) => {
-            e.stopPropagation();
-            onSectionRemove(sectionId);
-          }}
-          title={t('Delete')}
-        >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+    return (
+      <div {...wrapProps}>
+        {isDraggable && (
+          <div className="section-actions" aria-hidden="true">
+            <span className="drag-handle" title={t('Drag to reorder')}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
+                <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
+              </svg>
+            </span>
+            <button 
+              className="section-delete" 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSectionRemove) onSectionRemove(sectionId);
+              }}
+              title={t('Delete')}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        )}
+        {children}
       </div>
     );
+  };
+
+  // Section renderers
+  const renderSection = (sectionId) => {
 
     switch (sectionId) {
       case 'summary':
@@ -399,19 +417,19 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             </div>
           ) : template === 'modern' ? (
             <div ref={contentRef} style={{ height: '100%' }}>
-              <ModernTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+              <ModernTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
             </div>
           ) : template === 'njm' ? (
             <div ref={contentRef}>
-              <NjmTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+              <NjmTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
             </div>
           ) : template === 'creative' ? (
             <div ref={contentRef}>
-              <CreativeTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+              <CreativeTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
             </div>
           ) : template === 'minimalist' ? (
             <div ref={contentRef}>
-              <MinimalistTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} />
+              <MinimalistTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
             </div>
           ) : (
             <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>

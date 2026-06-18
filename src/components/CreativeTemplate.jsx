@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
-function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
@@ -15,6 +15,20 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
   );
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
+
+  const getWrapProps = (id) => {
+    if (SectionWrapper) {
+      return { key: id, sectionId: id, style: wrapperStyle(id) };
+    }
+    return {
+      key: id,
+      className: onSectionClick ? "preview-interactive-section" : "",
+      style: wrapperStyle(id),
+      onClick: onSectionClick ? () => handleSectionClick(id) : undefined
+    };
+  };
+
+  const Wrapper = SectionWrapper || 'div';
 
   const {
     fontSize = 10,
@@ -99,67 +113,56 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
       {/* Two-Column Grid Body */}
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px' }}>
         {/* Left Column - Summary, Skills, Certifications */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {/* Summary */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {data.summary && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('summary')} onClick={() => handleSectionClick('summary')}>
+            <Wrapper {...getWrapProps('summary')}>
               <div style={sectionHeaderStyle}>{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
-              <div style={{ fontSize: '9pt', color: 'var(--resume-text-secondary, #444)', textAlign: 'justify' }}>{parseMarkdown(data.summary)}</div>
-            </div>
+              <div style={{ textAlign: 'justify', fontSize: `${fontSize}pt` }}>{parseMarkdown(data.summary)}</div>
+            </Wrapper>
           )}
 
-          {/* Skills */}
           {hasSkills && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('skills')} onClick={() => handleSectionClick('skills')}>
+            <Wrapper {...getWrapProps('skills')}>
               <div style={sectionHeaderStyle}>{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {data.skills.technical && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #444)', marginBottom: '3px' }}>{h.technical || 'Technical'}</strong>
-                    <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {data.skills.technical.split(',').map((skill, si) => skill.trim() ? (
-                        <span key={si} className="skill-pill-accent" style={{ fontSize: '7.5pt', padding: '1px 5px' }}>{skill.trim()}</span>
-                      ) : null)}
-                    </div>
+              {data.skills.technical && (
+                <div style={{ marginBottom: '8px' }}>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.technical}</strong>
+                  <div className="skills-container" style={{ gap: '4px' }}>
+                    {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px solid ${primaryColor}`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>
-                )}
-                {data.skills.soft && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #444)', marginBottom: '3px' }}>{h.interpersonal || 'Interpersonal'}</strong>
-                    <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {data.skills.soft.split(',').map((skill, si) => skill.trim() ? (
-                        <span key={si} className="skill-pill" style={{ fontSize: '7.5pt', padding: '1px 5px' }}>{skill.trim()}</span>
-                      ) : null)}
-                    </div>
+                </div>
+              )}
+              {data.skills.soft && (
+                <div style={{ marginBottom: '8px' }}>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.interpersonal}</strong>
+                  <div className="skills-container" style={{ gap: '4px' }}>
+                    {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px solid #ccc`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>
-                )}
-                {data.skills.languages && !hasCustomLangues && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #444)', marginBottom: '3px' }}>{h.languages || 'Languages'}</strong>
-                    <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {data.skills.languages.split(',').map((skill, si) => skill.trim() ? (
-                        <span key={si} className="skill-pill-outline" style={{ fontSize: '7.5pt', padding: '1px 5px' }}>{skill.trim()}</span>
-                      ) : null)}
-                    </div>
+                </div>
+              )}
+              {data.skills.languages && !hasCustomLangues && (
+                <div style={{ marginBottom: '8px' }}>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.languages}</strong>
+                  <div className="skills-container" style={{ gap: '4px' }}>
+                    {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px dashed #aaa`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
+            </Wrapper>
           )}
 
-          {/* Certifications */}
           {validCert.length > 0 && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('certifications')} onClick={() => handleSectionClick('certifications')}>
+            <Wrapper {...getWrapProps('certifications')}>
               <div style={sectionHeaderStyle}>{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {validCert.map((c, i) => (
-                  <div key={i} style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #444)' }}>
-                    <strong style={{ color: textColor }}>{c.name}</strong>
-                    <div style={{ fontSize: '8pt', color: 'var(--resume-text-secondary, #666)' }}>{c.issuer}{c.date ? ` (${c.date})` : ''}</div>
+                  <div key={i} style={{ fontSize: '9pt' }}>
+                    <div style={{ fontWeight: '600', color: textColor }}>{c.name}</div>
+                    <div style={{ color: 'var(--resume-text-secondary, #666)' }}>{c.issuer}{c.date ? ` • ${c.date}` : ''}</div>
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           )}
         </div>
 
@@ -167,7 +170,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Work Experience */}
           {validExp.length > 0 && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('experience')} onClick={() => handleSectionClick('experience')}>
+            <Wrapper {...getWrapProps('experience')}>
               <div style={sectionHeaderStyle}>{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validExp.map((exp, i) => (
@@ -199,32 +202,34 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           )}
 
           {/* Education */}
           {validEdu.length > 0 && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('education')} onClick={() => handleSectionClick('education')}>
+            <Wrapper {...getWrapProps('education')}>
               <div style={sectionHeaderStyle}>{displayHeading('education', 'Education', 'EDUCATION')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validEdu.map((edu, i) => (
                   <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <strong style={{ fontSize: '10pt', color: textColor }}>{edu.degree}</strong>
-                      <span style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '11pt', fontWeight: 'bold', color: primaryColor }}>{edu.institution}</div>
+                      <div style={{ fontSize: '8.5pt', color: 'var(--resume-text-secondary, #666)', fontWeight: '600', textTransform: 'uppercase' }}>
                         {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
-                      </span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '9pt', color: 'var(--resume-text-secondary, #555)' }}>{edu.institution}{edu.field && `, ${edu.field}`}</div>
+                    <div style={{ fontSize: '10pt', fontWeight: '500', color: textColor, margin: '2px 0' }}>
+                      {[edu.degree, edu.field].filter(Boolean).join(' • ')}
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           )}
 
           {/* Projects */}
           {validProj.length > 0 && (
-            <div className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('projects')} onClick={() => handleSectionClick('projects')}>
+            <Wrapper {...getWrapProps('projects')}>
               <div style={sectionHeaderStyle}>{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validProj.map((pr, i) => (
@@ -244,18 +249,18 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           )}
 
           {/* Custom Sections */}
           {data.customSections?.map(sec => {
             if (sec.id.startsWith('spacer_')) {
-              return <div key={sec.id} style={{ height: `${sec.height}px` }} />;
+              return <Wrapper {...getWrapProps(sec.id)} style={{ height: `${sec.height}px` }} />;
             }
             const validItems = sec.items?.filter(i => i.title || i.subtitle || i.description);
             if (!validItems || !validItems.length) return null;
             return (
-              <div key={sec.id} className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle(sec.id)} onClick={() => handleSectionClick(sec.id)}>
+              <Wrapper {...getWrapProps(sec.id)}>
                 <div style={sectionHeaderStyle}>{sec.label || 'Custom'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                   {validItems.map((item, i) => (
@@ -271,7 +276,7 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                     </div>
                   ))}
                 </div>
-              </div>
+              </Wrapper>
             );
           })}
         </div>

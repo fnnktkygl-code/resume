@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
-function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
@@ -15,6 +15,20 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
   );
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
+
+  const getWrapProps = (id, style) => {
+    if (SectionWrapper) {
+      return { key: id, sectionId: id, style: style };
+    }
+    return {
+      key: id,
+      className: onSectionClick ? "preview-interactive-section" : "",
+      style: style,
+      onClick: onSectionClick ? () => onSectionClick(id) : undefined
+    };
+  };
+
+  const Wrapper = SectionWrapper || 'div';
 
   const {
     fontSize = 10,
@@ -66,16 +80,16 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
       case 'summary':
         if (!data.summary) return null;
         return (
-          <div key="summary" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('summary', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
             <div style={{ color: textColor, textAlign: 'justify' }}>{parseMarkdown(data.summary)}</div>
-          </div>
+          </Wrapper>
         );
 
       case 'experience':
         if (!validExp.length) return null;
         return (
-          <div key="experience" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('experience', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
@@ -107,13 +121,13 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'education':
         if (!validEdu.length) return null;
         return (
-          <div key="education" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('education', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
@@ -130,15 +144,15 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'skills':
         if (!hasSkills) return null;
         return (
-          <div key="skills" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('skills', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {data.skills.technical && (
                 <div>
                   <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{h.technical || 'Technical'}:</span>
@@ -158,13 +172,13 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                 </div>
               )}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'projects':
         if (!validProj.length) return null;
         return (
-          <div key="projects" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('projects', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
@@ -184,25 +198,31 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'certifications':
         if (!validCert.length) return null;
         return (
-          <div key="certifications" className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+          <Wrapper {...getWrapProps('certifications', sectionWrapperStyle)}>
             <div style={sectionTitleStyle}>{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {validCert.map((c, i) => (
                 <div key={i} style={{ fontSize: '9pt', color: textColor, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                   <strong>{c.name}</strong> — {c.issuer}{c.date ? ` (${c.date})` : ''}
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         );
 
       default:
+        if (sectionId.startsWith('spacer_')) {
+          const spacerSec = data.customSections?.find(s => s.id === sectionId);
+          if (!spacerSec) return null;
+          return <Wrapper {...getWrapProps(sectionId, { height: `${spacerSec.height}px` })} />;
+        }
+
         if (sectionId.startsWith('custom_')) {
           const customSec = data.customSections?.find(s => s.id === sectionId);
           if (!customSec || !customSec.items.length) return null;
@@ -210,7 +230,7 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
           if (!validItems.length) return null;
 
           return (
-            <div key={sectionId} className={onSectionClick ? "preview-interactive-section" : ""} style={sectionWrapperStyle} onClick={handleSectionClick}>
+            <Wrapper {...getWrapProps(sectionId, sectionWrapperStyle)}>
               <div style={sectionTitleStyle}>{customSec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
@@ -226,13 +246,8 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           );
-        }
-        if (sectionId.startsWith('spacer_')) {
-          const spacerSec = data.customSections?.find(s => s.id === sectionId);
-          if (!spacerSec) return null;
-          return <div key={sectionId} style={{ height: `${spacerSec.height}px` }} />;
         }
         return null;
     }

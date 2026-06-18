@@ -3,7 +3,7 @@ import { parseMarkdown, formatUrl } from '../utils/formatText';
 
 import { getTranslation } from '../utils/translations';
 
-function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
@@ -16,6 +16,20 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
   );
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
+
+  const getWrapProps = (id) => {
+    if (SectionWrapper) {
+      return { key: id, sectionId: id };
+    }
+    return {
+      key: id,
+      className: onSectionClick ? "preview-interactive-section" : "",
+      style: { cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' },
+      onClick: onSectionClick ? () => onSectionClick(id) : undefined
+    };
+  };
+
+  const Wrapper = SectionWrapper || 'div';
 
   const {
     fontSize = 10.5,
@@ -58,11 +72,7 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
 
         {/* Skills */}
         {hasSkills && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('skills') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('skills')}>
             <div className="modern-sidebar-section-title">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             {data.skills.technical && (
               <div className="modern-sidebar-item">
@@ -88,16 +98,12 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 </div>
               </div>
             )}
-          </div>
+          </Wrapper>
         )}
 
         {/* Certifications */}
         {validCert.length > 0 && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('certifications') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('certifications')}>
             <div className="modern-sidebar-section-title">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             {validCert.map((c, i) => (
               <div key={i} className="modern-sidebar-item">
@@ -105,29 +111,21 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 {c.issuer}{c.date ? ` (${c.date})` : ''}
               </div>
             ))}
-          </div>
+          </Wrapper>
         )}
       </div>
 
       {/* Right Main */}
       <div className="modern-main" style={{ gap: `${sectionSpacing}px` }}>
         {data.summary && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('summary') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('summary')}>
             <div className="resume-section-header">{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
             <div>{parseMarkdown(data.summary)}</div>
-          </div>
+          </Wrapper>
         )}
 
         {validExp.length > 0 && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('experience') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('experience')}>
             <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
@@ -155,15 +153,11 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         )}
 
         {validEdu.length > 0 && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('education') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('education')}>
             <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
@@ -180,15 +174,11 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         )}
 
         {validProj.length > 0 && (
-          <div
-            onClick={onSectionClick ? () => onSectionClick('projects') : undefined}
-            className={onSectionClick ? "preview-interactive-section" : ""}
-            style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-          >
+          <Wrapper {...getWrapProps('projects')}>
             <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
@@ -205,22 +195,17 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         )}
 
         {data.customSections?.map(sec => {
           if (sec.id.startsWith('spacer_')) {
-            return <div key={sec.id} style={{ height: `${sec.height}px` }} />;
+            return <Wrapper {...getWrapProps(sec.id)} style={{ height: `${sec.height}px` }} />;
           }
           const validItems = sec.items?.filter(i => i.title || i.subtitle || i.description);
           if (!validItems || !validItems.length) return null;
           return (
-            <div 
-              key={sec.id}
-              onClick={onSectionClick ? () => onSectionClick(sec.id) : undefined}
-              className={onSectionClick ? "preview-interactive-section" : ""}
-              style={{ cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' }}
-            >
+            <Wrapper {...getWrapProps(sec.id)}>
               <div className="resume-section-header">{sec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
@@ -236,7 +221,7 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick }) 
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           );
         })}
       </div>

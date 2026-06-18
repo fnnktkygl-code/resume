@@ -306,7 +306,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
       case 'projects':
         if (!validProj.length) return null;
         return (
-          <div key="projects" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('projects')} onClick={() => handleSectionClick('projects')}>
+          <Wrapper {...getWrapProps('projects')}>
             <div style={sectionHeaderStyle}>
               <Icons.Briefcase /> {h.projects || t('PROJECTS')}
             </div>
@@ -332,7 +332,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
                 </div>
               ))}
             </div>
-          </div>
+          </Wrapper>
         );
 
       default:
@@ -344,12 +344,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
           if (!validItems.length) return null;
 
           return (
-            <div 
-              key={sec.id} 
-              className={onSectionClick ? "preview-interactive-section" : ""} 
-              style={wrapperStyle(sec.id)} 
-              onClick={() => handleSectionClick(sec.id)}
-            >
+            <Wrapper {...getWrapProps(sec.id)}>
               <div style={sectionHeaderStyle}>
                 <Icons.PlusCircle /> {sec.label || t('Custom Section')}
               </div>
@@ -381,13 +376,13 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </Wrapper>
           );
         }
         if (sectionId.startsWith('spacer_')) {
           const spacerSec = data.customSections?.find(s => s.id === sectionId);
           if (!spacerSec) return null;
-          return <div key={sectionId} style={{ height: `${spacerSec.height}px` }} />;
+          return <Wrapper {...getWrapProps(sectionId)} style={{ height: `${spacerSec.height}px` }} />;
         }
         return null;
     }
