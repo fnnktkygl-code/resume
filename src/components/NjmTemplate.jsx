@@ -47,7 +47,7 @@ function renderExperienceIcon(iconName) {
   }
 }
 
-function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
+function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
   const t = (key) => getTranslation(language, key);
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
@@ -58,6 +58,19 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
   const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
 
   const h = data.headings || {};
+
+  const getWrapProps = (id) => {
+    if (SectionWrapper) {
+      return { key: id, sectionId: id };
+    }
+    return {
+      key: id,
+      className: onSectionClick ? "preview-interactive-section" : "",
+      onClick: onSectionClick ? () => onSectionClick(id) : undefined
+    };
+  };
+
+  const Wrapper = SectionWrapper || 'div';
   const {
     fontSize = 10,
     sectionSpacing = 12,
