@@ -49,8 +49,31 @@ export default function ExperienceStep({ data, onChange, onAIAssist }) {
             <Field label={t('Company')}>
               <TextInput value={exp.company} onChange={(v) => updateExp(ei, 'company', v)} placeholder="Acme Corp" />
             </Field>
+            <Field label={t('Company Website / Link')}>
+              <TextInput value={exp.link || ''} onChange={(v) => updateExp(ei, 'link', v)} placeholder="https://acme.com" />
+            </Field>
             <Field label={t('Job Title')}>
               <TextInput value={exp.title} onChange={(v) => updateExp(ei, 'title', v)} placeholder="Senior Software Engineer" />
+            </Field>
+            <Field label={t('Job Icon')}>
+              <Select
+                value={exp.icon || 'chart'}
+                onChange={(v) => updateExp(ei, 'icon', v)}
+                options={[
+                  { value: 'chart', label: t('Chart (Default)') },
+                  { value: 'briefcase', label: t('Briefcase') },
+                  { value: 'building', label: t('Building') },
+                  { value: 'code', label: t('Code / Tech') },
+                  { value: 'heart', label: t('Heart / Health') },
+                  { value: 'graduation', label: t('Graduation / Education') },
+                  { value: 'award', label: t('Award / Achievement') },
+                  { value: 'globe', label: t('Web / Globe') },
+                  { value: 'book', label: t('Book / Writing') },
+                  { value: 'user', label: t('Leadership / Management') },
+                  { value: 'star', label: t('Star') },
+                  { value: 'none', label: t('No Icon') }
+                ]}
+              />
             </Field>
             <Field label={t('Start Month')}>
               <Select value={exp.startMonth} onChange={(v) => updateExp(ei, 'startMonth', v)} options={MONTHS} placeholder={t('Month')} />

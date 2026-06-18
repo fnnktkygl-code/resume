@@ -3,7 +3,7 @@ import ModernTemplate from './ModernTemplate';
 import NjmTemplate from './NjmTemplate';
 import CreativeTemplate from './CreativeTemplate';
 import MinimalistTemplate from './MinimalistTemplate';
-import { parseMarkdown } from '../utils/formatText';
+import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick }) {
@@ -177,7 +177,13 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
               {validExp.map((exp, i) => (
                 <div key={i}>
                   <div className="resume-exp-header">
-                    <span className="resume-company">{exp.company}</span>
+                    {exp.link ? (
+                      <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
+                        {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                    ) : (
+                      <span className="resume-company">{exp.company}</span>
+                    )}
                     <span className="resume-dates">
                       {formatDate(exp.startMonth, exp.startYear)}
                       {(exp.startMonth || exp.startYear) && ' — '}
@@ -391,12 +397,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
               {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
               {hasContact && (
                 <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
-                  {[p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean).map((item, idx, arr) => (
-                    <span key={idx} style={{ display: 'flex', alignItems: 'center' }}>
-                      <span>{item}</span>
-                      {idx < arr.length - 1 && <span className="resume-contact-sep">•</span>}
-                    </span>
-                  ))}
+                  {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
+                  {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
+                  {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
                 </div>
               )}
 

@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import { parseMarkdown } from '../utils/formatText';
+import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
@@ -89,7 +89,12 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
                     </span>
                   </div>
                   <div style={{ fontSize: '9pt', color: primaryColor, fontWeight: '600', marginBottom: '4px' }}>
-                    {exp.company}
+                    {exp.link ? (
+                      <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }} onClick={(e) => e.stopPropagation()}>
+                        {exp.company}
+                        <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                    ) : exp.company}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {exp.bullets.filter(Boolean).map((b, bi) => (
@@ -269,10 +274,10 @@ function MinimalistTemplate({ data, layout = {}, language = 'en', onSectionClick
               color: 'var(--resume-text-secondary, #666)', 
               marginTop: '8px'
             }}>
-              {p.email && <span>{p.email}</span>}
-              {p.phone && <span>• &nbsp;{p.phone}</span>}
+              {p.email && <a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>}
+              {p.phone && <span>• &nbsp;<a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></span>}
               {p.location && <span>• &nbsp;{p.location}</span>}
-              {p.linkedin && <span>• &nbsp;{p.linkedin}</span>}
+              {p.linkedin && <span>• &nbsp;<a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></span>}
             </div>
           )}
         </div>

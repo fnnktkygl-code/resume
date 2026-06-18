@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown } from '../utils/formatText';
+import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 const Icons = {
@@ -10,12 +10,42 @@ const Icons = {
   Briefcase: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
   Building: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="6" x2="12" y2="6"/></svg>,
   Chart: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-  ExternalLink: () => <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  ExternalLink: () => <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '4px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
   Lightbulb: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>,
   Globe: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   PlusCircle: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  Smile: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+  Smile: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>,
+  
+  Code: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+  Heart: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+  GraduationCap: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>,
+  Award: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
+  Book: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5v-15z"/></svg>,
+  User: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  Star: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  GlobeSmall: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  BriefcaseSmall: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+  BuildingSmall: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="6" x2="12" y2="6"/></svg>,
 };
+
+function renderExperienceIcon(iconName) {
+  switch (iconName) {
+    case 'briefcase': return <Icons.BriefcaseSmall />;
+    case 'building': return <Icons.BuildingSmall />;
+    case 'code': return <Icons.Code />;
+    case 'heart': return <Icons.Heart />;
+    case 'graduation': return <Icons.GraduationCap />;
+    case 'award': return <Icons.Award />;
+    case 'globe': return <Icons.GlobeSmall />;
+    case 'book': return <Icons.Book />;
+    case 'user': return <Icons.User />;
+    case 'star': return <Icons.Star />;
+    case 'none': return null;
+    case 'chart':
+    default:
+      return <Icons.Chart />;
+  }
+}
 
 function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
   const t = (key) => getTranslation(language, key);
@@ -157,7 +187,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
                 <div key={i}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
-                      <Icons.Chart /> {exp.title}
+                      {renderExperienceIcon(exp.icon)} {exp.title}
                     </span>
                     <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                       {formatDate(exp.startMonth, exp.startYear)}
@@ -165,8 +195,22 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
                       {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                     </span>
                   </div>
-                  <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    <Icons.ExternalLink /> {exp.company}
+                  <div style={{ margin: '2px 0 4px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.95em' }}>
+                    {exp.link ? (
+                      <a 
+                        href={formatUrl(exp.link)} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={{ color: primaryColor, fontWeight: 'bold', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {exp.company} <Icons.ExternalLink />
+                      </a>
+                    ) : (
+                      <span style={{ color: primaryColor, fontWeight: 'bold' }}>
+                        {exp.company}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
                     {exp.bullets.filter(Boolean).map((b, bi) => (
@@ -491,10 +535,10 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
               borderBottom: '1px solid var(--resume-border-color, #eee)',
               paddingBottom: '8px'
             }}>
-              {p.phone && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.Phone /> {p.phone}</span>}
-              {p.email && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.Email /> {p.email}</span>}
-              {p.linkedin && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><Icons.LinkedIn /> {p.linkedin}</span>}
-              {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', fontWeight: '500' }}><Icons.Location /> {p.location}</span>}
+              {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Phone /> {p.phone}</a>}
+              {p.email && <a href={`mailto:${p.email}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Email /> {p.email}</a>}
+              {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.LinkedIn /> {p.linkedin}</a>}
+              {p.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', fontWeight: '500' }}><Icons.Location /> {p.location}</span>}
             </div>
           )}
         </div>

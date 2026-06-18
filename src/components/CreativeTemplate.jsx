@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown } from '../utils/formatText';
+import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }) {
@@ -81,10 +81,10 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
           )}
           {hasContact && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #555)' }}>
-              {p.email && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>✉ {p.email}</span>}
-              {p.phone && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>☎ {p.phone}</span>}
+              {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>✉ {p.email}</a>}
+              {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
               {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
-              {p.linkedin && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>🔗 LinkedIn</span>}
+              {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
             </div>
           )}
         </div>
@@ -180,7 +180,14 @@ function CreativeTemplate({ data, layout = {}, language = 'en', onSectionClick }
                         {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                       </span>
                     </div>
-                    <div style={{ fontSize: '9pt', color: primaryColor, fontWeight: '600', marginBottom: '4px' }}>{exp.company}</div>
+                    <div style={{ fontSize: '9pt', color: primaryColor, fontWeight: '600', marginBottom: '4px' }}>
+                      {exp.link ? (
+                        <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }} onClick={(e) => e.stopPropagation()}>
+                          {exp.company}
+                          <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                      ) : exp.company}
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} className="resume-bullet" style={{ display: 'flex', fontSize: '9pt', color: 'var(--resume-text-color, #333)' }}>

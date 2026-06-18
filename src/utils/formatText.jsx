@@ -13,3 +13,15 @@ export function parseMarkdown(text) {
     return part;
   });
 }
+
+export function formatUrl(url) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^mailto:/i.test(trimmed)) return trimmed;
+  if (/^tel:/i.test(trimmed)) return trimmed;
+  if (trimmed.includes('@') && !trimmed.includes('/') && !trimmed.includes('http')) {
+    return `mailto:${trimmed}`;
+  }
+  return `https://${trimmed}`;
+}

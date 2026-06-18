@@ -44,6 +44,8 @@ export function createEmptyExperience() {
     id: safeUUID(),
     company: '',
     title: '',
+    link: '',
+    icon: 'chart',
     startMonth: '',
     startYear: '',
     endMonth: '',

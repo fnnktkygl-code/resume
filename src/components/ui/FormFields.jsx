@@ -134,10 +134,16 @@ export function Select({ value, onChange, options, placeholder }) {
       onChange={(e) => onChange(e.target.value)}
       className={`select-input${!value ? ' placeholder' : ''}`}
     >
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o} value={o}>{o}</option>
-      ))}
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map((o) => {
+        const val = typeof o === 'object' && o !== null ? o.value : o;
+        const lbl = typeof o === 'object' && o !== null ? o.label : o;
+        return (
+          <option key={val} value={val}>
+            {lbl}
+          </option>
+        );
+      })}
     </select>
   );
 }
