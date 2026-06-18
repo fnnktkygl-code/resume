@@ -145,10 +145,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     const DragHandleWithActions = () => (
       <div className="section-actions" aria-hidden="true">
         <span className="drag-handle" title={t('Drag to reorder')}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>
-            <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
-          </svg>
+          <i className="fi fi-rr-arrows" style={{ fontSize: '14px' }}></i>
         </span>
         <button 
           className="section-delete" 
@@ -158,7 +155,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           }}
           title={t('Delete')}
         >
-          ✕
+          <i className="fi fi-rr-trash" style={{ fontSize: '14px' }}></i>
         </button>
       </div>
     );

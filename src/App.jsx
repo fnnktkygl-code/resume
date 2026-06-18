@@ -151,6 +151,8 @@ export default function App() {
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const [draggedStepId, setDraggedStepId] = useState(null);
+  const [dragOverStepId, setDragOverStepId] = useState(null);
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const templateDropdownRef = useRef(null);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -458,16 +460,81 @@ export default function App() {
         icon
       };
     });
-    return [...STEPS, ...custom];
-  }, [data.customSections]);
+    
+    // Base sections map
+    const baseSections = STEPS.reduce((acc, step) => {
+      acc[step.id] = step;
+      return acc;
+    }, {});
+    
+    // Custom sections map
+    const customSections = custom.reduce((acc, step) => {
+      acc[step.id] = step;
+      return acc;
+    }, {});
+    
+    // Build ordered steps
+    const orderedSteps = [baseSections['personal']]; // Personal always first
+    
+    const order = data.sectionOrder || DEFAULT_SECTION_ORDER;
+    order.forEach(id => {
+      if (baseSections[id]) orderedSteps.push(baseSections[id]);
+      else if (customSections[id]) orderedSteps.push(customSections[id]);
+    });
+    
+    // Add any missing custom sections that somehow aren't in sectionOrder
+    custom.forEach(c => {
+      if (!orderedSteps.find(s => s.id === c.id)) {
+        orderedSteps.push(c);
+      }
+    });
+
+    return orderedSteps;
+  }, [data.customSections, data.sectionOrder]);
 
   const currentId = allSteps[step]?.id;
 
   const handleSectionClick = useCallback((sectionId) => {
-    // If it's a custom section, we want to match its id.
     const idx = allSteps.findIndex(s => s.id === sectionId);
     if (idx !== -1) {
       setStep(idx);
+      if (window.innerWidth <= 1024) setMobileMenuOpen(false);
+    }
+  }, [allSteps]);
+
+  const handleStepperDragStart = (e, sectionId) => {
+    if (sectionId === 'personal') {
+      e.preventDefault();
+      return;
+    }
+    setDraggedStepId(sectionId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleStepperDragOver = (e, sectionId) => {
+    e.preventDefault();
+    if (sectionId === 'personal') return;
+    if (draggedStepId && draggedStepId !== sectionId) {
+      setDragOverStepId(sectionId);
+    }
+  };
+
+  const handleStepperDrop = (e, targetSectionId) => {
+    e.preventDefault();
+    if (targetSectionId === 'personal') return;
+    if (draggedStepId && draggedStepId !== targetSectionId) {
+      handleSectionReorder(draggedStepId, targetSectionId);
+      // Also update the current step to point to the dragged section
+      const newAllSteps = [...allSteps];
+      const fromIdx = newAllSteps.findIndex(s => s.id === draggedStepId);
+      const toIdx = newAllSteps.findIndex(s => s.id === targetSectionId);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        setStep(toIdx);
+      }
+    }
+    setDraggedStepId(null);
+    setDragOverStepId(null);
+  };
       setShowMobilePreview(false); // Close preview on mobile to show the editor
       return;
     }
@@ -527,12 +594,24 @@ export default function App() {
 
   const addSpacerSection = () => {
     const newSpacer = createEmptySpacer();
-    setData(prev => ({
-      ...prev,
-      customSections: [...(prev.customSections || []), newSpacer],
-      sectionOrder: [...prev.sectionOrder, newSpacer.id]
-    }));
-    setStep(allSteps.length);
+    setData(prev => {
+      const currentStepId = allSteps[step]?.id;
+      const newOrder = [...prev.sectionOrder];
+      const index = newOrder.indexOf(currentStepId);
+      
+      if (index !== -1) {
+        newOrder.splice(index + 1, 0, newSpacer.id);
+      } else {
+        newOrder.unshift(newSpacer.id);
+      }
+
+      return {
+        ...prev,
+        customSections: [...(prev.customSections || []), newSpacer],
+        sectionOrder: newOrder
+      };
+    });
+    setStep(step + 1);
   };
 
   const handleImport = useCallback((imported) => {
@@ -880,19 +959,27 @@ export default function App() {
 
             {/* Stepper */}
             <nav className="stepper" role="tablist" aria-label="Resume sections">
-              {allSteps.map((s, i) => (
-                <button
-                  key={s.id}
-                  className={`step-btn${i === step ? ' active' : ''}${stepHasData(s.id) ? ' completed' : ''}`}
-                  onClick={() => setStep(i)}
-                  role="tab"
-                  aria-selected={i === step}
-                >
-                  <span className="step-icon">{s.icon}</span>
-                  <span className="step-label">{t(s.label)}</span>
-                  {stepHasData(s.id) && <span className="step-check" aria-hidden="true">✓</span>}
-                </button>
-              ))}
+              {allSteps.map((s, i) => {
+                const isDraggable = s.id !== 'personal';
+                return (
+                  <button
+                    key={s.id}
+                    className={`step-btn${i === step ? ' active' : ''}${stepHasData(s.id) ? ' completed' : ''}${draggedStepId === s.id ? ' dragging' : ''}${dragOverStepId === s.id ? ' drag-over' : ''}`}
+                    onClick={() => setStep(i)}
+                    role="tab"
+                    aria-selected={i === step}
+                    draggable={isDraggable}
+                    onDragStart={isDraggable ? (e) => handleStepperDragStart(e, s.id) : undefined}
+                    onDragOver={isDraggable ? (e) => handleStepperDragOver(e, s.id) : undefined}
+                    onDrop={isDraggable ? (e) => handleStepperDrop(e, s.id) : undefined}
+                    onDragEnd={() => { setDraggedStepId(null); setDragOverStepId(null); }}
+                  >
+                    <span className="step-icon">{s.icon}</span>
+                    <span className="step-label">{t(s.label)}</span>
+                    {stepHasData(s.id) && <span className="step-check" aria-hidden="true">✓</span>}
+                  </button>
+                );
+              })}
               <button 
                 className="step-btn step-add-btn" 
                 onClick={addCustomSection}
