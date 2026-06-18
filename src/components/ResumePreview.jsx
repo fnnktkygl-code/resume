@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
+import RecruiterTemplate from './RecruiterTemplate';
 import { parseMarkdown } from '../utils/formatText';
 
 function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove }) {
@@ -306,6 +307,10 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         <div className="resume-page" style={resumePageStyles}>
           {template === 'modern' ? (
             <ModernTemplate data={data} layout={layout} language={language} />
+          ) : template === 'recruiter' ? (
+            <div ref={contentRef}>
+              <RecruiterTemplate data={data} layout={layout} language={language} />
+            </div>
           ) : (
             <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
               {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}

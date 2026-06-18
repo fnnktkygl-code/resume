@@ -491,6 +491,12 @@ export default function App() {
                       >
                         Modern
                       </button>
+                      <button
+                        className={`template-btn ${template === 'recruiter' ? 'active' : ''}`}
+                        onClick={() => setTemplate('recruiter')}
+                      >
+                        Recruiter
+                      </button>
                     </div>
 
                     <div className="control-divider" aria-hidden="true" />
@@ -635,6 +641,11 @@ export default function App() {
                     onClick={() => setTemplate('modern')}
                     style={{ padding: '4px 8px', fontSize: '11px' }}
                   >Modern</button>
+                  <button
+                    className={`template-btn ${template === 'recruiter' ? 'active' : ''}`}
+                    onClick={() => setTemplate('recruiter')}
+                    style={{ padding: '4px 8px', fontSize: '11px' }}
+                  >Recruiter</button>
                 </div>
                 <div style={{ width: '1px', background: 'var(--color-border)', height: '16px' }} />
                 {/* Compact toggle */}

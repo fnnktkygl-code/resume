@@ -109,6 +109,11 @@ export default function ExperienceStep({ data, onChange, onAIAssist }) {
             </div>
             <button className="btn-add" style={{ marginTop: '10px' }} onClick={() => addBullet(ei)}>+ {t('Add bullet point')}</button>
           </div>
+          <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+            <Field label={t('Technologies & Tools (comma separated)')} full>
+              <TextInput value={exp.technologies || ''} onChange={(v) => updateExp(ei, 'technologies', v)} placeholder="React, Node.js, SQL, AWS" />
+            </Field>
+          </div>
         </div>
       ))}
       <button className="btn-add" onClick={addExp}>+ {t('Add another position')}</button>

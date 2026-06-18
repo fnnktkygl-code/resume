@@ -50,6 +50,7 @@ export function createEmptyExperience() {
     endYear: '',
     current: false,
     bullets: [''],
+    technologies: '',
   };
 }
 
@@ -61,6 +62,8 @@ export function createEmptyEducation() {
     field: '',
     startYear: '',
     endYear: '',
+    location: '',
+    technologies: '',
   };
 }
 

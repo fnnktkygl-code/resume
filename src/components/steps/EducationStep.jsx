@@ -41,6 +41,12 @@ export default function EducationStep({ data, onChange }) {
             <Field label={t('End Year')}>
               <Select value={edu.endYear} onChange={(v) => updateEdu(ei, 'endYear', v)} options={YEARS} placeholder={t('Year')} />
             </Field>
+            <Field label={t('Location')}>
+              <TextInput value={edu.location || ''} onChange={(v) => updateEdu(ei, 'location', v)} placeholder="Paris, France" />
+            </Field>
+            <Field label={t('Technologies & Topics (comma separated)')} full>
+              <TextInput value={edu.technologies || ''} onChange={(v) => updateEdu(ei, 'technologies', v)} placeholder="Machine Learning, Big Data, Statistics" />
+            </Field>
           </div>
         </div>
       ))}
