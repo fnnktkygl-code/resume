@@ -99,8 +99,10 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
   };
 
   // Drag & Drop handlers
-  const handleDragStart = useCallback((sectionId) => {
+  const handleDragStart = useCallback((e, sectionId) => {
     setDraggedSection(sectionId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sectionId);
   }, []);
 
   const handleDragOver = useCallback((e, sectionId) => {
@@ -110,11 +112,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     }
   }, [draggedSection]);
 
-  const handleDragEnd = useCallback(() => {
-    if (draggedSection && dragOverSection && draggedSection !== dragOverSection && onSectionReorder) {
+  const handleDrop = useCallback((e, sectionId) => {
+    e.preventDefault();
+    if (draggedSection && draggedSection !== sectionId && onSectionReorder) {
       const newOrder = [...sectionOrder];
       const fromIdx = newOrder.indexOf(draggedSection);
-      const toIdx = newOrder.indexOf(dragOverSection);
+      const toIdx = newOrder.indexOf(sectionId);
       if (fromIdx !== -1 && toIdx !== -1) {
         newOrder.splice(fromIdx, 1);
         newOrder.splice(toIdx, 0, draggedSection);
@@ -123,15 +126,21 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     }
     setDraggedSection(null);
     setDragOverSection(null);
-  }, [draggedSection, dragOverSection, sectionOrder, onSectionReorder]);
+  }, [draggedSection, sectionOrder, onSectionReorder]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedSection(null);
+    setDragOverSection(null);
+  }, []);
 
   // Section renderers
   const renderSection = (sectionId) => {
     const isDraggable = !printMode && onSectionReorder;
     const wrapProps = isDraggable ? {
       draggable: true,
-      onDragStart: () => handleDragStart(sectionId),
+      onDragStart: (e) => handleDragStart(e, sectionId),
       onDragOver: (e) => handleDragOver(e, sectionId),
+      onDrop: (e) => handleDrop(e, sectionId),
       onDragEnd: handleDragEnd,
       className: `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`,
       onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,

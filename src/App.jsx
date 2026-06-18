@@ -509,6 +509,7 @@ export default function App() {
     }
     setDraggedStepId(sectionId);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sectionId);
   };
 
   const handleStepperDragOver = (e, sectionId) => {
