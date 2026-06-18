@@ -197,17 +197,15 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       case 'summary':
         if (!data.summary) return null;
         return (
-          <div key="summary" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="summary" sectionId="summary">
             <div className="resume-section-header">{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
             <div>{parseMarkdown(data.summary)}</div>
-          </div>
+          </SectionWrapper>
         );
       case 'experience':
         if (!validExp.length) return null;
         return (
-          <div key="experience" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="experience" sectionId="experience">
             <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => (
@@ -235,13 +233,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 </div>
               ))}
             </div>
-          </div>
+          </SectionWrapper>
         );
       case 'education':
         if (!validEdu.length) return null;
         return (
-          <div key="education" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="education" sectionId="education">
             <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => (
@@ -258,13 +255,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 </div>
               ))}
             </div>
-          </div>
+          </SectionWrapper>
         );
       case 'skills':
         if (!hasSkills) return null;
         return (
-          <div key="skills" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="skills" sectionId="skills">
             <div className="resume-section-header">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/1.5)}px` }}>
               {data.skills.technical && (
@@ -292,13 +288,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 </div>
               )}
             </div>
-          </div>
+          </SectionWrapper>
         );
       case 'projects':
         if (!validProj.length) return null;
         return (
-          <div key="projects" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="projects" sectionId="projects">
             <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => (
@@ -315,13 +310,12 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 </div>
               ))}
             </div>
-          </div>
+          </SectionWrapper>
         );
       case 'certifications':
         if (!validCert.length) return null;
         return (
-          <div key="certifications" {...wrapProps}>
-            {isDraggable && <DragHandleWithActions />}
+          <SectionWrapper key="certifications" sectionId="certifications">
             <div className="resume-section-header">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
               {validCert.map((c, i) => (
@@ -331,17 +325,13 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                 </div>
               ))}
             </div>
-          </div>
+          </SectionWrapper>
         );
       default:
         if (sectionId.startsWith('spacer_')) {
           const spacerSec = data.customSections?.find(s => s.id === sectionId);
           if (!spacerSec) return null;
-          return (
-            <div key={sectionId} {...wrapProps} style={{ ...wrapProps.style, height: `${spacerSec.height}px` }}>
-              {isDraggable && <DragHandleWithActions />}
-            </div>
-          );
+          return <SectionWrapper key={sectionId} sectionId={sectionId} style={{ height: `${spacerSec.height}px` }} />;
         }
         if (sectionId.startsWith('custom_')) {
           const customSec = data.customSections?.find(s => s.id === sectionId);
@@ -350,8 +340,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           if (!validItems.length) return null;
 
           return (
-            <div key={sectionId} {...wrapProps}>
-              {isDraggable && <DragHandleWithActions />}
+            <SectionWrapper key={sectionId} sectionId={sectionId}>
               <div className="resume-section-header">{customSec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
                 {validItems.map((item, i) => (
@@ -367,7 +356,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
                   </div>
                 ))}
               </div>
-            </div>
+            </SectionWrapper>
           );
         }
         return null;
