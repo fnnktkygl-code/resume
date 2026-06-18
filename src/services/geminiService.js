@@ -50,7 +50,11 @@ Rules:
 2. Rewrite bullet points using strong action verbs relevant to the job requirements.
 3. Do NOT invent new facts, degrees, or jobs that are not in the original resume.
 4. Maintain a highly professional tone.
-5. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
+5. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.
+6. STRICT PAGE BUDGET & OVERFLOW PREVENTION: The tailored content must fit cleanly on either exactly 1 page or exactly 2 pages. Avoid creating length that overflows by just a few lines onto a new page (e.g. 1.1 pages or 2.1 pages).
+   - If the input resume is short, keep bullet points short and limit them to 2-3 per experience to guarantee it fits on exactly 1 page.
+   - If the input resume is longer, keep bullet points short and limit them to 3-4 per experience to guarantee it fits on exactly 2 pages, and never overflows to page 3.
+   - Every bullet point must be concise, direct, and under 2 lines.`;
 
   const promptText = `
 ### JOB DESCRIPTION
