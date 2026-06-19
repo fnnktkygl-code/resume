@@ -1,20 +1,70 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import Modal from './Modal';
 import { boldifyResumeWithProxy } from '../../services/geminiService';
 import VisualDiff from './VisualDiff';
+
+function mergeSelected(original, modified, selectedIds) {
+  const merged = structuredClone(original);
+
+  if (selectedIds.has('summary') && modified.summary !== original.summary) {
+    merged.summary = modified.summary;
+  }
+  if (selectedIds.has('skills.technical') && modified.skills?.technical !== original.skills?.technical) {
+    merged.skills = merged.skills || {};
+    merged.skills.technical = modified.skills.technical;
+  }
+  if (selectedIds.has('skills.soft') && modified.skills?.soft !== original.skills?.soft) {
+    merged.skills = merged.skills || {};
+    merged.skills.soft = modified.skills.soft;
+  }
+
+  original.experience?.forEach((exp, idx) => {
+    const modExp = modified.experience?.[idx];
+    if (!modExp || !merged.experience?.[idx]) return;
+
+    if (selectedIds.has(`exp.${idx}.title`) && modExp.title !== exp.title) {
+      merged.experience[idx].title = modExp.title;
+    }
+    exp.bullets?.forEach((bullet, bIdx) => {
+      if (selectedIds.has(`exp.${idx}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
+        merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
+      }
+    });
+  });
+
+  original.projects?.forEach((proj, idx) => {
+    const modProj = modified.projects?.[idx];
+    if (!modProj || !merged.projects?.[idx]) return;
+
+    if (selectedIds.has(`proj.${idx}.desc`) && modProj.description !== proj.description) {
+      merged.projects[idx].description = modProj.description;
+    }
+    proj.highlights?.forEach((h, bIdx) => {
+      if (selectedIds.has(`proj.${idx}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
+        merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
+      }
+    });
+  });
+
+  if (modified.headings) merged.headings = modified.headings;
+
+  return merged;
+}
 
 export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess }) {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [boldedResult, setBoldedResult] = useState(null);
+  const selectedRef = useRef(new Set());
 
   useEffect(() => {
     if (!isOpen) {
       setError('');
       setBoldedResult(null);
       setIsLoading(false);
+      selectedRef.current = new Set();
     }
   }, [isOpen]);
 
@@ -32,9 +82,14 @@ export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess
     }
   };
 
+  const handleSelectionChange = useCallback((ids) => {
+    selectedRef.current = ids;
+  }, []);
+
   const handleApply = () => {
     if (boldedResult) {
-      onBoldifySuccess(boldedResult);
+      const merged = mergeSelected(data, boldedResult, selectedRef.current);
+      onBoldifySuccess(merged);
       onClose();
     }
   };
@@ -57,7 +112,7 @@ export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess
               className="btn-primary" 
               onClick={handleApply}
             >
-              {t('Apply Changes')}
+              {t('Apply Selected Changes')}
             </button>
           </>
         ) : (
@@ -92,9 +147,9 @@ export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess
         ) : boldedResult ? (
           <div className="animate-fade-in">
             <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              {t('Please review the edits proposed by the AI before applying:')}
+              {t('Select the changes you want to apply:')}
             </p>
-            <VisualDiff original={data} modified={boldedResult} />
+            <VisualDiff original={data} modified={boldedResult} onSelectionChange={handleSelectionChange} />
           </div>
         ) : (
           <>

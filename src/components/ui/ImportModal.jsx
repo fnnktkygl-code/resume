@@ -1,6 +1,126 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { importResumeWithProxy } from '../../services/geminiService';
+import { importResumeWithProxy, enhanceResumeWithProxy } from '../../services/geminiService';
 import { useTranslation } from '../../utils/TranslationContext';
+
+// Lightweight inline VisualDiff for the import modal
+function ImportDiff({ original, modified, selectedChanges, onToggleChange }) {
+  const { t } = useTranslation();
+  const diffItems = [];
+
+  // Summary
+  if (original.summary !== modified.summary && modified.summary) {
+    diffItems.push({ id: 'summary', section: t('Professional Summary'), type: 'text', original: original.summary, modified: modified.summary });
+  }
+
+  // Skills
+  if (original.skills?.technical !== modified.skills?.technical) {
+    diffItems.push({ id: 'skills.technical', section: t('Technical Skills'), type: 'text', original: original.skills?.technical, modified: modified.skills?.technical });
+  }
+  if (original.skills?.soft !== modified.skills?.soft) {
+    diffItems.push({ id: 'skills.soft', section: t('Soft Skills'), type: 'text', original: original.skills?.soft, modified: modified.skills?.soft });
+  }
+
+  // Experience bullets
+  original.experience?.forEach((exp, idx) => {
+    const modExp = modified.experience?.[idx];
+    if (!modExp) return;
+    exp.bullets?.forEach((bullet, bIdx) => {
+      const modBullet = modExp.bullets?.[bIdx];
+      if (bullet !== modBullet && modBullet) {
+        diffItems.push({
+          id: `exp.${idx}.bullet.${bIdx}`,
+          section: `${exp.company || ''} — ${exp.title || ''}`,
+          type: 'bullet',
+          original: bullet,
+          modified: modBullet
+        });
+      }
+    });
+    // New bullets added by AI
+    if (modExp.bullets?.length > (exp.bullets?.length || 0)) {
+      for (let i = exp.bullets?.length || 0; i < modExp.bullets.length; i++) {
+        diffItems.push({
+          id: `exp.${idx}.bullet.${i}`,
+          section: `${exp.company || ''} — ${exp.title || ''}`,
+          type: 'added',
+          original: null,
+          modified: modExp.bullets[i]
+        });
+      }
+    }
+  });
+
+  if (diffItems.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-secondary)' }}>
+        ✅ {t('No major changes detected.')}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+      {diffItems.map((item) => {
+        const isSelected = selectedChanges[item.id] !== false; // default to selected
+        return (
+          <label
+            key={item.id}
+            style={{
+              display: 'flex',
+              gap: '10px',
+              alignItems: 'flex-start',
+              padding: '10px',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: isSelected ? 'var(--color-surface)' : 'var(--color-surface-alt)',
+              cursor: 'pointer',
+              opacity: isSelected ? 1 : 0.6,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => onToggleChange(item.id)}
+              style={{ marginTop: '3px', accentColor: 'var(--color-accent)' }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: '6px' }}>
+                {item.section}
+              </div>
+              {item.original && (
+                <div style={{
+                  padding: '6px 10px',
+                  backgroundColor: 'var(--color-danger-light)',
+                  borderLeft: '3px solid var(--color-danger)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  textDecoration: 'line-through',
+                  marginBottom: '4px',
+                  wordBreak: 'break-word'
+                }}>
+                  {item.original || `(${t('Empty')})`}
+                </div>
+              )}
+              <div style={{
+                padding: '6px 10px',
+                backgroundColor: 'var(--color-success-light)',
+                borderLeft: '3px solid var(--color-success)',
+                borderRadius: '4px',
+                fontSize: '12px',
+                color: 'var(--color-text)',
+                wordBreak: 'break-word'
+              }}>
+                {item.type === 'added' ? `+ ${item.modified}` : item.modified}
+              </div>
+            </div>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   const [dragActive, setDragActive] = useState(false);
@@ -9,9 +129,12 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   
-  // Summary post-import verification states
+  // Step management: 'upload' -> 'summary' -> 'enhance' -> 'review'
+  const [step, setStep] = useState('upload');
   const [extractedSummary, setExtractedSummary] = useState(null);
-  const [importedData, setImportedData] = useState(null);
+  const [parsedData, setParsedData] = useState(null);
+  const [enhancedData, setEnhancedData] = useState(null);
+  const [selectedChanges, setSelectedChanges] = useState({});
   
   const fileInputRef = useRef(null);
   const { t } = useTranslation();
@@ -23,8 +146,11 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
       setRawText('');
       setIsProcessing(false);
       setError(null);
+      setStep('upload');
       setExtractedSummary(null);
-      setImportedData(null);
+      setParsedData(null);
+      setEnhancedData(null);
+      setSelectedChanges({});
     }
   }, [isOpen]);
 
@@ -47,18 +173,18 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     setError(null);
     
     try {
-      const parsedData = await importResumeWithProxy(payload);
-      if (parsedData) {
-        // Compute summary counts for the user
+      const result = await importResumeWithProxy(payload);
+      if (result) {
         const summary = {
-          name: parsedData.personal?.name || '',
-          email: parsedData.personal?.email || '',
-          experienceCount: parsedData.experience?.length || 0,
-          educationCount: parsedData.education?.length || 0,
-          skillsCount: parsedData.skills?.technical ? parsedData.skills.technical.split(',').filter(s => s.trim()).length : 0,
+          name: result.personal?.name || '',
+          email: result.personal?.email || '',
+          experienceCount: result.experience?.length || 0,
+          educationCount: result.education?.length || 0,
+          skillsCount: result.skills?.technical ? result.skills.technical.split(',').filter(s => s.trim()).length : 0,
         };
         setExtractedSummary(summary);
-        setImportedData(parsedData);
+        setParsedData(result);
+        setStep('summary');
       } else {
         throw new Error(t('Failed to parse resume data.'));
       }
@@ -74,13 +200,92 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     }
   };
 
+  const handleEnhance = async () => {
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const result = await enhanceResumeWithProxy(parsedData);
+      if (result) {
+        setEnhancedData(result);
+        setSelectedChanges({}); // all selected by default
+        setStep('review');
+      } else {
+        throw new Error(t('Failed to enhance resume.'));
+      }
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'QUOTA_EXCEEDED') {
+        setError(t('API Quota Exceeded. Please try again later.'));
+      } else {
+        setError(err.message || t('Error enhancing resume.'));
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleToggleChange = (changeId) => {
+    setSelectedChanges(prev => ({
+      ...prev,
+      [changeId]: prev[changeId] === false ? true : false
+    }));
+  };
+
+  const applySelectedChanges = () => {
+    if (!enhancedData || !parsedData) return parsedData;
+
+    // Start from parsed (original) and selectively merge enhanced changes
+    const merged = structuredClone(parsedData);
+
+    // Summary
+    if (selectedChanges['summary'] !== false && enhancedData.summary !== parsedData.summary) {
+      merged.summary = enhancedData.summary;
+    }
+
+    // Skills
+    if (selectedChanges['skills.technical'] !== false && enhancedData.skills?.technical !== parsedData.skills?.technical) {
+      merged.skills = merged.skills || {};
+      merged.skills.technical = enhancedData.skills.technical;
+    }
+    if (selectedChanges['skills.soft'] !== false && enhancedData.skills?.soft !== parsedData.skills?.soft) {
+      merged.skills = merged.skills || {};
+      merged.skills.soft = enhancedData.skills.soft;
+    }
+
+    // Experience bullets
+    parsedData.experience?.forEach((exp, idx) => {
+      const modExp = enhancedData.experience?.[idx];
+      if (!modExp || !merged.experience?.[idx]) return;
+
+      exp.bullets?.forEach((bullet, bIdx) => {
+        const changeId = `exp.${idx}.bullet.${bIdx}`;
+        if (selectedChanges[changeId] !== false && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
+          merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
+        }
+      });
+
+      // New bullets added by AI
+      if (modExp.bullets?.length > (exp.bullets?.length || 0)) {
+        for (let i = exp.bullets?.length || 0; i < modExp.bullets.length; i++) {
+          const changeId = `exp.${idx}.bullet.${i}`;
+          if (selectedChanges[changeId] !== false) {
+            if (!merged.experience[idx].bullets) merged.experience[idx].bullets = [];
+            merged.experience[idx].bullets.push(modExp.bullets[i]);
+          }
+        }
+      }
+    });
+
+    return merged;
+  };
+
   const handleFile = async (file) => {
     if (file.type !== 'application/pdf') {
       setError(t('Please upload a valid PDF file.'));
       return;
     }
     
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError(t('File is too large. Please upload a PDF under 5MB.'));
       return;
@@ -134,7 +339,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '540px' }}>
         <button className="modal-close" onClick={onClose} disabled={isProcessing}>
           <i className="fi fi-rr-cross"></i>
         </button>
@@ -146,10 +351,61 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
         {isProcessing ? (
           <div className="modal-loading" style={{ margin: '40px 0', textAlign: 'center' }}>
             <div className="spinner"></div>
-            <p style={{ marginTop: '15px', color: 'var(--color-text-secondary)' }}>{t('AI is reading your resume...')}</p>
+            <p style={{ marginTop: '15px', color: 'var(--color-text-secondary)' }}>
+              {step === 'upload' || step === 'summary' ? t('AI is reading your resume...') : t('AI is enhancing your resume...')}
+            </p>
           </div>
-        ) : extractedSummary ? (
-          /* Post-Import Summary & Verification UI */
+
+        ) : step === 'review' && enhancedData ? (
+          /* Step 3: Review AI enhancements with granular checkboxes */
+          <div style={{ textAlign: 'left', marginTop: '10px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(var(--success-rgb, 16, 185, 129), 0.08)',
+              border: '1px solid rgba(var(--success-rgb, 16, 185, 129), 0.2)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: '14px',
+              fontSize: '13px',
+              color: 'var(--color-text)',
+              lineHeight: '1.4'
+            }}>
+              ✨ {t('The AI has proposed improvements below. Uncheck any changes you want to reject:')}
+            </div>
+            
+            <ImportDiff 
+              original={parsedData} 
+              modified={enhancedData} 
+              selectedChanges={selectedChanges}
+              onToggleChange={handleToggleChange}
+            />
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <button 
+                className="btn-secondary" 
+                style={{ flex: 1, justifyContent: 'center' }} 
+                onClick={() => {
+                  setStep('summary');
+                  setEnhancedData(null);
+                }}
+              >
+                ← {t('Back')}
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 2, justifyContent: 'center' }}
+                onClick={() => {
+                  const finalData = applySelectedChanges();
+                  onImportSuccess(finalData);
+                  onClose();
+                }}
+              >
+                ✅ {t('Apply & Import')}
+              </button>
+            </div>
+          </div>
+
+        ) : step === 'summary' && extractedSummary ? (
+          /* Step 2: Post-Import Summary & choice to enhance or confirm */
           <div className="import-summary-view" style={{ textAlign: 'left', marginTop: '10px' }}>
             <p style={{ marginBottom: '16px', color: 'var(--color-text-secondary)', fontSize: '13px', lineHeight: '1.4' }}>
               {t('Here is a summary of the information parsed from your CV by the AI:')}
@@ -187,31 +443,40 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button 
-                className="btn-secondary" 
-                style={{ flex: 1, justifyContent: 'center' }} 
-                onClick={() => {
-                  setExtractedSummary(null);
-                  setImportedData(null);
-                }}
-              >
-                {t('Restart')}
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button 
                 className="btn-primary" 
-                style={{ flex: 2, justifyContent: 'center' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '12px', gap: '8px' }}
+                onClick={handleEnhance}
+              >
+                ✨ {t('Enhance with AI')}
+                <span style={{ fontSize: '11px', opacity: 0.8, fontWeight: '400' }}>({t('recommended')})</span>
+              </button>
+              <button 
+                className="btn-secondary" 
+                style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
                 onClick={() => {
-                  onImportSuccess(importedData);
+                  onImportSuccess(parsedData);
                   onClose();
                 }}
               >
-                {t('Verify & Confirm')}
+                {t('Import as-is')}
+              </button>
+              <button 
+                className="btn-secondary" 
+                style={{ width: '100%', justifyContent: 'center', padding: '10px', opacity: 0.7 }}
+                onClick={() => {
+                  setStep('upload');
+                  setExtractedSummary(null);
+                  setParsedData(null);
+                }}
+              >
+                ↩ {t('Restart')}
               </button>
             </div>
           </div>
         ) : (
-          /* Initial Upload / Paste UI */
+          /* Step 1: Initial Upload / Paste UI */
           <div className="import-methods">
             <p className="modal-description" style={{ marginBottom: '16px' }}>
               {t('Upload your existing CV or paste its content. Our AI will automatically extract your information and format it to perfection.')}

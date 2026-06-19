@@ -20,7 +20,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { text, base64Data, mimeType } = req.body;
+  const { text, base64Data, mimeType, mode } = req.body;
+  const enhanceMode = mode || 'parse_only';
 
   if (!text && !base64Data) {
     res.status(400).json({ error: 'Text or file content is required' });
@@ -36,7 +37,75 @@ export default async function handler(req, res) {
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
-    const systemPrompt = `You are an expert HR Assistant and CV Enhancer.
+    let systemPrompt;
+
+    if (enhanceMode === 'parse_only') {
+      systemPrompt = `You are an expert CV Parser.
+Your job is to read the raw text or provided document of a user's resume and extract ALL information into a strict JSON format.
+IMPORTANT: You are ONLY a parser. Extract the data EXACTLY as written. Do NOT rewrite, enhance, improve, or modify any text.
+
+CRITICAL RULES:
+1. EXTRACT FAITHFULLY: Copy all text exactly as it appears. Do NOT improve bullet points, rewrite descriptions, or add action verbs.
+2. DETECT LANGUAGE: Detect the language of the resume and add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
+3. SKILLS: Extract skills exactly as written. Do NOT infer or add skills that are not explicitly listed.
+4. TAGLINE: Only extract a tagline if it is explicitly written in the resume. Otherwise leave it as "".
+5. BULLET POINTS: Remove leading bullet characters ('>', '-', '•') but keep the text identical.
+6. MISSING INFO: If information is missing, use "" or [].
+7. JSON ONLY: Return ONLY valid JSON.
+8. DATES: Use 3-letter abbreviations for months (Jan, Feb, Mar). Set 'current': true for ongoing positions.
+
+Required JSON Structure:
+{
+  "detectedLanguage": "fr or en or es",
+  "personal": { "name": "", "tagline": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": "" },
+  "summary": "",
+  "experience": [
+    {
+      "company": "",
+      "title": "",
+      "startMonth": "",
+      "startYear": "",
+      "endMonth": "",
+      "endYear": "",
+      "current": false,
+      "bullets": ["exact bullet text as written"],
+      "technologies": ""
+    }
+  ],
+  "education": [
+    {
+      "institution": "",
+      "degree": "",
+      "field": "",
+      "startYear": "",
+      "endYear": "",
+      "location": "",
+      "technologies": ""
+    }
+  ],
+  "skills": { "technical": "", "soft": "", "languages": "" },
+  "projects": [
+    {
+      "name": "",
+      "description": "",
+      "techStack": "",
+      "link": "",
+      "highlights": ["exact highlight text"]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "",
+      "issuer": "",
+      "date": "",
+      "credentialUrl": ""
+    }
+  ]
+}
+
+Parse the provided resume FAITHFULLY without any modifications, returning ONLY the JSON object.`;
+    } else {
+      systemPrompt = `You are an expert HR Assistant and CV Enhancer.
 Your job is to read the raw text or the provided document of a user's resume and extract all information into a very specific strict JSON format. 
 IMPORTANT: You are not just a parser, you are an ENHANCER.
 
@@ -110,6 +179,7 @@ Required JSON Structure:
 }
 
 Parse and strategically enhance the provided resume IN ITS ORIGINAL LANGUAGE, returning ONLY the JSON object.`;
+    }
 
     let parts = [{ text: systemPrompt }];
     if (base64Data && mimeType) {

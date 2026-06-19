@@ -431,7 +431,23 @@ export const TRANSLATIONS = {
     'Choose Template': 'Choose Template',
     'Add languages': 'Add languages',
     'Add strengths': 'Add strengths',
-    'Add hobbies': 'Add hobbies'
+    'Add hobbies': 'Add hobbies',
+    'Select the changes you want to apply:': 'Select the changes you want to apply:',
+    'Apply Selected Changes': 'Apply Selected Changes',
+    'Enhance with AI': 'Enhance with AI',
+    'Import as-is': 'Import as-is',
+    'Apply & Import': 'Apply & Import',
+    'changes selected': 'changes selected',
+    'Select all': 'Select all',
+    'Deselect all': 'Deselect all',
+    'AI is enhancing your resume...': 'AI is enhancing your resume...',
+    'The AI has proposed improvements below. Uncheck any changes you want to reject:': 'The AI has proposed improvements below. Uncheck any changes you want to reject:',
+    'recommended': 'recommended',
+    'Retry': 'Retry',
+    'Choose the target language and click Translate. The AI will translate all text content in your resume while preserving the structure and formatting.': 'Choose the target language and click Translate. The AI will translate all text content in your resume while preserving the structure and formatting.',
+    'Please provide some text.': 'Please provide some text.',
+    'Error enhancing resume.': 'Error enhancing resume.',
+    'Failed to enhance resume.': 'Failed to enhance resume.'
   },
   fr: {
     // Shared / Formatting
@@ -862,7 +878,23 @@ export const TRANSLATIONS = {
     'Choose Template': 'Choisir le modèle',
     'Add languages': 'Ajouter des langues',
     'Add strengths': 'Ajouter des atouts',
-    'Add hobbies': 'Ajouter des loisirs'
+    'Add hobbies': 'Ajouter des loisirs',
+    'Select the changes you want to apply:': 'Sélectionnez les modifications à appliquer :',
+    'Apply Selected Changes': 'Appliquer les modifications sélectionnées',
+    'Enhance with AI': 'Améliorer avec l\'IA',
+    'Import as-is': 'Importer tel quel',
+    'Apply & Import': 'Appliquer et importer',
+    'changes selected': 'modifications sélectionnées',
+    'Select all': 'Tout sélectionner',
+    'Deselect all': 'Tout désélectionner',
+    'AI is enhancing your resume...': 'L\'IA améliore votre CV...',
+    'The AI has proposed improvements below. Uncheck any changes you want to reject:': 'L\'IA a proposé des améliorations ci-dessous. Décochez celles que vous ne souhaitez pas appliquer :',
+    'recommended': 'recommandé',
+    'Retry': 'Réessayer',
+    'Choose the target language and click Translate. The AI will translate all text content in your resume while preserving the structure and formatting.': 'Choisissez la langue cible et cliquez sur Traduire. L\'IA traduira tout le contenu textuel de votre CV en préservant la structure et la mise en forme.',
+    'Please provide some text.': 'Veuillez fournir du texte.',
+    'Error enhancing resume.': 'Erreur lors de l\'amélioration du CV.',
+    'Failed to enhance resume.': 'Échec de l\'amélioration du CV.'
   },
   es: {
     // Shared / Formatting
@@ -1293,7 +1325,23 @@ export const TRANSLATIONS = {
     'Choose Template': 'Elegir plantilla',
     'Add languages': 'Añadir idiomas',
     'Add strengths': 'Añadir fortalezas',
-    'Add hobbies': 'Añadir aficiones'
+    'Add hobbies': 'Añadir aficiones',
+    'Select the changes you want to apply:': 'Selecciona los cambios que deseas aplicar:',
+    'Apply Selected Changes': 'Aplicar cambios seleccionados',
+    'Enhance with AI': 'Mejorar con IA',
+    'Import as-is': 'Importar tal cual',
+    'Apply & Import': 'Aplicar e importar',
+    'changes selected': 'cambios seleccionados',
+    'Select all': 'Seleccionar todo',
+    'Deselect all': 'Deseleccionar todo',
+    'AI is enhancing your resume...': 'La IA está mejorando tu currículum...',
+    'The AI has proposed improvements below. Uncheck any changes you want to reject:': 'La IA ha propuesto mejoras a continuación. Desmarca los cambios que no desees aplicar:',
+    'recommended': 'recomendado',
+    'Retry': 'Reintentar',
+    'Choose the target language and click Translate. The AI will translate all text content in your resume while preserving the structure and formatting.': 'Elige el idioma de destino y haz clic en Traducir. La IA traducirá todo el contenido de texto de tu currículum preservando la estructura y el formato.',
+    'Please provide some text.': 'Por favor, proporciona algo de texto.',
+    'Error enhancing resume.': 'Error al mejorar el currículum.',
+    'Failed to enhance resume.': 'No se pudo mejorar el currículum.'
   },
 };
 

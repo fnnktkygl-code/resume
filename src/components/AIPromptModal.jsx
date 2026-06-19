@@ -1,34 +1,103 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../utils/TranslationContext';
 import Modal from './ui/Modal';
 import { translateWithProxy } from '../services/geminiService';
 import VisualDiff from './ui/VisualDiff';
 
+function mergeSelected(original, modified, selectedIds) {
+  const merged = structuredClone(original);
+
+  if (selectedIds.has('summary') && modified.summary !== original.summary) {
+    merged.summary = modified.summary;
+  }
+  if (selectedIds.has('skills.technical') && modified.skills?.technical !== original.skills?.technical) {
+    merged.skills = merged.skills || {};
+    merged.skills.technical = modified.skills.technical;
+  }
+  if (selectedIds.has('skills.soft') && modified.skills?.soft !== original.skills?.soft) {
+    merged.skills = merged.skills || {};
+    merged.skills.soft = modified.skills.soft;
+  }
+
+  original.experience?.forEach((exp, idx) => {
+    const modExp = modified.experience?.[idx];
+    if (!modExp || !merged.experience?.[idx]) return;
+
+    if (selectedIds.has(`exp.${idx}.title`) && modExp.title !== exp.title) {
+      merged.experience[idx].title = modExp.title;
+    }
+    exp.bullets?.forEach((bullet, bIdx) => {
+      if (selectedIds.has(`exp.${idx}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
+        merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
+      }
+    });
+  });
+
+  original.projects?.forEach((proj, idx) => {
+    const modProj = modified.projects?.[idx];
+    if (!modProj || !merged.projects?.[idx]) return;
+
+    if (selectedIds.has(`proj.${idx}.desc`) && modProj.description !== proj.description) {
+      merged.projects[idx].description = modProj.description;
+    }
+    proj.highlights?.forEach((h, bIdx) => {
+      if (selectedIds.has(`proj.${idx}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
+        merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
+      }
+    });
+  });
+
+  if (modified.headings) merged.headings = modified.headings;
+
+  return merged;
+}
+
 export default function AIPromptModal({ isOpen, onClose, data, language, onTranslationSuccess }) {
   const { t } = useTranslation();
-  const [isGenerating, setIsGenerating] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [translatedData, setTranslatedData] = useState(null);
+  const [targetLang, setTargetLang] = useState('');
+  const selectedRef = useRef(new Set());
+
+  const languageOptions = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'es', label: 'Español' }
+  ];
 
   useEffect(() => {
-    if (isOpen && data) {
-      setIsGenerating(true);
+    if (isOpen) {
+      // Default target language = the "other" language
+      setTargetLang(language === 'fr' ? 'en' : language === 'es' ? 'en' : 'fr');
+      setTranslatedData(null);
       setError('');
-      translateWithProxy(data, language)
-        .then(result => {
-          setTranslatedData(result);
-          setIsGenerating(false);
-        })
-        .catch(err => {
-          setError(err.message || t('An error occurred during translation.'));
-          setIsGenerating(false);
-        });
+      setIsGenerating(false);
+      selectedRef.current = new Set();
     }
-  }, [isOpen, data, language, t]);
+  }, [isOpen, language]);
+
+  const handleTranslate = async () => {
+    setIsGenerating(true);
+    setError('');
+    try {
+      const result = await translateWithProxy(data, targetLang);
+      setTranslatedData(result);
+    } catch (err) {
+      setError(err.message || t('An error occurred during translation.'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSelectionChange = useCallback((ids) => {
+    selectedRef.current = ids;
+  }, []);
 
   const handleApply = () => {
-    if (onTranslationSuccess && translatedData) {
-      onTranslationSuccess(translatedData);
+    if (translatedData) {
+      const merged = mergeSelected(data, translatedData, selectedRef.current);
+      onTranslationSuccess(merged);
     }
     onClose();
   };
@@ -39,12 +108,23 @@ export default function AIPromptModal({ isOpen, onClose, data, language, onTrans
       onClose={onClose}
       title={`✨ ${t('AI Translation Assistant')}`}
       actions={
-        <>
-          <button className="btn-secondary" onClick={onClose} disabled={isGenerating}>{t('Cancel')}</button>
-          <button className="btn-primary" onClick={handleApply} disabled={isGenerating || !translatedData}>
-            {t('Apply Translation')}
-          </button>
-        </>
+        translatedData ? (
+          <>
+            <button className="btn-secondary" onClick={() => setTranslatedData(null)}>
+              {t('Cancel')}
+            </button>
+            <button className="btn-primary" onClick={handleApply}>
+              {t('Apply Selected Changes')}
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="btn-secondary" onClick={onClose} disabled={isGenerating}>{t('Cancel')}</button>
+            <button className="btn-primary" onClick={handleTranslate} disabled={isGenerating}>
+              {isGenerating ? t('Translating...') : t('Translate')}
+            </button>
+          </>
+        )
       }
     >
       {isGenerating ? (
@@ -58,8 +138,11 @@ export default function AIPromptModal({ isOpen, onClose, data, language, onTrans
       ) : error ? (
         <div style={{ color: 'var(--color-danger)', padding: '20px 0', textAlign: 'center' }}>
           <p>{error}</p>
+          <button className="btn-secondary" onClick={handleTranslate} style={{ marginTop: '8px' }}>
+            {t('Retry')}
+          </button>
         </div>
-      ) : (
+      ) : translatedData ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ 
             padding: '16px', 
@@ -75,10 +158,49 @@ export default function AIPromptModal({ isOpen, onClose, data, language, onTrans
               {t('Translation Complete')}
             </h4>
             <p style={{ fontSize: '0.85rem', margin: 0, lineHeight: '1.4' }}>
-              {t('AI has successfully translated your resume. Please verify the differences below before applying:')}
+              {t('Select the changes you want to apply:')}
             </p>
           </div>
-          <VisualDiff original={data} modified={translatedData} />
+          <VisualDiff original={data} modified={translatedData} onSelectionChange={handleSelectionChange} />
+        </div>
+      ) : (
+        /* Language selector - no auto-launch */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0' }}>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
+            {t('Choose the target language and click Translate. The AI will translate all text content in your resume while preserving the structure and formatting.')}
+          </p>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: 'var(--color-surface-alt)',
+            padding: '16px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)'
+          }}>
+            <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
+              🌎 {t('Target Language')} :
+            </label>
+            <select
+              value={targetLang}
+              onChange={(e) => setTargetLang(e.target.value)}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                fontSize: '13px',
+                fontWeight: '550',
+                outline: 'none'
+              }}
+            >
+              {languageOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
     </Modal>

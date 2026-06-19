@@ -214,7 +214,7 @@ export const importResumeWithProxy = async ({ text, base64Data, mimeType }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text, base64Data, mimeType }),
+      body: JSON.stringify({ text, base64Data, mimeType, mode: 'parse_only' }),
     });
 
     let data;
@@ -240,6 +240,42 @@ export const importResumeWithProxy = async ({ text, base64Data, mimeType }) => {
     return data.parsedResume;
   } catch (error) {
     console.error("Proxy Import Error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Enhances a previously parsed resume JSON using AI.
+ * Calls the same parse endpoint but with mode: 'parse_and_enhance'.
+ */
+export const enhanceResumeWithProxy = async (resumeData) => {
+  try {
+    const response = await fetch('/api/parse', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: JSON.stringify(resumeData), mode: 'parse_and_enhance' }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 429 || (data && data.error === 'QUOTA_EXCEEDED')) {
+        const err = new Error('QUOTA_EXCEEDED');
+        err.code = 'QUOTA_EXCEEDED';
+        throw err;
+      }
+      throw new Error((data && (data.message || data.error)) || 'Failed to enhance resume.');
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('refresh-quota'));
+    }
+
+    return data.parsedResume;
+  } catch (error) {
+    console.error("Proxy Enhance Error:", error);
     throw error;
   }
 };
