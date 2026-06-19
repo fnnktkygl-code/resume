@@ -98,7 +98,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
                   ) : (
                     <div>
                       <span 
-                        onClick={() => { if (!isActive) onLoadCv(cv.id); }}
+                        onClick={() => { if (!isActive) { onLoadCv(cv.id); } else { onClose(); } }}
                         style={{ 
                           fontWeight: isActive ? '700' : '500', 
                           fontSize: '14px', 

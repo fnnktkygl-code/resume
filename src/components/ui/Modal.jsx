@@ -54,10 +54,61 @@ export default function Modal({ isOpen, onClose, title, children, actions, ariaL
 
   if (!isOpen) return null;
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget && onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby={ariaLabelledby}>
-      <div className="modal-content" ref={modalRef} tabIndex={-1}>
-        {title && <h2 id={ariaLabelledby}>{title}</h2>}
+    <div 
+      className="modal-overlay" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby={ariaLabelledby}
+      onClick={handleOverlayClick}
+    >
+      <div 
+        className="modal-content" 
+        ref={modalRef} 
+        tabIndex={-1}
+        style={{ position: 'relative' }}
+      >
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'transparent',
+              border: 'none',
+              fontSize: '22px',
+              color: 'var(--color-text-secondary)',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.15s ease, color 0.15s ease'
+            }}
+            aria-label="Close"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)';
+              e.currentTarget.style.color = 'var(--color-text)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+          >
+            ×
+          </button>
+        )}
+        {title && <h2 id={ariaLabelledby} style={{ paddingRight: onClose ? '24px' : '0' }}>{title}</h2>}
         {children}
         {actions && <div className="modal-actions">{actions}</div>}
       </div>
