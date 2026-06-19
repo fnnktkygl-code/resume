@@ -54,7 +54,10 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
     setError(null);
 
     try {
-      const combinedPrompt = `${jobDescription}\n\nCompany Name: ${companyName}\nTarget Role: ${targetRole}\nTone: ${tone}\nLength Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
+      let combinedPrompt = `${jobDescription}\n\n`;
+      if (companyName) combinedPrompt += `Company Name: ${companyName}\n`;
+      if (targetRole) combinedPrompt += `Target Role: ${targetRole}\n`;
+      combinedPrompt += `Tone: ${tone}\nLength Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
       if (window.innerWidth <= 768 && previewRef.current) {
@@ -133,30 +136,31 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
             <p>{t('Details to tailor your cover letter.')}</p>
           </div>
 
-          <div className="cl-form-group">
-            <label className="cl-label">
-              <i className="fi fi-rr-building"></i> {t('Company Name')}
-            </label>
-            <input 
-              type="text" 
-              className="resume-input cl-input" 
-              placeholder={t('e.g. Google')}
-              value={companyName}
-              onChange={e => setCompanyName(e.target.value)}
-            />
-          </div>
-
-          <div className="cl-form-group">
-            <label className="cl-label">
-              <i className="fi fi-rr-briefcase"></i> {t('Target Role')}
-            </label>
-            <input 
-              type="text" 
-              className="resume-input cl-input" 
-              placeholder={t('e.g. Frontend Engineer')}
-              value={targetRole}
-              onChange={e => setTargetRole(e.target.value)}
-            />
+          <div className="cl-form-group" style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="cl-label">
+                <i className="fi fi-rr-building"></i> {t('Company')} <span style={{ fontSize: '0.8em', color: 'var(--color-text-tertiary)', fontWeight: 'normal' }}>({t('Optional')})</span>
+              </label>
+              <input 
+                type="text" 
+                className="resume-input cl-input" 
+                placeholder={t('e.g. Google')}
+                value={companyName}
+                onChange={e => setCompanyName(e.target.value)}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="cl-label">
+                <i className="fi fi-rr-briefcase"></i> {t('Role')} <span style={{ fontSize: '0.8em', color: 'var(--color-text-tertiary)', fontWeight: 'normal' }}>({t('Optional')})</span>
+              </label>
+              <input 
+                type="text" 
+                className="resume-input cl-input" 
+                placeholder={t('e.g. Frontend')}
+                value={targetRole}
+                onChange={e => setTargetRole(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="cl-form-group">
@@ -178,9 +182,17 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
                 <i className="fi fi-rr-microphone"></i> {t('Tone')}
               </label>
               <select className="resume-input cl-input" value={tone} onChange={e => setTone(e.target.value)} style={{ padding: '8px', fontSize: '13px' }}>
-                <option value="Professional">{t('Professional')}</option>
-                <option value="Confident">{t('Confident')}</option>
-                <option value="Enthusiastic">{t('Enthusiastic')}</option>
+                <optgroup label={t('Standard')}>
+                  <option value="Professional">{t('Professional')}</option>
+                  <option value="Confident">{t('Confident')}</option>
+                  <option value="Enthusiastic">{t('Enthusiastic')}</option>
+                </optgroup>
+                <optgroup label={t('Creative & Fun')}>
+                  <option value="Manga Protagonist (Passionate, Determined, Shōnen anime style)">{t('Manga / Anime Hero')}</option>
+                  <option value="Gamer (Strategic, Quest-Oriented, RPG style)">{t('Gamer / RPG Hero')}</option>
+                  <option value="Epic Cinematic (Marvel style, Bold, Superhero flair)">{t('Cinematic / Superhero')}</option>
+                  <option value="Jedi / Zen Master (Wise, calm, Star Wars style)">{t('Jedi Master')}</option>
+                </optgroup>
               </select>
             </div>
             <div style={{ flex: 1 }}>
