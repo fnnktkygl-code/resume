@@ -526,7 +526,12 @@ export const TRANSLATIONS = {
     'Reference Letter': 'Reference Letter',
     'Paste your past cover letter here so the AI can clone your unique writing style...': 'Paste your past cover letter here so the AI can clone your unique writing style...',
     'Brutally Honest (Need Money)': 'Brutally Honest (Need Money)',
-    '5-Year-Old Child': '5-Year-Old Child'
+    '5-Year-Old Child': '5-Year-Old Child',
+    'Generations': 'Generations',
+    'Boomer': 'Boomer',
+    'Millennial': 'Millennial',
+    'Gen Z': 'Gen Z',
+    'Gen Alpha': 'Gen Alpha'
   },
   fr: {
     // Shared / Formatting
@@ -1052,7 +1057,12 @@ export const TRANSLATIONS = {
     'Reference Letter': 'Lettre de référence',
     'Paste your past cover letter here so the AI can clone your unique writing style...': 'Collez une ancienne lettre de motivation ici pour que l\'IA puisse copier votre style d\'écriture...',
     'Brutally Honest (Need Money)': 'Honnête & Direct (Besoin d\'argent)',
-    '5-Year-Old Child': 'Enfant de 5 ans'
+    '5-Year-Old Child': 'Enfant de 5 ans',
+    'Generations': 'Générations',
+    'Boomer': 'Boomer',
+    'Millennial': 'Millennial',
+    'Gen Z': 'Génération Z',
+    'Gen Alpha': 'Génération Alpha'
   },
   es: {
     // Shared / Formatting
@@ -1578,7 +1588,12 @@ export const TRANSLATIONS = {
     'Reference Letter': 'Carta de referencia',
     'Paste your past cover letter here so the AI can clone your unique writing style...': 'Pega una antigua carta de presentación aquí para que la IA pueda clonar tu estilo de escritura...',
     'Brutally Honest (Need Money)': 'Honesto y Directo (Necesito Dinero)',
-    '5-Year-Old Child': 'Niño de 5 Años'
+    '5-Year-Old Child': 'Niño de 5 Años',
+    'Generations': 'Generaciones',
+    'Boomer': 'Boomer',
+    'Millennial': 'Millennial',
+    'Gen Z': 'Generación Z',
+    'Gen Alpha': 'Generación Alpha'
   },
 };
 

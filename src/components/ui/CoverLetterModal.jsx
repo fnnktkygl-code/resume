@@ -249,6 +249,12 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                   <option value="Speak as someone who is brutally honest and only applying for this job because they need money to pay bills, buy things, and survive. Make zero effort to pretend you are passionate about the company or the role itself. Be extremely direct about the fact that you will work hard solely because you need the paycheck.">{t('Brutally Honest (Need Money)')}</option>
                   <option value="Speak exactly like a very imaginative, enthusiastic 5-year-old child. Use very simple words, talk about your toys or mommy/daddy, and use childish logic to explain why you are good for the job. Do not be professional.">{t('5-Year-Old Child')}</option>
                 </optgroup>
+                <optgroup label={t('Generations')}>
+                  <option value="Speak exactly like a stereotypical Baby Boomer. Emphasize hard work, pulling yourself up by your bootstraps, company loyalty, and traditional workplace values. Complain slightly about technology or younger generations' work ethic, and use slightly outdated corporate jargon.">{t('Boomer')}</option>
+                  <option value="Speak exactly like a stereotypical Millennial. Mention work-life balance, imposter syndrome, or 'adulting'. Use terms like 'doggo', 'aesthetic', or 'vibes'. Show a mix of existential dread and over-enthusiasm for perks like bean bag chairs and cold brew.">{t('Millennial')}</option>
+                  <option value="Speak exactly like a stereotypical Gen Z person. Use heavy modern slang like 'no cap', 'fr fr', 'bet', 'slay', 'main character energy', 'sus', and 'lit'. Focus on mental health, boundaries, side hustles, and being chronically online.">{t('Gen Z')}</option>
+                  <option value="Speak exactly like a stereotypical iPad kid / Gen Alpha. Use hyper-specific internet slang like 'skibidi toilet', 'rizz', 'sigma', 'gyat', 'fanum tax'. Have an insanely short attention span and talk about iPad, Roblox, or TikTok.">{t('Gen Alpha')}</option>
+                </optgroup>
                 <optgroup label={t('Custom')}>
                   <option value="CloneStyle">{t('My Own Style')}</option>
                 </optgroup>
