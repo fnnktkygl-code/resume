@@ -12,6 +12,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
   const [jobDescription, setJobDescription] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [targetRole, setTargetRole] = useState('');
+  const [industry, setIndustry] = useState('General');
   const [tone, setTone] = useState('Professional');
   const [clLength, setClLength] = useState('Standard');
   const [clFontFamily, setClFontFamily] = useState(defaultFontFamily);
@@ -57,6 +58,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
       let combinedPrompt = `${jobDescription}\n\n`;
       if (companyName) combinedPrompt += `Company Name: ${companyName}\n`;
       if (targetRole) combinedPrompt += `Target Role: ${targetRole}\n`;
+      if (industry && industry !== 'General') combinedPrompt += `Industry Context: ${industry}\n`;
       combinedPrompt += `Tone: ${tone}\nLength Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
@@ -134,6 +136,23 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
           <div className="cl-sidebar-header">
             <h3>{t('Content Settings')}</h3>
             <p>{t('Details to tailor your cover letter.')}</p>
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-chart-network"></i> {t('Industry')}
+            </label>
+            <select className="resume-input cl-input" value={industry} onChange={e => setIndustry(e.target.value)} style={{ padding: '8px', fontSize: '13px' }}>
+              <option value="General">{t('General / Unspecified')}</option>
+              <option value="Tech & Software">{t('Tech & Software')}</option>
+              <option value="Finance & Banking">{t('Finance & Banking')}</option>
+              <option value="Retail & Sales">{t('Retail & Sales')}</option>
+              <option value="Healthcare & Medical">{t('Healthcare & Medical')}</option>
+              <option value="Education & Teaching">{t('Education & Teaching')}</option>
+              <option value="Arts & Design">{t('Arts & Design')}</option>
+              <option value="Engineering & Manufacturing">{t('Engineering & Manufacturing')}</option>
+              <option value="Marketing & Communications">{t('Marketing & Communications')}</option>
+            </select>
           </div>
 
           <div className="cl-form-group" style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
