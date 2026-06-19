@@ -20,7 +20,13 @@ function ModernTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
+  const displayHeading = (key, defaultEn, tKey) => {
+    if (!h[key]) return t(tKey);
+    const val = h[key].trim();
+    if (!val) return t(tKey);
+    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    return val;
+  };
   const p = data.personal;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
@@ -91,7 +97,7 @@ function ModernTemplate({
             <div className="modern-sidebar-section-title">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             {data.skills.technical && (
               <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.technical}</strong>
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                 <div className="skills-container">
                   {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
                 </div>
@@ -99,7 +105,7 @@ function ModernTemplate({
             )}
             {data.skills.soft && (
               <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.interpersonal}</strong>
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                 <div className="skills-container">
                   {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
                 </div>
@@ -107,7 +113,7 @@ function ModernTemplate({
             )}
             {data.skills.languages && !hasCustomLangues && (
               <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{h.languages}</strong>
+                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                 <div className="skills-container">
                   {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
                 </div>

@@ -137,6 +137,15 @@ export default function PersonalStep({ data, headings, onChange, onHeadingsChang
         <Field label={t('Certifications Header')}>
           <TextInput value={headings?.certifications || ''} onChange={v => updateHeading('certifications', v)} />
         </Field>
+        <Field label={t('Technical Skills Header')}>
+          <TextInput value={headings?.technical || ''} onChange={v => updateHeading('technical', v)} placeholder={t('Technical Skills')} />
+        </Field>
+        <Field label={t('Soft Skills Header')}>
+          <TextInput value={headings?.interpersonal || ''} onChange={v => updateHeading('interpersonal', v)} placeholder={t('Soft Skills')} />
+        </Field>
+        <Field label={t('Languages Header')}>
+          <TextInput value={headings?.languages || ''} onChange={v => updateHeading('languages', v)} placeholder={t('Languages')} />
+        </Field>
       </div>
     </div>
   );

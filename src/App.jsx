@@ -902,9 +902,6 @@ export default function App() {
             skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Habilidades') ? 'Compétences' : nextData.headings.skills,
             projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Proyectos') ? 'Projets' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
-            technical: (nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Técnicas:') ? 'Technique:' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Interpersonales:') ? 'Interpersonnelles:' : nextData.headings.interpersonal,
-            languages: (nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Idiomas:') ? 'Langues:' : nextData.headings.languages,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Presente') ? 'Présent' : nextData.headings.present
           }
         };
@@ -931,9 +928,6 @@ export default function App() {
             skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Compétences') ? 'Habilidades' : nextData.headings.skills,
             projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Projets') ? 'Proyectos' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certifications') ? 'Certificaciones' : nextData.headings.certifications,
-            technical: (nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Technique:') ? 'Técnicas:' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Interpersonnelles:') ? 'Interpersonales:' : nextData.headings.interpersonal,
-            languages: (nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Langues:') ? 'Idiomas:' : nextData.headings.languages,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Présent') ? 'Presente' : nextData.headings.present
           }
         };
@@ -960,9 +954,6 @@ export default function App() {
             skills: (nextData.headings.skills === 'Compétences' || nextData.headings.skills === 'Habilidades') ? 'Skills' : nextData.headings.skills,
             projects: (nextData.headings.projects === 'Projets' || nextData.headings.projects === 'Proyectos') ? 'Projects' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
-            technical: (nextData.headings.technical === 'Technique:' || nextData.headings.technical === 'Técnicas:') ? 'Technical:' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Interpersonnelles:' || nextData.headings.interpersonal === 'Interpersonales:') ? 'Interpersonal:' : nextData.headings.interpersonal,
-            languages: (nextData.headings.languages === 'Langues:' || nextData.headings.languages === 'Idiomas:') ? 'Languages:' : nextData.headings.languages,
             present: (nextData.headings.present === 'Présent' || nextData.headings.present === 'Presente') ? 'Present' : nextData.headings.present
           }
         };

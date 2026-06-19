@@ -25,7 +25,13 @@ function ResumePreview({
   onAddSectionSpacer
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
+  const displayHeading = (key, defaultEn, tKey) => {
+    if (!h[key]) return t(tKey);
+    const val = h[key].trim();
+    if (!val) return t(tKey);
+    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    return val;
+  };
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
@@ -529,7 +535,7 @@ function ResumePreview({
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/1.5)}px` }}>
               {data.skills.technical && (
                 <div>
-                  <strong>{h.technical}</strong>
+                  <strong>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                   <div className="skills-container">
                     {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
                   </div>
@@ -537,7 +543,7 @@ function ResumePreview({
               )}
               {data.skills.soft && (
                 <div>
-                  <strong>{h.interpersonal}</strong>
+                  <strong>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                   <div className="skills-container">
                     {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
                   </div>
@@ -545,7 +551,7 @@ function ResumePreview({
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div>
-                  <strong>{h.languages}</strong>
+                  <strong>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                   <div className="skills-container">
                     {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
                   </div>

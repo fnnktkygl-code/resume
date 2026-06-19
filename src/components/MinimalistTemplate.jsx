@@ -20,7 +20,13 @@ function MinimalistTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
+  const displayHeading = (key, defaultEn, tKey) => {
+    if (!h[key]) return t(tKey);
+    const val = h[key].trim();
+    if (!val) return t(tKey);
+    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    return val;
+  };
   const p = data.personal;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
@@ -216,20 +222,20 @@ function MinimalistTemplate({
             <div style={sectionTitleStyle}>{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {data.skills.technical && (
-                <div>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{h.technical || 'Technical'}:</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}:</span>
                   <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.technical}</span>
                 </div>
               )}
               {data.skills.soft && (
-                <div>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{h.interpersonal || 'Soft skills'}:</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}:</span>
                   <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.soft}</span>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
-                <div>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{h.languages || 'Languages'}:</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('languages', 'Languages', 'Languages')}:</span>
                   <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.languages}</span>
                 </div>
               )}

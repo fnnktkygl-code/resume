@@ -19,7 +19,13 @@ function CreativeTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
+  const displayHeading = (key, defaultEn, tKey) => {
+    if (!h[key]) return t(tKey);
+    const val = h[key].trim();
+    if (!val) return t(tKey);
+    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    return val;
+  };
   const p = data.personal;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
@@ -141,7 +147,7 @@ function CreativeTemplate({
               <div style={sectionHeaderStyle}>{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
               {data.skills.technical && (
                 <div style={{ marginBottom: '8px' }}>
-                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.technical}</strong>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                   <div className="skills-container" style={{ gap: '4px' }}>
                     {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px solid ${primaryColor}`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>
@@ -149,7 +155,7 @@ function CreativeTemplate({
               )}
               {data.skills.soft && (
                 <div style={{ marginBottom: '8px' }}>
-                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.interpersonal}</strong>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                   <div className="skills-container" style={{ gap: '4px' }}>
                     {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px solid #ccc`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>
@@ -157,7 +163,7 @@ function CreativeTemplate({
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div style={{ marginBottom: '8px' }}>
-                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{h.languages}</strong>
+                  <strong style={{ display: 'block', fontSize: '8.5pt', textTransform: 'uppercase', color: primaryColor, marginBottom: '4px' }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                   <div className="skills-container" style={{ gap: '4px' }}>
                     {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill" style={{ backgroundColor: 'transparent', border: `1px dashed #aaa`, color: textColor }}>{skill.trim()}</span> : null)}
                   </div>

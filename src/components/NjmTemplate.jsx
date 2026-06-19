@@ -75,6 +75,14 @@ function NjmTemplate({
 
   const h = data.headings || {};
 
+  const displayHeading = (key, defaultEn, tKey) => {
+    if (!h[key]) return t(tKey);
+    const val = h[key].trim();
+    if (!val) return t(tKey);
+    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    return val;
+  };
+
   const getWrapProps = (id) => {
     if (SectionWrapper) {
       return { key: id, sectionId: id };
@@ -196,7 +204,7 @@ function NjmTemplate({
         return (
           <div key="summary" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('summary')} onClick={() => handleSectionClick('summary')}>
             <div style={sectionHeaderStyle}>
-              {h.summary || t('EXECUTIVE SUMMARY')}
+              {displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}
             </div>
             <div style={{ fontWeight: '500', fontSize: '0.95em', color: textColor, textAlign: 'justify' }}>
               {parseMarkdown(data.summary)}
@@ -209,7 +217,7 @@ function NjmTemplate({
         return (
           <div key="experience" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('experience')} onClick={() => handleSectionClick('experience')}>
             <div style={sectionHeaderStyle}>
-              <Icons.Briefcase /> {h.experience || t('WORK EXPERIENCE')}
+              <Icons.Briefcase /> {displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validExp.map((exp, i) => {
@@ -284,7 +292,7 @@ function NjmTemplate({
         return (
           <div key="education" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('education')} onClick={() => handleSectionClick('education')}>
             <div style={sectionHeaderStyle}>
-              <Icons.Building /> {h.education || t('EDUCATION')}
+              <Icons.Building /> {displayHeading('education', 'Education', 'EDUCATION')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validEdu.map((edu, i) => {
@@ -343,7 +351,7 @@ function NjmTemplate({
         return (
           <div key="skills" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('skills')} onClick={() => handleSectionClick('skills')}>
             <div style={sectionHeaderStyle}>
-              <Icons.Lightbulb /> {h.skills || t('SKILLS & TOOLS')}
+              <Icons.Lightbulb /> {displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
@@ -383,7 +391,7 @@ function NjmTemplate({
         return (
           <Wrapper {...getWrapProps('projects')}>
             <div style={sectionHeaderStyle}>
-              <Icons.Briefcase /> {h.projects || t('PROJECTS')}
+              <Icons.Award /> {displayHeading('projects', 'Projects', 'PROJECTS')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {validProj.map((pr, i) => {
