@@ -716,7 +716,7 @@ function NjmTemplate({
             if (!rendered) return null;
             return (
               <div key={sectionId}>
-                {!printMode && onAddSectionSpacer && InsertSpacerButton && sectionIdx > 0 && (
+                {!printMode && onAddSectionSpacer && InsertSpacerButton && (
                   <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId))} />
                 )}
                 {rendered}

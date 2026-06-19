@@ -341,7 +341,7 @@ function ModernTemplate({
           if (!rendered) return null;
           return (
             <div key={sectionId}>
-              {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
+              {!printMode && onAddSectionSpacer && InsertSpacerButton && (
                 <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'sidebar')} />
               )}
               {rendered}
@@ -357,7 +357,7 @@ function ModernTemplate({
           if (!rendered) return null;
           return (
             <div key={sectionId}>
-              {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
+              {!printMode && onAddSectionSpacer && InsertSpacerButton && (
                 <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'main')} />
               )}
               {rendered}
