@@ -529,6 +529,7 @@ export const TRANSLATIONS = {
     '5-Year-Old Child': '5-Year-Old Child',
     'Generations': 'Generations',
     'Boomer': 'Boomer',
+    'Gen X': 'Gen X',
     'Millennial': 'Millennial',
     'Gen Z': 'Gen Z',
     'Gen Alpha': 'Gen Alpha'
@@ -1060,6 +1061,7 @@ export const TRANSLATIONS = {
     '5-Year-Old Child': 'Enfant de 5 ans',
     'Generations': 'Générations',
     'Boomer': 'Boomer',
+    'Gen X': 'Génération X',
     'Millennial': 'Millennial',
     'Gen Z': 'Génération Z',
     'Gen Alpha': 'Génération Alpha'
@@ -1591,6 +1593,7 @@ export const TRANSLATIONS = {
     '5-Year-Old Child': 'Niño de 5 Años',
     'Generations': 'Generaciones',
     'Boomer': 'Boomer',
+    'Gen X': 'Generación X',
     'Millennial': 'Millennial',
     'Gen Z': 'Generación Z',
     'Gen Alpha': 'Generación Alpha'
