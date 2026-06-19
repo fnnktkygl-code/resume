@@ -12,6 +12,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
   const [jobDescription, setJobDescription] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [targetRole, setTargetRole] = useState('');
+  const [referenceLetter, setReferenceLetter] = useState('');
   const [industry, setIndustry] = useState('General');
   const [tone, setTone] = useState('Professional');
   const [clLength, setClLength] = useState('Standard');
@@ -59,7 +60,14 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
       if (companyName) combinedPrompt += `Company Name: ${companyName}\n`;
       if (targetRole) combinedPrompt += `Target Role: ${targetRole}\n`;
       if (industry && industry !== 'General') combinedPrompt += `Industry Context: ${industry}\n`;
-      combinedPrompt += `Tone: ${tone}\nLength Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
+      
+      if (tone === 'CloneStyle' && referenceLetter.trim()) {
+        combinedPrompt += `\n\nCRITICAL INSTRUCTION: I have provided a 'Reference Cover Letter' below. You MUST deeply analyze its writing style, tone of voice, vocabulary, sentence structure, and level of formality. Then, write the NEW cover letter by EXACTLY mimicking this writing style. Do NOT just copy the content, but clone the author's unique voice.\n\n--- REFERENCE COVER LETTER (Clone this style) ---\n${referenceLetter}\n------------------------------------------\n`;
+      } else {
+        combinedPrompt += `Tone: ${tone}\n`;
+      }
+      
+      combinedPrompt += `Length Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
       if (window.innerWidth <= 768 && previewRef.current) {
@@ -239,6 +247,9 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                   <option value="Epic Cinematic (Marvel style, Bold, Superhero flair)">{t('Cinematic / Superhero')}</option>
                   <option value="Jedi / Zen Master (Wise, calm, Star Wars style)">{t('Jedi Master')}</option>
                 </optgroup>
+                <optgroup label={t('Custom')}>
+                  <option value="CloneStyle">{t('My Own Style')}</option>
+                </optgroup>
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -252,6 +263,21 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
               </select>
             </div>
           </div>
+
+          {tone === 'CloneStyle' && (
+            <div className="cl-form-group">
+              <label className="cl-label">
+                <i className="fi fi-rr-copy"></i> {t('Reference Letter')}
+              </label>
+              <textarea
+                className="resume-input cl-textarea"
+                style={{ minHeight: '100px', resize: 'vertical' }}
+                placeholder={t('Paste your past cover letter here so the AI can clone your unique writing style...')}
+                value={referenceLetter}
+                onChange={(e) => setReferenceLetter(e.target.value)}
+              />
+            </div>
+          )}
 
           <hr style={{ borderColor: 'var(--color-border)', margin: '4px 0' }} />
 

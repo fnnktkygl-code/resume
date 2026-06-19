@@ -520,7 +520,11 @@ export const TRANSLATIONS = {
     'Manga / Anime Hero': 'Manga / Anime Hero',
     'Gamer / RPG Hero': 'Gamer / RPG Hero',
     'Cinematic / Superhero': 'Cinematic / Superhero',
-    'Jedi Master': 'Jedi Master'
+    'Jedi Master': 'Jedi Master',
+    'Custom': 'Custom',
+    'My Own Style': 'My Own Style',
+    'Reference Letter': 'Reference Letter',
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Paste your past cover letter here so the AI can clone your unique writing style...'
   },
   fr: {
     // Shared / Formatting
@@ -1040,7 +1044,11 @@ export const TRANSLATIONS = {
     'Manga / Anime Hero': 'Héros de Manga / Anime',
     'Gamer / RPG Hero': 'Gamer / Héros RPG',
     'Cinematic / Superhero': 'Cinématique / Super-héros',
-    'Jedi Master': 'Maître Jedi'
+    'Jedi Master': 'Maître Jedi',
+    'Custom': 'Personnalisé',
+    'My Own Style': 'Mon Propre Style',
+    'Reference Letter': 'Lettre de référence',
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Collez une ancienne lettre de motivation ici pour que l\'IA puisse copier votre style d\'écriture...'
   },
   es: {
     // Shared / Formatting
@@ -1560,7 +1568,11 @@ export const TRANSLATIONS = {
     'Manga / Anime Hero': 'Héroe de Manga / Anime',
     'Gamer / RPG Hero': 'Gamer / Héroe de RPG',
     'Cinematic / Superhero': 'Cinemático / Superhéroe',
-    'Jedi Master': 'Maestro Jedi'
+    'Jedi Master': 'Maestro Jedi',
+    'Custom': 'Personalizado',
+    'My Own Style': 'Mi Propio Estilo',
+    'Reference Letter': 'Carta de referencia',
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Pega una antigua carta de presentación aquí para que la IA pueda clonar tu estilo de escritura...'
   },
 };
 
