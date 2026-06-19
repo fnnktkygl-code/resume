@@ -38,7 +38,7 @@ function CreativeTemplate({
     return val;
   };
 
-  const renderSkills = (skillsString, inlineStyles) => {
+  const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
@@ -54,8 +54,8 @@ function CreativeTemplate({
         </span>
       );
     }
-    const className = style === 'square' ? 'skill-square' : 'skill-pill';
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className} style={inlineStyles}>{parseMarkdown(skill.trim())}</span> : null);
+    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
   };
 
   const p = data.personal;
