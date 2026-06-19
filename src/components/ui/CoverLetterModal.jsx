@@ -12,6 +12,14 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
   const previewRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [coverLetter]);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,7 +63,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
     if (!coverLetter) return;
     const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Cover Letter</title></head><body>";
     const footer = "</body></html>";
-    const sourceHTML = header + `<div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.6; white-space: pre-wrap;">${coverLetter}</div>` + footer;
+    const sourceHTML = header + `<div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.6;">${coverLetter.replace(/\n/g, '<br/>')}</div>` + footer;
     
     const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
     const fileDownload = document.createElement("a");
@@ -185,11 +193,16 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
           </div>
 
           <textarea 
-            className="cl-a4-paper"
+            ref={textareaRef}
+            className="cl-a4-paper print-hidden"
+            style={{ overflow: 'hidden', minHeight: '60vh' }}
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder={t('Edit directly on the page...')}
           />
+          <div className="cl-a4-paper print-only" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+            {coverLetter}
+          </div>
         </div>
       </div>
     </div>

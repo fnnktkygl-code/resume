@@ -13,6 +13,17 @@ import '@fontsource/merriweather'
 import '@fontsource/outfit'
 import './index.css'
 
+import { polyfill } from 'mobile-drag-drop';
+import { scrollBehaviourDragImageTranslateOverride } from 'mobile-drag-drop/scroll-behaviour';
+import 'mobile-drag-drop/default.css';
+
+polyfill({
+  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
+  holdToDrag: 300
+});
+
+window.addEventListener('touchmove', function() {}, {passive: false});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>

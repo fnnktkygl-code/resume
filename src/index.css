@@ -2858,3 +2858,17 @@ input[type="range"] {
     padding: 12px 16px;
   }
 }
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
