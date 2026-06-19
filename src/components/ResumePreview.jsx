@@ -30,7 +30,7 @@ function ResumePreview({
     const val = h[key].trim();
     if (!val) return t(tKey);
     const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
+    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
     return val;
   };
 

@@ -660,7 +660,7 @@ export const TRANSLATIONS = {
 
     // Skills
     'Technical Skills': 'Compétences Techniques',
-    'Soft Skills': 'Savoir-être',
+    'Soft Skills': 'Soft Skills',
     'Languages': 'Langues',
     'Language': 'Langue',
     'E.g., English': 'Ex: Anglais',
@@ -921,7 +921,7 @@ export const TRANSLATIONS = {
     'Add strengths': 'Ajouter des atouts',
     'Add hobbies': 'Ajouter des loisirs',
     'Technical Skills Header': 'Titre Compétences Techniques',
-    'Soft Skills Header': 'Titre Savoir-être',
+    'Soft Skills Header': 'Titre Soft Skills',
     'Languages Header': 'Titre Langues',
     'Jan': 'Janv.',
     'Feb': 'Févr.',
@@ -1148,7 +1148,7 @@ export const TRANSLATIONS = {
 
     // Skills
     'Technical Skills': 'Habilidades técnicas',
-    'Soft Skills': 'Aptitudes',
+    'Soft Skills': 'Soft Skills',
     'Languages': 'Idiomas',
     'Language': 'Idioma',
     'E.g., English': 'Ej: Inglés',
@@ -1409,7 +1409,7 @@ export const TRANSLATIONS = {
     'Add strengths': 'Añadir fortalezas',
     'Add hobbies': 'Añadir aficiones',
     'Technical Skills Header': 'Título Habilidades Técnicas',
-    'Soft Skills Header': 'Título Aptitudes',
+    'Soft Skills Header': 'Título Soft Skills',
     'Languages Header': 'Título Idiomas',
     'Jan': 'Ene.',
     'Feb': 'Feb.',
