@@ -767,6 +767,87 @@ export default function App() {
   const handleSectionReorder = useCallback((newOrder) => {
     setData(prev => ({ ...prev, sectionOrder: newOrder }));
   }, []);
+
+  const handleItemReorder = useCallback((sectionId, fromIdx, toIdx) => {
+    setData(prev => {
+      const next = { ...prev };
+      let list;
+      if (sectionId.startsWith('custom_')) {
+        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
+        if (secIndex === -1) return prev;
+        list = [...next.customSections[secIndex].items];
+        const [moved] = list.splice(fromIdx, 1);
+        list.splice(toIdx, 0, moved);
+        next.customSections = [...next.customSections];
+        next.customSections[secIndex] = { ...next.customSections[secIndex], items: list };
+      } else {
+        list = [...(next[sectionId] || [])];
+        const [moved] = list.splice(fromIdx, 1);
+        list.splice(toIdx, 0, moved);
+        next[sectionId] = list;
+      }
+      return next;
+    });
+  }, []);
+
+  const handleItemDelete = useCallback((sectionId, index) => {
+    setData(prev => {
+      const next = { ...prev };
+      if (sectionId.startsWith('custom_')) {
+        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
+        if (secIndex === -1) return prev;
+        const items = next.customSections[secIndex].items.filter((_, i) => i !== index);
+        next.customSections = [...next.customSections];
+        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
+      } else {
+        next[sectionId] = (next[sectionId] || []).filter((_, i) => i !== index);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleItemUpdate = useCallback((sectionId, index, updatedItem) => {
+    setData(prev => {
+      const next = { ...prev };
+      if (sectionId.startsWith('custom_')) {
+        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
+        if (secIndex === -1) return prev;
+        const items = [...next.customSections[secIndex].items];
+        items[index] = updatedItem;
+        next.customSections = [...next.customSections];
+        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
+      } else {
+        const items = [...(next[sectionId] || [])];
+        items[index] = updatedItem;
+        next[sectionId] = items;
+      }
+      return next;
+    });
+  }, []);
+
+  const handleItemAddSpacer = useCallback((sectionId, index) => {
+    setData(prev => {
+      const next = { ...prev };
+      const newSpacer = {
+        id: `item_spacer_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`,
+        isSpacer: true,
+        height: 24
+      };
+      if (sectionId.startsWith('custom_')) {
+        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
+        if (secIndex === -1) return prev;
+        const items = [...next.customSections[secIndex].items];
+        items.splice(index, 0, newSpacer);
+        next.customSections = [...next.customSections];
+        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
+      } else {
+        const items = [...(next[sectionId] || [])];
+        items.splice(index, 0, newSpacer);
+        next[sectionId] = items;
+      }
+      return next;
+    });
+  }, []);
   
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -1474,6 +1555,10 @@ export default function App() {
                 onSectionRemove={setSectionToDelete}
                 onSectionClick={handleSectionClick}
                 onPagesCountChange={setEditorPagesCount}
+                onItemReorder={handleItemReorder}
+                onItemDelete={handleItemDelete}
+                onItemUpdate={handleItemUpdate}
+                onAddSpacer={handleItemAddSpacer}
                 compact 
               />
             </aside>
@@ -1615,6 +1700,10 @@ export default function App() {
                 onSectionReorder={(newOrder) => setData(prev => ({ ...prev, sectionOrder: newOrder }))}
                 onSectionRemove={setSectionToDelete}
                 onSectionClick={handleSectionClick}
+                onItemReorder={handleItemReorder}
+                onItemDelete={handleItemDelete}
+                onItemUpdate={handleItemUpdate}
+                onAddSpacer={handleItemAddSpacer}
               />
             </div>
           </div>

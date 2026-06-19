@@ -3,16 +3,31 @@ import { parseMarkdown, formatUrl } from '../utils/formatText';
 
 import { getTranslation } from '../utils/translations';
 
-function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
+function ModernTemplate({ 
+  data, 
+  layout = {}, 
+  language = 'en', 
+  onSectionClick, 
+  SectionWrapper,
+  // New props:
+  ItemWrapper,
+  NestedSpacer,
+  InsertSpacerButton,
+  onItemReorder,
+  onItemDelete,
+  onItemUpdate,
+  onAddSpacer,
+  printMode = false
+}) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
-  const validExp = data.experience.filter(e => e.company || e.title);
-  const validEdu = data.education.filter(e => e.institution || e.degree);
-  const validProj = data.projects.filter(pr => pr.name);
-  const validCert = data.certifications.filter(c => c.name);
+  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
+  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
+  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
+  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
   const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
   );
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
@@ -105,12 +120,35 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, Se
         {validCert.length > 0 && (
           <Wrapper {...getWrapProps('certifications')}>
             <div className="modern-sidebar-section-title">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
-            {validCert.map((c, i) => (
-              <div key={i} className="modern-sidebar-item">
-                <strong>{c.name}</strong>
-                {c.issuer}{c.date ? ` (${c.date})` : ''}
-              </div>
-            ))}
+            {validCert.map((c, i) => {
+              const itemContent = c.isSpacer ? (
+                printMode ? (
+                  <div style={{ height: `${c.height}px` }} />
+                ) : (
+                  <NestedSpacer 
+                    height={c.height} 
+                    onChangeHeight={(h) => onItemUpdate('certifications', i, { ...c, height: h })}
+                    onDelete={() => onItemDelete('certifications', i)}
+                  />
+                )
+              ) : (
+                <div className="modern-sidebar-item">
+                  <strong>{c.name}</strong>
+                  {c.issuer}{c.date ? ` (${c.date})` : ''}
+                </div>
+              );
+
+              return (
+                <div key={c.id || i}>
+                  {!printMode && i > 0 && (
+                    <InsertSpacerButton onClick={() => onAddSpacer('certifications', i)} />
+                  )}
+                  <ItemWrapper sectionId="certifications" itemId={c.id} index={i}>
+                    {itemContent}
+                  </ItemWrapper>
+                </div>
+              );
+            })}
           </Wrapper>
         )}
       </div>
@@ -128,30 +166,53 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, Se
           <Wrapper {...getWrapProps('experience')}>
             <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validExp.map((exp, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    {exp.link ? (
-                      <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
-                        {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                      </a>
-                    ) : (
-                      <span className="resume-company">{exp.company}</span>
+              {validExp.map((exp, i) => {
+                const itemContent = exp.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${exp.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={exp.height} 
+                      onChangeHeight={(h) => onItemUpdate('experience', i, { ...exp, height: h })}
+                      onDelete={() => onItemDelete('experience', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      {exp.link ? (
+                        <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
+                          {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                      ) : (
+                        <span className="resume-company">{exp.company}</span>
+                      )}
+                      <span className="resume-dates">
+                        {formatDate(exp.startMonth, exp.startYear)}
+                        {(exp.startMonth || exp.startYear) && ' — '}
+                        {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
+                      </span>
+                    </div>
+                    <div className="resume-title">{exp.title}</div>
+                    <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px` }}>
+                      {exp.bullets.filter(Boolean).map((b, bi) => (
+                        <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
+                      ))}
+                    </div>
+                  </div>
+                );
+
+                return (
+                  <div key={exp.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('experience', i)} />
                     )}
-                    <span className="resume-dates">
-                      {formatDate(exp.startMonth, exp.startYear)}
-                      {(exp.startMonth || exp.startYear) && ' — '}
-                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
-                    </span>
+                    <ItemWrapper sectionId="experience" itemId={exp.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                  <div className="resume-title">{exp.title}</div>
-                  <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px` }}>
-                    {exp.bullets.filter(Boolean).map((b, bi) => (
-                      <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Wrapper>
         )}
@@ -160,19 +221,42 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, Se
           <Wrapper {...getWrapProps('education')}>
             <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validEdu.map((edu, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    <span className="resume-company">{edu.institution}</span>
-                    <span className="resume-dates">
-                      {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
-                    </span>
+              {validEdu.map((edu, i) => {
+                const itemContent = edu.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${edu.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={edu.height} 
+                      onChangeHeight={(h) => onItemUpdate('education', i, { ...edu, height: h })}
+                      onDelete={() => onItemDelete('education', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      <span className="resume-company">{edu.institution}</span>
+                      <span className="resume-dates">
+                        {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
+                      </span>
+                    </div>
+                    <div className="resume-title">
+                      {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                    </div>
                   </div>
-                  <div className="resume-title">
-                    {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                );
+
+                return (
+                  <div key={edu.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('education', i)} />
+                    )}
+                    <ItemWrapper sectionId="education" itemId={edu.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Wrapper>
         )}
@@ -181,19 +265,42 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, Se
           <Wrapper {...getWrapProps('projects')}>
             <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validProj.map((pr, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    <span className="resume-company">{pr.name}</span>
-                    {pr.link && <span className="resume-dates">{pr.link}</span>}
+              {validProj.map((pr, i) => {
+                const itemContent = pr.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${pr.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={pr.height} 
+                      onChangeHeight={(h) => onItemUpdate('projects', i, { ...pr, height: h })}
+                      onDelete={() => onItemDelete('projects', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      <span className="resume-company">{pr.name}</span>
+                      {pr.link && <span className="resume-dates">{pr.link}</span>}
+                    </div>
+                    {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
+                    {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
+                    {pr.highlights.filter(Boolean).map((h, hi) => (
+                      <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
+                    ))}
                   </div>
-                  {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
-                  {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
-                  {pr.highlights.filter(Boolean).map((h, hi) => (
-                    <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
-                  ))}
-                </div>
-              ))}
+                );
+
+                return (
+                  <div key={pr.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('projects', i)} />
+                    )}
+                    <ItemWrapper sectionId="projects" itemId={pr.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
+                  </div>
+                );
+              })}
             </div>
           </Wrapper>
         )}
@@ -202,24 +309,47 @@ function ModernTemplate({ data, layout = {}, language = 'en', onSectionClick, Se
           if (sec.id.startsWith('spacer_')) {
             return <Wrapper {...getWrapProps(sec.id)} style={{ height: `${sec.height}px` }} />;
           }
-          const validItems = sec.items?.filter(i => i.title || i.subtitle || i.description);
+          const validItems = sec.items?.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems || !validItems.length) return null;
           return (
             <Wrapper {...getWrapProps(sec.id)}>
               <div className="resume-section-header">{sec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-                {validItems.map((item, i) => (
-                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                    <div className="resume-exp-header">
-                      {item.title && <span className="resume-company">{item.title}</span>}
-                      {item.date && <span className="resume-dates">{item.date}</span>}
+                {validItems.map((item, i) => {
+                  const itemContent = item.isSpacer ? (
+                    printMode ? (
+                      <div style={{ height: `${item.height}px` }} />
+                    ) : (
+                      <NestedSpacer 
+                        height={item.height} 
+                        onChangeHeight={(h) => onItemUpdate(sec.id, i, { ...item, height: h })}
+                        onDelete={() => onItemDelete(sec.id, i)}
+                      />
+                    )
+                  ) : (
+                    <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                      <div className="resume-exp-header">
+                        {item.title && <span className="resume-company">{item.title}</span>}
+                        {item.date && <span className="resume-dates">{item.date}</span>}
+                      </div>
+                      {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                      {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                        {parseMarkdown(item.description)}
+                      </div>}
                     </div>
-                    {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
-                    {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
-                      {parseMarkdown(item.description)}
-                    </div>}
-                  </div>
-                ))}
+                  );
+
+                  return (
+                    <div key={item.id || i}>
+                      {!printMode && i > 0 && (
+                        <InsertSpacerButton onClick={() => onAddSpacer(sec.id, i)} />
+                      )}
+                      <ItemWrapper sectionId={sec.id} itemId={item.id} index={i}>
+                        {itemContent}
+                      </ItemWrapper>
+                    </div>
+                  );
+                })}
               </div>
             </Wrapper>
           );

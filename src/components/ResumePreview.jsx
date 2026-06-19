@@ -6,20 +6,42 @@ import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
-function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick, onPagesCountChange }) {
+function ResumePreview({ 
+  data, 
+  layout = {}, 
+  language = 'en', 
+  compact = false, 
+  printMode = false, 
+  template = 'standard', 
+  onSectionReorder, 
+  onSectionRemove, 
+  onSectionClick, 
+  onPagesCountChange,
+  // New props:
+  onItemReorder,
+  onItemDelete,
+  onItemUpdate,
+  onAddSpacer
+}) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
-  const validExp = data.experience.filter(e => e.company || e.title);
-  const validEdu = data.education.filter(e => e.institution || e.degree);
-  const validProj = data.projects.filter(pr => pr.name);
-  const validCert = data.certifications.filter(c => c.name);
+  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
+  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
+  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
+  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
   const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
   );
+  
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const hasContent = hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length;
+  const hasContent = hasContact || data.summary || 
+    data.experience.some(e => e.company || e.title) || 
+    data.education.some(e => e.institution || e.degree) || 
+    hasSkills || 
+    data.projects.some(pr => pr.name) || 
+    data.certifications.some(c => c.name);
 
   const h = data.headings || {};
   const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
@@ -38,8 +60,7 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
   const contentRef = useRef(null);
   const [wrapperWidth, setWrapperWidth] = useState(compact ? 500 : 500);
   const [pagesCount, setPagesCount] = useState(1);
-  const [draggedSection, setDraggedSection] = useState(null);
-  const [dragOverSection, setDragOverSection] = useState(null);
+  // Item drag & drop state (removed to prevent re-renders during drag)
 
   useEffect(() => {
     if (onPagesCountChange) {
@@ -98,46 +119,230 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     return y || m || '';
   };
 
-  // Drag & Drop handlers
+  // Drag & Drop handlers for Sections
   const handleDragStart = useCallback((e, sectionId) => {
-    setDraggedSection(sectionId);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', sectionId);
+    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'section', sectionId }));
+    setTimeout(() => {
+      e.target.closest('.draggable-section')?.classList.add('dragging');
+    }, 0);
+    e.stopPropagation();
   }, []);
 
-  const handleDragOver = useCallback((e, sectionId) => {
+  const handleDragOver = useCallback((e) => {
     e.preventDefault();
-    if (sectionId !== draggedSection) {
-      setDragOverSection(sectionId);
-    }
-  }, [draggedSection]);
+    const section = e.target.closest('.draggable-section');
+    if (section) section.classList.add('drag-over');
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    const section = e.target.closest('.draggable-section');
+    if (section) section.classList.remove('drag-over');
+  }, []);
 
   const handleDrop = useCallback((e, sectionId) => {
     e.preventDefault();
-    if (draggedSection && draggedSection !== sectionId && onSectionReorder) {
-      const newOrder = [...sectionOrder];
-      const fromIdx = newOrder.indexOf(draggedSection);
-      const toIdx = newOrder.indexOf(sectionId);
-      if (fromIdx !== -1 && toIdx !== -1) {
-        newOrder.splice(fromIdx, 1);
-        newOrder.splice(toIdx, 0, draggedSection);
-        onSectionReorder(newOrder);
+    const section = e.target.closest('.draggable-section');
+    if (section) section.classList.remove('drag-over');
+    
+    try {
+      const dataStr = e.dataTransfer.getData('application/json');
+      if (!dataStr) return;
+      const data = JSON.parse(dataStr);
+      if (data.type === 'section' && data.sectionId && data.sectionId !== sectionId && onSectionReorder) {
+        const newOrder = [...sectionOrder];
+        const fromIdx = newOrder.indexOf(data.sectionId);
+        const toIdx = newOrder.indexOf(sectionId);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          newOrder.splice(fromIdx, 1);
+          newOrder.splice(toIdx, 0, data.sectionId);
+          onSectionReorder(newOrder);
+        }
       }
-    }
-    setDraggedSection(null);
-    setDragOverSection(null);
-  }, [draggedSection, sectionOrder, onSectionReorder]);
+    } catch(err) {}
+  }, [sectionOrder, onSectionReorder]);
 
-  const handleDragEnd = useCallback(() => {
-    setDraggedSection(null);
-    setDragOverSection(null);
+  const handleDragEnd = useCallback((e) => {
+    e.target.closest('.draggable-section')?.classList.remove('dragging');
+    document.querySelectorAll('.draggable-section.drag-over').forEach(el => el.classList.remove('drag-over'));
   }, []);
+
+  // Item drag & drop handlers
+  const handleItemDragStart = useCallback((e, sectionId, itemId, index) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', `${sectionId}:${itemId}:${index}`);
+    setTimeout(() => {
+      e.target.closest('.draggable-item')?.classList.add('dragging');
+    }, 0);
+    e.stopPropagation();
+  }, []);
+
+  const handleItemDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const item = e.target.closest('.draggable-item');
+    if (item) item.classList.add('drag-over');
+  }, []);
+
+  const handleItemDragLeave = useCallback((e) => {
+    e.stopPropagation();
+    const item = e.target.closest('.draggable-item');
+    if (item) item.classList.remove('drag-over');
+  }, []);
+
+  const handleItemDrop = useCallback((e, sectionId, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const item = e.target.closest('.draggable-item');
+    if (item) item.classList.remove('drag-over');
+    
+    const data = e.dataTransfer.getData('text/plain');
+    if (!data) return;
+    const [fromSectionId, , fromIndexStr] = data.split(':');
+    const fromIndex = parseInt(fromIndexStr, 10);
+    
+    if (fromSectionId === sectionId && fromIndex !== index && onItemReorder) {
+      onItemReorder(sectionId, fromIndex, index);
+    }
+  }, [onItemReorder]);
+
+  const handleItemDragEnd = useCallback((e) => {
+    e.stopPropagation();
+    e.target.closest('.draggable-item')?.classList.remove('dragging');
+    document.querySelectorAll('.draggable-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  }, []);
+
+  const ItemWrapper = ({ sectionId, itemId, index, className, style, children }) => {
+    const isDraggable = !printMode && onItemReorder;
+
+    const dragClass = isDraggable ? 'draggable-item preview-interactive-item' : '';
+      
+    const combinedClassName = `${dragClass} ${className || ''}`.trim();
+    const combinedStyle = { position: 'relative', ...(style || {}) };
+    
+    const wrapperRef = useRef(null);
+
+    const wrapProps = isDraggable ? {
+      ref: wrapperRef,
+      onDragOver: handleItemDragOver,
+      onDragLeave: handleItemDragLeave,
+      onDrop: (e) => handleItemDrop(e, sectionId, index),
+      className: combinedClassName,
+      style: combinedStyle
+    } : {
+      className: combinedClassName,
+      style: combinedStyle
+    };
+
+    return (
+      <div {...wrapProps}>
+        {isDraggable && (
+          <div className="item-actions" aria-hidden="true">
+            <span 
+              className="item-drag-handle" 
+              title={t('Drag to reorder item')}
+              draggable={true}
+              onDragStart={(e) => {
+                 if (wrapperRef.current) {
+                    try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch(err) {}
+                 }
+                 handleItemDragStart(e, sectionId, itemId, index);
+              }}
+              onDragEnd={handleItemDragEnd}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ pointerEvents: 'none' }}>
+                <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
+                <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
+              </svg>
+            </span>
+            <button 
+              className="item-delete" 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onItemDelete) onItemDelete(sectionId, index);
+              }}
+              title={t('Delete Item')}
+            >
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        )}
+        {children}
+      </div>
+    );
+  };
+
+  const NestedSpacer = ({ height, onChangeHeight, onDelete }) => {
+    const [localHeight, setLocalHeight] = useState(height);
+    
+    useEffect(() => {
+      setLocalHeight(height);
+    }, [height]);
+
+    const handleChange = (e) => {
+      const val = Number(e.target.value);
+      setLocalHeight(val);
+    };
+
+    const handleMouseUp = () => {
+      onChangeHeight(localHeight);
+    };
+
+    return (
+      <div 
+        className="nested-spacer-interactive" 
+        style={{ 
+          height: `${localHeight}px`,
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="nested-spacer-bg" />
+        <div className="nested-spacer-controls">
+          <span className="nested-spacer-label">↕ {t('Space') || 'Space'}: {localHeight}px</span>
+          <input 
+            type="range" 
+            min="4" 
+            max="120" 
+            step="4" 
+            value={localHeight} 
+            onChange={handleChange}
+            onMouseUp={handleMouseUp}
+            onTouchEnd={handleMouseUp}
+            className="nested-spacer-slider"
+          />
+          <button className="nested-spacer-delete" onClick={(e) => { e.stopPropagation(); onDelete(); }} title={t('Delete space')}>✕</button>
+        </div>
+      </div>
+    );
+  };
+
+  const InsertSpacerButton = ({ onClick }) => {
+    return (
+      <div className="insert-spacer-container" onClick={(e) => { e.stopPropagation(); onClick(); }}>
+        <div className="insert-spacer-line" />
+        <button className="insert-spacer-btn" title={t('Add spacing here')} onClick={(e) => { e.stopPropagation(); onClick(); }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <div className="insert-spacer-line" />
+      </div>
+    );
+  };
 
   const SectionWrapper = ({ sectionId, className, style, children }) => {
     const isDraggable = !printMode && onSectionReorder;
     
     const dragClass = isDraggable 
-      ? `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`
+      ? 'draggable-section preview-interactive-section'
       : (onSectionClick && !printMode ? 'preview-interactive-section' : '');
       
     const combinedClassName = `${dragClass} ${className || ''}`.trim();
@@ -145,12 +350,13 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
     const interactiveStyle = onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
     const combinedStyle = { ...interactiveStyle, ...(style || {}) };
 
+    const wrapperRef = useRef(null);
+
     const wrapProps = isDraggable ? {
-      draggable: true,
-      onDragStart: (e) => handleDragStart(e, sectionId),
-      onDragOver: (e) => handleDragOver(e, sectionId),
+      ref: wrapperRef,
+      onDragOver: handleDragOver,
+      onDragLeave: handleDragLeave,
       onDrop: (e) => handleDrop(e, sectionId),
-      onDragEnd: handleDragEnd,
       className: combinedClassName,
       onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
       style: combinedStyle
@@ -164,8 +370,19 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
       <div {...wrapProps}>
         {isDraggable && (
           <div className="section-actions" aria-hidden="true">
-            <span className="drag-handle" title={t('Drag to reorder')}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <span 
+              className="drag-handle" 
+              title={t('Drag to reorder')}
+              draggable={true}
+              onDragStart={(e) => {
+                 if (wrapperRef.current) {
+                    try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch(err) {}
+                 }
+                 handleDragStart(e, sectionId);
+              }}
+              onDragEnd={handleDragEnd}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ pointerEvents: 'none' }}>
                 <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
                 <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
               </svg>
@@ -208,30 +425,53 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           <SectionWrapper key="experience" sectionId="experience">
             <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validExp.map((exp, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    {exp.link ? (
-                      <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
-                        {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                      </a>
-                    ) : (
-                      <span className="resume-company">{exp.company}</span>
+              {validExp.map((exp, i) => {
+                const itemContent = exp.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${exp.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={exp.height} 
+                      onChangeHeight={(h) => onItemUpdate('experience', i, { ...exp, height: h })}
+                      onDelete={() => onItemDelete('experience', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      {exp.link ? (
+                        <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
+                          {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                      ) : (
+                        <span className="resume-company">{exp.company}</span>
+                      )}
+                      <span className="resume-dates">
+                        {formatDate(exp.startMonth, exp.startYear)}
+                        {(exp.startMonth || exp.startYear) && ' — '}
+                        {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
+                      </span>
+                    </div>
+                    <div className="resume-title">{exp.title}</div>
+                    <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
+                      {exp.bullets.filter(Boolean).map((b, bi) => (
+                        <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
+                      ))}
+                    </div>
+                  </div>
+                );
+
+                return (
+                  <div key={exp.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('experience', i)} />
                     )}
-                    <span className="resume-dates">
-                      {formatDate(exp.startMonth, exp.startYear)}
-                      {(exp.startMonth || exp.startYear) && ' — '}
-                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
-                    </span>
+                    <ItemWrapper sectionId="experience" itemId={exp.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                  <div className="resume-title">{exp.title}</div>
-                  <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
-                    {exp.bullets.filter(Boolean).map((b, bi) => (
-                      <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </SectionWrapper>
         );
@@ -241,19 +481,42 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           <SectionWrapper key="education" sectionId="education">
             <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validEdu.map((edu, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    <span className="resume-company">{edu.institution}</span>
-                    <span className="resume-dates">
-                      {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
-                    </span>
+              {validEdu.map((edu, i) => {
+                const itemContent = edu.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${edu.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={edu.height} 
+                      onChangeHeight={(h) => onItemUpdate('education', i, { ...edu, height: h })}
+                      onDelete={() => onItemDelete('education', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      <span className="resume-company">{edu.institution}</span>
+                      <span className="resume-dates">
+                        {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
+                      </span>
+                    </div>
+                    <div className="resume-title">
+                      {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                    </div>
                   </div>
-                  <div className="resume-title">
-                    {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                );
+
+                return (
+                  <div key={edu.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('education', i)} />
+                    )}
+                    <ItemWrapper sectionId="education" itemId={edu.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </SectionWrapper>
         );
@@ -296,19 +559,42 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           <SectionWrapper key="projects" sectionId="projects">
             <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validProj.map((pr, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div className="resume-exp-header">
-                    <span className="resume-company">{pr.name}</span>
-                    {pr.link && <span className="resume-dates">{pr.link}</span>}
+              {validProj.map((pr, i) => {
+                const itemContent = pr.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${pr.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={pr.height} 
+                      onChangeHeight={(h) => onItemUpdate('projects', i, { ...pr, height: h })}
+                      onDelete={() => onItemDelete('projects', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      <span className="resume-company">{pr.name}</span>
+                      {pr.link && <span className="resume-dates">{pr.link}</span>}
+                    </div>
+                    {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
+                    {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
+                    {pr.highlights.filter(Boolean).map((h, hi) => (
+                      <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
+                    ))}
                   </div>
-                  {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
-                  {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
-                  {pr.highlights.filter(Boolean).map((h, hi) => (
-                    <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
-                  ))}
-                </div>
-              ))}
+                );
+
+                return (
+                  <div key={pr.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('projects', i)} />
+                    )}
+                    <ItemWrapper sectionId="projects" itemId={pr.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
+                  </div>
+                );
+              })}
             </div>
           </SectionWrapper>
         );
@@ -318,12 +604,35 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
           <SectionWrapper key="certifications" sectionId="certifications">
             <div className="resume-section-header">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
-              {validCert.map((c, i) => (
-                <div key={i} className="resume-bullet">
-                  <span style={{ marginRight: '6px' }}>•</span>
-                  <strong>{c.name}</strong> — {c.issuer}{c.date ? ` (${c.date})` : ''}
-                </div>
-              ))}
+              {validCert.map((c, i) => {
+                const itemContent = c.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${c.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={c.height} 
+                      onChangeHeight={(h) => onItemUpdate('certifications', i, { ...c, height: h })}
+                      onDelete={() => onItemDelete('certifications', i)}
+                    />
+                  )
+                ) : (
+                  <div className="resume-bullet">
+                    <span style={{ marginRight: '6px' }}>•</span>
+                    <strong>{c.name}</strong> — {c.issuer}{c.date ? ` (${c.date})` : ''}
+                  </div>
+                );
+
+                return (
+                  <div key={c.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('certifications', i)} />
+                    )}
+                    <ItemWrapper sectionId="certifications" itemId={c.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
+                  </div>
+                );
+              })}
             </div>
           </SectionWrapper>
         );
@@ -336,25 +645,48 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
         if (sectionId.startsWith('custom_')) {
           const customSec = data.customSections?.find(s => s.id === sectionId);
           if (!customSec || !customSec.items.length) return null;
-          const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description);
+          const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems.length) return null;
 
           return (
             <SectionWrapper key={sectionId} sectionId={sectionId}>
               <div className="resume-section-header">{customSec.label || 'Custom'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-                {validItems.map((item, i) => (
-                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                    <div className="resume-exp-header">
-                      {item.title && <span className="resume-company">{item.title}</span>}
-                      {item.date && <span className="resume-dates">{item.date}</span>}
+                {validItems.map((item, i) => {
+                  const itemContent = item.isSpacer ? (
+                    printMode ? (
+                      <div style={{ height: `${item.height}px` }} />
+                    ) : (
+                      <NestedSpacer 
+                        height={item.height} 
+                        onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })}
+                        onDelete={() => onItemDelete(sectionId, i)}
+                      />
+                    )
+                  ) : (
+                    <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                      <div className="resume-exp-header">
+                        {item.title && <span className="resume-company">{item.title}</span>}
+                        {item.date && <span className="resume-dates">{item.date}</span>}
+                      </div>
+                      {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                      {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                        {parseMarkdown(item.description)}
+                      </div>}
                     </div>
-                    {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
-                    {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
-                      {parseMarkdown(item.description)}
-                    </div>}
-                  </div>
-                ))}
+                  );
+
+                  return (
+                    <div key={item.id || i}>
+                      {!printMode && i > 0 && (
+                        <InsertSpacerButton onClick={() => onAddSpacer(sectionId, i)} />
+                      )}
+                      <ItemWrapper sectionId={sectionId} itemId={item.id} index={i}>
+                        {itemContent}
+                      </ItemWrapper>
+                    </div>
+                  );
+                })}
               </div>
             </SectionWrapper>
           );
@@ -406,19 +738,75 @@ function ResumePreview({ data, layout = {}, language = 'en', compact = false, pr
             </div>
           ) : template === 'modern' ? (
             <div ref={contentRef} style={{ height: '100%' }}>
-              <ModernTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+              <ModernTemplate 
+                data={data} 
+                layout={layout} 
+                language={language} 
+                onSectionClick={!printMode ? onSectionClick : undefined} 
+                SectionWrapper={SectionWrapper}
+                ItemWrapper={ItemWrapper}
+                NestedSpacer={NestedSpacer}
+                InsertSpacerButton={InsertSpacerButton}
+                onItemReorder={onItemReorder}
+                onItemDelete={onItemDelete}
+                onItemUpdate={onItemUpdate}
+                onAddSpacer={onAddSpacer}
+                printMode={printMode}
+              />
             </div>
           ) : template === 'njm' ? (
             <div ref={contentRef}>
-              <NjmTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+              <NjmTemplate 
+                data={data} 
+                layout={layout} 
+                language={language} 
+                onSectionClick={!printMode ? onSectionClick : undefined} 
+                SectionWrapper={SectionWrapper}
+                ItemWrapper={ItemWrapper}
+                NestedSpacer={NestedSpacer}
+                InsertSpacerButton={InsertSpacerButton}
+                onItemReorder={onItemReorder}
+                onItemDelete={onItemDelete}
+                onItemUpdate={onItemUpdate}
+                onAddSpacer={onAddSpacer}
+                printMode={printMode}
+              />
             </div>
           ) : template === 'creative' ? (
             <div ref={contentRef}>
-              <CreativeTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+              <CreativeTemplate 
+                data={data} 
+                layout={layout} 
+                language={language} 
+                onSectionClick={!printMode ? onSectionClick : undefined} 
+                SectionWrapper={SectionWrapper}
+                ItemWrapper={ItemWrapper}
+                NestedSpacer={NestedSpacer}
+                InsertSpacerButton={InsertSpacerButton}
+                onItemReorder={onItemReorder}
+                onItemDelete={onItemDelete}
+                onItemUpdate={onItemUpdate}
+                onAddSpacer={onAddSpacer}
+                printMode={printMode}
+              />
             </div>
           ) : template === 'minimalist' ? (
             <div ref={contentRef}>
-              <MinimalistTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+              <MinimalistTemplate 
+                data={data} 
+                layout={layout} 
+                language={language} 
+                onSectionClick={!printMode ? onSectionClick : undefined} 
+                SectionWrapper={SectionWrapper}
+                ItemWrapper={ItemWrapper}
+                NestedSpacer={NestedSpacer}
+                InsertSpacerButton={InsertSpacerButton}
+                onItemReorder={onItemReorder}
+                onItemDelete={onItemDelete}
+                onItemUpdate={onItemUpdate}
+                onAddSpacer={onAddSpacer}
+                printMode={printMode}
+              />
             </div>
           ) : (
             <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>

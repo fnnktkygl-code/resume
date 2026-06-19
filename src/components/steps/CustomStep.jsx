@@ -11,9 +11,11 @@ export default function CustomStep({ section, onChange, onDelete }) {
     onChange({ ...section, label });
   };
 
-  const updateItem = (index, field, val) => {
+  const visibleItems = section.items.filter(e => !e.isSpacer);
+
+  const updateItem = (realIdx, field, val) => {
     const updatedItems = [...section.items];
-    updatedItems[index] = { ...updatedItems[index], [field]: val };
+    updatedItems[realIdx] = { ...updatedItems[realIdx], [field]: val };
     onChange({ ...section, items: updatedItems });
   };
 
@@ -21,9 +23,9 @@ export default function CustomStep({ section, onChange, onDelete }) {
     onChange({ ...section, items: [...section.items, createEmptyCustomItem()] });
   };
 
-  const removeItem = (idx) => {
-    if (section.items.length <= 1) return;
-    const updatedItems = section.items.filter((_, i) => i !== idx);
+  const removeItem = (realIdx) => {
+    if (visibleItems.length <= 1) return;
+    const updatedItems = section.items.filter((_, i) => i !== realIdx);
     onChange({ ...section, items: updatedItems });
   };
 
@@ -108,57 +110,60 @@ export default function CustomStep({ section, onChange, onDelete }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {section.items.map((item, ii) => (
-          <div key={item.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div className="card-title">{section.label || t('Item')} {section.items.length > 1 ? `#${ii + 1}` : ''}</div>
-              {section.items.length > 1 && (
-                <button className="btn-danger" onClick={() => removeItem(ii)}>{t('Remove')}</button>
-              )}
-            </div>
-            
-            <div className="field-grid">
-              <Field label={fields.titleLabel} full={!fields.showSubtitle && !fields.showDate}>
-                <TextInput 
-                  value={item.title} 
-                  onChange={(v) => updateItem(ii, 'title', v)} 
-                  placeholder={fields.titlePlaceholder} 
-                />
-              </Field>
-              {fields.showSubtitle && (
-                <Field label={fields.subtitleLabel}>
-                  <TextInput 
-                    value={item.subtitle} 
-                    onChange={(v) => updateItem(ii, 'subtitle', v)} 
-                    placeholder={fields.subtitlePlaceholder} 
-                  />
-                </Field>
-              )}
-              {fields.showDate && (
-                <Field label={fields.dateLabel}>
-                  <TextInput 
-                    value={item.date} 
-                    onChange={(v) => updateItem(ii, 'date', v)} 
-                    placeholder={fields.datePlaceholder} 
-                  />
-                </Field>
-              )}
-            </div>
-            
-            {fields.showDescription && (
-              <div style={{ marginTop: '16px' }}>
-                <Field label={fields.descLabel} full>
-                  <TextArea 
-                    value={item.description} 
-                    onChange={(v) => updateItem(ii, 'description', v)} 
-                    placeholder={fields.descPlaceholder} 
-                    rows={3} 
-                  />
-                </Field>
+        {visibleItems.map((item, ii) => {
+          const realIdx = section.items.findIndex(x => x.id === item.id);
+          return (
+            <div key={item.id} className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className="card-title">{section.label || t('Item')} {visibleItems.length > 1 ? `#${ii + 1}` : ''}</div>
+                {visibleItems.length > 1 && (
+                  <button className="btn-danger" onClick={() => removeItem(realIdx)}>{t('Remove')}</button>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+              
+              <div className="field-grid">
+                <Field label={fields.titleLabel} full={!fields.showSubtitle && !fields.showDate}>
+                  <TextInput 
+                    value={item.title} 
+                    onChange={(v) => updateItem(realIdx, 'title', v)} 
+                    placeholder={fields.titlePlaceholder} 
+                  />
+                </Field>
+                {fields.showSubtitle && (
+                  <Field label={fields.subtitleLabel}>
+                    <TextInput 
+                      value={item.subtitle} 
+                      onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
+                      placeholder={fields.subtitlePlaceholder} 
+                    />
+                  </Field>
+                )}
+                {fields.showDate && (
+                  <Field label={fields.dateLabel}>
+                    <TextInput 
+                      value={item.date} 
+                      onChange={(v) => updateItem(realIdx, 'date', v)} 
+                      placeholder={fields.datePlaceholder} 
+                    />
+                  </Field>
+                )}
+              </div>
+              
+              {fields.showDescription && (
+                <div style={{ marginTop: '16px' }}>
+                  <Field label={fields.descLabel} full>
+                    <TextArea 
+                      value={item.description} 
+                      onChange={(v) => updateItem(realIdx, 'description', v)} 
+                      placeholder={fields.descPlaceholder} 
+                      rows={3} 
+                    />
+                  </Field>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <button className="btn-add" onClick={addItem}>+ {t('Add another item')}</button>

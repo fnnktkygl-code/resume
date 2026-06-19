@@ -47,14 +47,29 @@ function renderExperienceIcon(iconName) {
   }
 }
 
-function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, SectionWrapper }) {
+function NjmTemplate({ 
+  data, 
+  layout = {}, 
+  language = 'en', 
+  onSectionClick, 
+  SectionWrapper,
+  // New props:
+  ItemWrapper,
+  NestedSpacer,
+  InsertSpacerButton,
+  onItemReorder,
+  onItemDelete,
+  onItemUpdate,
+  onAddSpacer,
+  printMode = false
+}) {
   const t = (key) => getTranslation(language, key);
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
-  const validExp = data.experience.filter(e => e.company || e.title);
-  const validEdu = data.education.filter(e => e.institution || e.degree);
-  const validProj = data.projects.filter(pr => pr.name);
-  const validCert = data.certifications.filter(c => c.name);
+  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
+  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
+  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
+  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
   const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
 
   const h = data.headings || {};
@@ -196,46 +211,69 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, Secti
               <Icons.Briefcase /> {h.experience || t('WORK EXPERIENCE')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validExp.map((exp, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
-                      {renderExperienceIcon(exp.icon)} {exp.title}
-                    </span>
-                    <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                      {formatDate(exp.startMonth, exp.startYear)}
-                      {(exp.startMonth || exp.startYear) && ' — '}
-                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
-                    </span>
-                  </div>
-                  <div style={{ margin: '2px 0 4px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.95em' }}>
-                    {exp.link ? (
-                      <a 
-                        href={formatUrl(exp.link)} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        style={{ color: primaryColor, fontWeight: 'bold', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {exp.company} <Icons.ExternalLink />
-                      </a>
-                    ) : (
-                      <span style={{ color: primaryColor, fontWeight: 'bold' }}>
-                        {exp.company}
+              {validExp.map((exp, i) => {
+                const itemContent = exp.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${exp.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={exp.height} 
+                      onChangeHeight={(h) => onItemUpdate('experience', i, { ...exp, height: h })}
+                      onDelete={() => onItemDelete('experience', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
+                        {renderExperienceIcon(exp.icon)} {exp.title}
                       </span>
+                      <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        {formatDate(exp.startMonth, exp.startYear)}
+                        {(exp.startMonth || exp.startYear) && ' — '}
+                        {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
+                      </span>
+                    </div>
+                    <div style={{ margin: '2px 0 4px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.95em' }}>
+                      {exp.link ? (
+                        <a 
+                          href={formatUrl(exp.link)} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ color: primaryColor, fontWeight: 'bold', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {exp.company} <Icons.ExternalLink />
+                        </a>
+                      ) : (
+                        <span style={{ color: primaryColor, fontWeight: 'bold' }}>
+                          {exp.company}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
+                      {exp.bullets.filter(Boolean).map((b, bi) => (
+                        <div key={bi} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
+                          <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                          <div style={{ flex: 1 }}>{parseMarkdown(b)}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {exp.technologies && renderTags(exp.technologies)}
+                  </div>
+                );
+
+                return (
+                  <div key={exp.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('experience', i)} />
                     )}
+                    <ItemWrapper sectionId="experience" itemId={exp.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
-                    {exp.bullets.filter(Boolean).map((b, bi) => (
-                      <div key={bi} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
-                        <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
-                        <div style={{ flex: 1 }}>{parseMarkdown(b)}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {exp.technologies && renderTags(exp.technologies)}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -248,23 +286,46 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, Secti
               <Icons.Building /> {h.education || t('EDUCATION')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validEdu.map((edu, i) => (
-                <div key={i} style={{ display: 'flex', gap: '16px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div style={{ width: '50px', flexShrink: 0, textAlign: 'right', fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', paddingTop: '2px' }}>
-                    {edu.startYear && <div style={{ marginBottom: '2px' }}>{edu.startYear}</div>}
-                    {edu.endYear && <div>{edu.current ? t('PRESENT') : edu.endYear}</div>}
-                  </div>
-                  <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
-                    <div style={{ fontSize: '1.05em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {[edu.degree, edu.field].filter(Boolean).join(' EN ')}
+              {validEdu.map((edu, i) => {
+                const itemContent = edu.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${edu.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={edu.height} 
+                      onChangeHeight={(h) => onItemUpdate('education', i, { ...edu, height: h })}
+                      onDelete={() => onItemDelete('education', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ display: 'flex', gap: '16px', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div style={{ width: '50px', flexShrink: 0, textAlign: 'right', fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', paddingTop: '2px' }}>
+                      {edu.startYear && <div style={{ marginBottom: '2px' }}>{edu.startYear}</div>}
+                      {edu.endYear && <div>{edu.current ? t('PRESENT') : edu.endYear}</div>}
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.95em', color: grayColor, marginTop: '2px' }}>
-                      <span style={{ color: grayColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
-                      {edu.institution}
+                    <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
+                      <div style={{ fontSize: '1.05em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {[edu.degree, edu.field].filter(Boolean).join(' EN ')}
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.95em', color: grayColor, marginTop: '2px' }}>
+                        <span style={{ color: grayColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                        {edu.institution}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+
+                return (
+                  <div key={edu.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('education', i)} />
+                    )}
+                    <ItemWrapper sectionId="education" itemId={edu.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -324,26 +385,49 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, Secti
               <Icons.Briefcase /> {h.projects || t('PROJECTS')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-              {validProj.map((pr, i) => (
-                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
-                      {pr.name}
-                    </span>
-                    {pr.link && <span style={{ fontSize: '0.85em', color: primaryColor }}>{pr.link}</span>}
+              {validProj.map((pr, i) => {
+                const itemContent = pr.isSpacer ? (
+                  printMode ? (
+                    <div style={{ height: `${pr.height}px` }} />
+                  ) : (
+                    <NestedSpacer 
+                      height={pr.height} 
+                      onChangeHeight={(h) => onItemUpdate('projects', i, { ...pr, height: h })}
+                      onDelete={() => onItemDelete('projects', i)}
+                    />
+                  )
+                ) : (
+                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
+                        {pr.name}
+                      </span>
+                      {pr.link && <span style={{ fontSize: '0.85em', color: primaryColor }}>{pr.link}</span>}
+                    </div>
+                    {pr.description && <div style={{ fontSize: '0.9em', color: grayColor, margin: '2px 0' }}>{parseMarkdown(pr.description)}</div>}
+                    {pr.techStack && renderTags(pr.techStack)}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                      {pr.highlights.filter(Boolean).map((hl, hli) => (
+                        <div key={hli} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
+                          <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
+                          <div style={{ flex: 1 }}>{parseMarkdown(hl)}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  {pr.description && <div style={{ fontSize: '0.9em', color: grayColor, margin: '2px 0' }}>{parseMarkdown(pr.description)}</div>}
-                  {pr.techStack && renderTags(pr.techStack)}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                    {pr.highlights.filter(Boolean).map((hl, hli) => (
-                      <div key={hli} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
-                        <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
-                        <div style={{ flex: 1 }}>{parseMarkdown(hl)}</div>
-                      </div>
-                    ))}
+                );
+
+                return (
+                  <div key={pr.id || i}>
+                    {!printMode && i > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSpacer('projects', i)} />
+                    )}
+                    <ItemWrapper sectionId="projects" itemId={pr.id} index={i}>
+                      {itemContent}
+                    </ItemWrapper>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Wrapper>
         );
@@ -353,7 +437,7 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, Secti
           const sec = data.customSections?.find(s => s.id === sectionId);
           if (!sec || matchedIds.has(sec.id)) return null;
           
-          const validItems = sec.items.filter(i => i.title || i.subtitle || i.description);
+          const validItems = sec.items.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems.length) return null;
 
           return (
@@ -362,32 +446,55 @@ function NjmTemplate({ data, layout = {}, language = 'en', onSectionClick, Secti
                 <Icons.PlusCircle /> {sec.label || t('Custom Section')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
-                {validItems.map((item, i) => (
-                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      {item.title && (
-                        <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
-                          {item.title}
-                        </span>
+                {validItems.map((item, i) => {
+                  const itemContent = item.isSpacer ? (
+                    printMode ? (
+                      <div style={{ height: `${item.height}px` }} />
+                    ) : (
+                      <NestedSpacer 
+                        height={item.height} 
+                        onChangeHeight={(h) => onItemUpdate(sec.id, i, { ...item, height: h })}
+                        onDelete={() => onItemDelete(sec.id, i)}
+                      />
+                    )
+                  ) : (
+                    <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        {item.title && (
+                          <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
+                            {item.title}
+                          </span>
+                        )}
+                        {item.date && (
+                          <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase' }}>
+                            {item.date}
+                          </span>
+                        )}
+                      </div>
+                      {item.subtitle && (
+                        <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px' }}>
+                          {item.subtitle}
+                        </div>
                       )}
-                      {item.date && (
-                        <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase' }}>
-                          {item.date}
-                        </span>
+                      {item.description && (
+                        <div style={{ fontSize: '0.9em', color: grayColor, marginTop: '4px', whiteSpace: 'pre-line' }}>
+                          {parseMarkdown(item.description)}
+                        </div>
                       )}
                     </div>
-                    {item.subtitle && (
-                      <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px' }}>
-                        {item.subtitle}
-                      </div>
-                    )}
-                    {item.description && (
-                      <div style={{ fontSize: '0.9em', color: grayColor, marginTop: '4px', whiteSpace: 'pre-line' }}>
-                        {parseMarkdown(item.description)}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+
+                  return (
+                    <div key={item.id || i}>
+                      {!printMode && i > 0 && (
+                        <InsertSpacerButton onClick={() => onAddSpacer(sec.id, i)} />
+                      )}
+                      <ItemWrapper sectionId={sec.id} itemId={item.id} index={i}>
+                        {itemContent}
+                      </ItemWrapper>
+                    </div>
+                  );
+                })}
               </div>
             </Wrapper>
           );

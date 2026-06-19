@@ -2291,3 +2291,242 @@ input[type="range"] {
   margin-bottom: 0;
 }
 
+/* ============================================
+   Nested Drag and Drop & Spacers
+   ============================================ */
+
+/* Draggable Items inside sections */
+.draggable-item {
+  position: relative;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.draggable-item:hover {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .draggable-item:hover {
+  background-color: rgba(74, 222, 128, 0.08);
+  border-color: var(--color-accent);
+}
+
+/* Draggable Item Actions (handle, delete) */
+.item-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 20;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 2px 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.draggable-item:hover .item-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.item-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  padding: 4px;
+  color: var(--color-text-secondary);
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.item-drag-handle:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.item-drag-handle:active {
+  cursor: grabbing;
+}
+
+.item-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-muted);
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.item-delete:hover {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+/* Drag State Styling */
+.draggable-item.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--color-accent) !important;
+  background-color: var(--color-accent-light) !important;
+}
+
+.draggable-item.drag-over {
+  border-bottom: 2px solid var(--color-accent) !important;
+}
+
+/* Insert Spacer between items */
+.insert-spacer-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  margin: -8px 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.insert-spacer-container:hover {
+  opacity: 1;
+}
+
+.insert-spacer-line {
+  flex: 1;
+  height: 1px;
+  border-top: 1px dotted var(--color-accent);
+}
+
+.insert-spacer-btn {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+.insert-spacer-btn:hover {
+  transform: scale(1.15);
+  box-shadow: var(--shadow-md);
+  background: var(--color-accent-hover);
+}
+
+/* Interactive Nested Spacer */
+.nested-spacer-interactive {
+  width: 100%;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  border: 1px dashed var(--color-border);
+  background-color: rgba(var(--resume-accent-rgb, 27, 107, 58), 0.03);
+  border-radius: var(--radius-sm);
+}
+
+.nested-spacer-interactive:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(var(--resume-accent-rgb, 27, 107, 58), 0.08);
+}
+
+.nested-spacer-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.02) 10px, rgba(0, 0, 0, 0.02) 20px);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .nested-spacer-bg {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px);
+}
+
+.nested-spacer-controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 4px 12px;
+  box-shadow: var(--shadow-md);
+  z-index: 15;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.nested-spacer-interactive:hover .nested-spacer-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nested-spacer-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nested-spacer-slider {
+  width: 100px !important;
+  height: 4px !important;
+  margin: 0 !important;
+}
+
+.nested-spacer-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.nested-spacer-delete:hover {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+/* Hide spacer interaction when printing */
+@media print {
+  .nested-spacer-interactive {
+    border: none !important;
+    background: none !important;
+  }
+  .nested-spacer-bg,
+  .nested-spacer-controls,
+  .item-actions,
+  .insert-spacer-container {
+    display: none !important;
+  }
+}
+
