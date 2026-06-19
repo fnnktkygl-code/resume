@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 
 import { getTranslation } from '../utils/translations';
 
@@ -36,7 +36,7 @@ function ModernTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      const skillsArray = formatSkills(skillsString).split(',').map(s => s.trim()).filter(Boolean);
       return (
         <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>
           {skillsArray.map((skill, si) => (
@@ -49,7 +49,7 @@ function ModernTemplate({
       );
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
+    return formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
   };
 
   const p = data.personal;

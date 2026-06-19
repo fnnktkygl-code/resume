@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 function MinimalistTemplate({ 
@@ -34,8 +34,8 @@ function MinimalistTemplate({
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
-    if (style === 'text' || !layout.skillStyle) {
-      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+    if (style === 'text') {
+      const skillsArray = formatSkills(skillsString).split(',').map(s => s.trim()).filter(Boolean);
       return (
         <span style={{ fontSize: '9pt', color: textColor, lineHeight: '1.5' }}>
           {skillsArray.map((skill, si) => (
@@ -49,8 +49,8 @@ function MinimalistTemplate({
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return (
-      <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
       </div>
     );
   };

@@ -1,5 +1,12 @@
 import React from 'react';
 
+export function formatSkills(skillsString) {
+  if (!skillsString) return skillsString;
+  return skillsString.replace(/\*\*([^\*]+)\*\*/g, (match, p1) => {
+    return p1.split(',').map(s => `**${s.trim()}**`).join(', ');
+  });
+}
+
 export function parseMarkdown(text) {
   if (!text) return text;
   if (typeof text !== 'string') return text;

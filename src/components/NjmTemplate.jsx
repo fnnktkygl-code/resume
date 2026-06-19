@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 const Icons = {
@@ -90,7 +90,7 @@ function NjmTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      const skillsArray = formatSkills(skillsString).split(',').map(s => s.trim()).filter(Boolean);
       return (
         <span style={{ lineHeight: '1.5' }}>
           {skillsArray.map((skill, si) => (
@@ -105,7 +105,7 @@ function NjmTemplate({
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return (
       <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
+        {formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
       </div>
     );
   };

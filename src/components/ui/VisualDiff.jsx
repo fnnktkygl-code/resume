@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
+import { parseMarkdown } from '../../utils/formatText';
 
 /**
  * VisualDiff component with granular checkbox selection.
@@ -233,7 +234,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
                     textDecoration: 'line-through',
                     wordBreak: 'break-word'
                   }}>
-                    {item.original || `(${t('Empty')})`}
+                    {item.original ? parseMarkdown(item.original) : `(${t('Empty')})`}
                   </div>
                   <div style={{
                     padding: '6px 10px',
@@ -244,7 +245,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
                     color: 'var(--color-text)',
                     wordBreak: 'break-word'
                   }}>
-                    {item.modified}
+                    {parseMarkdown(item.modified)}
                   </div>
                 </div>
               </div>

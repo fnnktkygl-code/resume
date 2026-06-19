@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
 const Icons = {
@@ -42,7 +42,7 @@ function CreativeTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      const skillsArray = formatSkills(skillsString).split(',').map(s => s.trim()).filter(Boolean);
       return (
         <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>
           {skillsArray.map((skill, si) => (
@@ -55,7 +55,7 @@ function CreativeTemplate({
       );
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
+    return formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
   };
 
   const p = data.personal;
@@ -249,7 +249,7 @@ function CreativeTemplate({
                         {exp.link ? <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>{exp.company}</a> : exp.company}
                       </h3>
                       <div style={{ marginTop: '8px', paddingLeft: '12px', borderLeft: `2px solid var(--resume-border-color, #eee)` }}>
-                        {exp.bullets.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet" style={{ marginBottom: '4px' }}><span style={{ color: primaryColor, marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>)}
+                        {exp.bullets?.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet" style={{ marginBottom: '4px' }}><span style={{ color: primaryColor, marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>)}
                       </div>
                     </div>
                   </div>
@@ -311,7 +311,7 @@ function CreativeTemplate({
                     </div>
                     {pr.description && <div style={{ fontSize: '0.95em', color: 'var(--resume-text-secondary)', marginBottom: '8px' }}>{pr.description}</div>}
                     <div style={{ paddingLeft: '12px', borderLeft: `2px solid var(--resume-border-color, #eee)` }}>
-                      {pr.highlights.filter(Boolean).map((h, hi) => <div key={hi} className="resume-bullet" style={{ marginBottom: '4px' }}><span style={{ color: primaryColor, marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>)}
+                      {pr.highlights?.filter(Boolean).map((h, hi) => <div key={hi} className="resume-bullet" style={{ marginBottom: '4px' }}><span style={{ color: primaryColor, marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>)}
                     </div>
                   </div>
                 );
