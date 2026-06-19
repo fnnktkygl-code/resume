@@ -36,8 +36,8 @@ export default function LayoutControls({ layout, onChange }) {
         <button className="btn-secondary" onClick={resetLayout} style={{ padding: '4px 8px', fontSize: '11px' }}>{t('Reset Layout')}</button>
       </div>
 
-      {/* Accent Color & Font Family Selection */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
+      {/* Accent Color, Font Family & Skill Style Selection */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }}>{t('Accent Color')}</label>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
@@ -83,6 +83,29 @@ export default function LayoutControls({ layout, onChange }) {
             <option value="Inter">{t('Classic Sans (Inter)')}</option>
             <option value="Fraunces, Georgia, serif">{t('Elegant Serif (Fraunces)')}</option>
             <option value="JetBrains Mono, monospace">{t('Modern Mono (JetBrains)')}</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="skill-style-select">{t('Skill Style')}</label>
+          <select
+            id="skill-style-select"
+            value={layout.skillStyle || 'pill'}
+            onChange={(e) => handleUpdate('skillStyle', e.target.value)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="pill">{t('Rounded Circles')}</option>
+            <option value="square">{t('Squares')}</option>
+            <option value="text">{t('Simple Text')}</option>
           </select>
         </div>
       </div>

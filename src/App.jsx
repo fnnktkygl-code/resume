@@ -620,8 +620,8 @@ export default function App() {
     setStep(step + 1);
   };
 
-  const handleAddSectionSpacer = useCallback((indexInOrder) => {
-    const newSpacer = createEmptySpacer();
+  const handleAddSectionSpacer = useCallback((indexInOrder, column = 'main') => {
+    const newSpacer = createEmptySpacer(column);
     setData(prev => {
       const newOrder = [...prev.sectionOrder];
       newOrder.splice(indexInOrder, 0, newSpacer.id);
@@ -631,6 +631,23 @@ export default function App() {
         sectionOrder: newOrder
       };
     });
+  }, []);
+
+  const handleUpdateSectionSpacer = useCallback((spacerId, height) => {
+    setData(prev => ({
+      ...prev,
+      customSections: (prev.customSections || []).map(s => 
+        s.id === spacerId ? { ...s, height } : s
+      )
+    }));
+  }, []);
+
+  const handleDeleteSectionSpacer = useCallback((spacerId) => {
+    setData(prev => ({
+      ...prev,
+      sectionOrder: prev.sectionOrder.filter(id => id !== spacerId),
+      customSections: prev.customSections.filter(s => s.id !== spacerId)
+    }));
   }, []);
 
   const handleImport = useCallback((imported) => {
@@ -900,6 +917,9 @@ export default function App() {
             experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Experiencia Profesional') ? 'Expériences Professionnelles' : nextData.headings.experience,
             education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Educación') ? 'Formation' : nextData.headings.education,
             skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Habilidades') ? 'Compétences' : nextData.headings.skills,
+            languages: (nextData.headings.languages === 'Languages' || nextData.headings.languages === 'Idiomas') ? 'Langues' : nextData.headings.languages,
+            technical: (nextData.headings.technical === 'Technical Skills' || nextData.headings.technical === 'Habilidades técnicas') ? 'Compétences Techniques' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Soft Skills' || nextData.headings.interpersonal === 'Aptitudes') ? 'Savoir-être' : nextData.headings.interpersonal,
             projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Proyectos') ? 'Projets' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Presente') ? 'Présent' : nextData.headings.present
@@ -926,6 +946,9 @@ export default function App() {
             experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Expériences Professionnelles') ? 'Experiencia Profesional' : nextData.headings.experience,
             education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Formation') ? 'Educación' : nextData.headings.education,
             skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Compétences') ? 'Habilidades' : nextData.headings.skills,
+            languages: (nextData.headings.languages === 'Languages' || nextData.headings.languages === 'Langues') ? 'Idiomas' : nextData.headings.languages,
+            technical: (nextData.headings.technical === 'Technical Skills' || nextData.headings.technical === 'Compétences Techniques') ? 'Habilidades Técnicas' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Soft Skills' || nextData.headings.interpersonal === 'Savoir-être') ? 'Aptitudes' : nextData.headings.interpersonal,
             projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Projets') ? 'Proyectos' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certifications') ? 'Certificaciones' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Présent') ? 'Presente' : nextData.headings.present
@@ -952,6 +975,9 @@ export default function App() {
             experience: (nextData.headings.experience === 'Expériences Professionnelles' || nextData.headings.experience === 'Experiencia Profesional') ? 'Work Experience' : nextData.headings.experience,
             education: (nextData.headings.education === 'Formation' || nextData.headings.education === 'Educación') ? 'Education' : nextData.headings.education,
             skills: (nextData.headings.skills === 'Compétences' || nextData.headings.skills === 'Habilidades') ? 'Skills' : nextData.headings.skills,
+            languages: (nextData.headings.languages === 'Langues' || nextData.headings.languages === 'Idiomas') ? 'Languages' : nextData.headings.languages,
+            technical: (nextData.headings.technical === 'Compétences Techniques' || nextData.headings.technical === 'Habilidades Técnicas') ? 'Technical Skills' : nextData.headings.technical,
+            interpersonal: (nextData.headings.interpersonal === 'Savoir-être' || nextData.headings.interpersonal === 'Aptitudes') ? 'Soft Skills' : nextData.headings.interpersonal,
             projects: (nextData.headings.projects === 'Projets' || nextData.headings.projects === 'Proyectos') ? 'Projects' : nextData.headings.projects,
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Présent' || nextData.headings.present === 'Presente') ? 'Present' : nextData.headings.present
@@ -1190,7 +1216,14 @@ export default function App() {
                 <EducationStep data={data.education} onChange={(v) => setData({ ...data, education: v })} />
               )}
               {currentId === 'skills' && (
-                <SkillsStep data={data.skills} onChange={(v) => setData({ ...data, skills: v })} />
+                <SkillsStep 
+                  data={data.skills} 
+                  onChange={(v) => setData({ ...data, skills: v })} 
+                  headings={data.headings}
+                  onHeadingsChange={(v) => setData({ ...data, headings: v })}
+                  layout={layout}
+                  onLayoutChange={setLayout}
+                />
               )}
               {currentId === 'projects' && (
                 <ProjectsStep 
@@ -1574,6 +1607,8 @@ export default function App() {
                 onItemUpdate={handleItemUpdate}
                 onAddSpacer={handleItemAddSpacer}
                 onAddSectionSpacer={handleAddSectionSpacer}
+                onUpdateSectionSpacer={handleUpdateSectionSpacer}
+                onDeleteSectionSpacer={handleDeleteSectionSpacer}
                 compact 
               />
             </aside>
@@ -1720,6 +1755,8 @@ export default function App() {
                 onItemUpdate={handleItemUpdate}
                 onAddSpacer={handleItemAddSpacer}
                 onAddSectionSpacer={handleAddSectionSpacer}
+                onUpdateSectionSpacer={handleUpdateSectionSpacer}
+                onDeleteSectionSpacer={handleDeleteSectionSpacer}
               />
             </div>
           </div>

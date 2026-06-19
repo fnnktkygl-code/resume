@@ -203,18 +203,14 @@ export const enhanceWithProxy = async (textData, contextType) => {
   }
 };
 
-/**
- * Parses raw text or Base64 PDF from a file into the internal Resume JSON format
- * via the secure Vercel Serverless Function proxy.
- */
-export const importResumeWithProxy = async ({ text, base64Data, mimeType }) => {
+export const importResumeWithProxy = async ({ text, base64Data, mimeType, language }) => {
   try {
     const response = await fetch('/api/parse', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text, base64Data, mimeType, mode: 'parse_only' }),
+      body: JSON.stringify({ text, base64Data, mimeType, mode: 'parse_only', language }),
     });
 
     let data;
@@ -248,14 +244,14 @@ export const importResumeWithProxy = async ({ text, base64Data, mimeType }) => {
  * Enhances a previously parsed resume JSON using AI.
  * Calls the same parse endpoint but with mode: 'parse_and_enhance'.
  */
-export const enhanceResumeWithProxy = async (resumeData) => {
+export const enhanceResumeWithProxy = async (resumeData, language) => {
   try {
     const response = await fetch('/api/parse', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text: JSON.stringify(resumeData), mode: 'parse_and_enhance' }),
+      body: JSON.stringify({ text: JSON.stringify(resumeData), mode: 'parse_and_enhance', language }),
     });
 
     const data = await response.json();

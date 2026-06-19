@@ -20,8 +20,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { text, base64Data, mimeType, mode } = req.body;
+  const { text, base64Data, mimeType, mode, language } = req.body;
   const enhanceMode = mode || 'parse_only';
+  const targetLangStr = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
 
   if (!text && !base64Data) {
     res.status(400).json({ error: 'Text or file content is required' });
@@ -46,7 +47,7 @@ IMPORTANT: You are ONLY a parser. Extract the data EXACTLY as written. Do NOT re
 
 CRITICAL RULES:
 1. EXTRACT FAITHFULLY: Copy all text exactly as it appears. Do NOT improve bullet points, rewrite descriptions, or add action verbs.
-2. DETECT LANGUAGE: Detect the language of the resume and add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
+2. LANGUAGE: Ensure all the extracted text translates exactly to ${language ? targetLangStr : 'the detected language of the resume'} if it is not already. Add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
 3. SKILLS: Extract skills exactly as written. Do NOT infer or add skills that are not explicitly listed.
 4. TAGLINE: Only extract a tagline if it is explicitly written in the resume. Otherwise leave it as "".
 5. BULLET POINTS: Remove leading bullet characters ('>', '-', '•') but keep the text identical.
@@ -110,16 +111,13 @@ Your job is to read the raw text or the provided document of a user's resume and
 IMPORTANT: You are not just a parser, you are an ENHANCER.
 
 CRITICAL LANGUAGE RULE:
-- DETECT the language of the original resume (French, English, Spanish, etc.).
-- ALL enhanced text MUST be written in the SAME language as the original resume.
-- If the CV is in French, ALL output text (summary, bullets, skills, etc.) MUST be in French.
-- If the CV is in English, ALL output text MUST be in English.
-- NEVER translate to a different language. Preserve the original language.
+- ALL enhanced text MUST be written in ${language ? targetLangStr : 'the EXACT SAME language as the original resume'}.
+- NEVER translate to a different language unless specified. Preserve the target language.
 - Add a "detectedLanguage" field at the root of the JSON with the ISO code (e.g. "fr", "en", "es").
 
 CRITICAL ENHANCEMENT RULES:
-1. ENHANCE DESCRIPTIONS: If a job's bullet points are too brief, vague, or weak, you MUST rewrite and expand them professionally based on the job title. Use strong action verbs. Keep it realistic, credible, and maintain a natural human tone (do not sound like a robotic AI). ALWAYS IN THE ORIGINAL LANGUAGE.
-2. INFER SKILLS (TAGS): If the user does not explicitly list their skills, you MUST deduce them from their job descriptions and add them to the appropriate skills category (e.g., if they worked in retail, add "Customer Service", "Inventory Management", "Sales"). Write skills in the original language.
+1. ENHANCE DESCRIPTIONS: If a job's bullet points are too brief, vague, or weak, you MUST rewrite and expand them professionally based on the job title. Use strong action verbs. Keep it realistic, credible, and maintain a natural human tone (do not sound like a robotic AI). ALWAYS OUTPUT IN ${language ? targetLangStr : 'THE ORIGINAL LANGUAGE'}.
+2. INFER SKILLS (TAGS): If the user does not explicitly list their skills, you MUST deduce them from their job descriptions and add them to the appropriate skills category (e.g., if they worked in retail, add "Customer Service", "Inventory Management", "Sales"). Write skills in ${language ? targetLangStr : 'the original language'}.
 3. SKILLS CATEGORIZATION: 
    - 'technical' is strictly for IT/Programming/Software/Tools (e.g. Python, Excel, React). 
    - If the user is in customer service, sales, retail, or management, put their skills under 'soft', NOT 'technical'.
@@ -133,7 +131,7 @@ Required JSON Structure:
 {
   "detectedLanguage": "fr or en or es",
   "personal": { "name": "", "tagline": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": "" },
-  "summary": "A brief summary of the profile. Enhance this professionally if it's too short. IN THE ORIGINAL LANGUAGE.",
+  "summary": "A brief summary of the profile. Enhance this professionally if it's too short. IN THE REQUIRED LANGUAGE.",
   "experience": [
     {
       "company": "",
@@ -143,7 +141,7 @@ Required JSON Structure:
       "endMonth": "",
       "endYear": "",
       "current": false,
-      "bullets": ["Professionally enhanced bullet 1 IN ORIGINAL LANGUAGE", "Professionally enhanced bullet 2 IN ORIGINAL LANGUAGE"],
+      "bullets": ["Professionally enhanced bullet 1 IN REQUIRED LANGUAGE", "Professionally enhanced bullet 2 IN REQUIRED LANGUAGE"],
       "technologies": ""
     }
   ],
@@ -178,7 +176,7 @@ Required JSON Structure:
   ]
 }
 
-Parse and strategically enhance the provided resume IN ITS ORIGINAL LANGUAGE, returning ONLY the JSON object.`;
+Parse and strategically enhance the provided resume, returning ONLY the JSON object IN THE REQUIRED LANGUAGE (${language ? targetLangStr : 'DETECTED LANGUAGE'}).`;
     }
 
     let parts = [{ text: systemPrompt }];

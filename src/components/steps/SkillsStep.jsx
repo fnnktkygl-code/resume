@@ -1,9 +1,11 @@
 import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SkillsStep({ data, onChange }) {
+export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange }) {
   const { t } = useTranslation();
   const update = (field, val) => onChange({ ...data, [field]: val });
+  const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
+  const updateStyle = (val) => onLayoutChange && onLayoutChange({ ...layout, skillStyle: val });
   return (
     <div className="card">
       <div className="card-title">{t('Skills')}</div>
@@ -11,7 +13,46 @@ export default function SkillsStep({ data, onChange }) {
         {t('Separate skills with commas. These should also appear naturally in your experience bullets for semantic AI matching.')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <Field label={t('Skill Style')} full>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <select
+              value={layout?.skillStyle || 'pill'}
+              onChange={(e) => updateStyle(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                flex: 1
+              }}
+            >
+              <option value="pill">{t('Rounded Circles')}</option>
+              <option value="square">{t('Squares')}</option>
+              <option value="text">{t('Simple Text')}</option>
+            </select>
+          </div>
+        </Field>
+        <Field label={t('Skills Header')} full>
+          <TextInput 
+            value={headings?.skills || ''} 
+            onChange={(v) => updateHeading('skills', v)} 
+            placeholder={t('SKILLS & TOOLS')} 
+          />
+        </Field>
         <Field label={t('Technical Skills')} full>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <TextInput 
+                value={headings?.technical || ''} 
+                onChange={(v) => updateHeading('technical', v)} 
+                placeholder={t('Technical Skills Header')} 
+              />
+            </div>
+          </div>
           <TextArea
             value={data.technical}
             onChange={(v) => update('technical', v)}
@@ -20,7 +61,28 @@ export default function SkillsStep({ data, onChange }) {
           />
         </Field>
         <Field label={t('Soft Skills')} full>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <TextInput 
+                value={headings?.interpersonal || ''} 
+                onChange={(v) => updateHeading('interpersonal', v)} 
+                placeholder={t('Soft Skills Header')} 
+              />
+            </div>
+          </div>
           <TextInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile Project Management" />
+        </Field>
+        <Field label={t('Languages')} full>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <TextInput 
+                value={headings?.languages || ''} 
+                onChange={(v) => updateHeading('languages', v)} 
+                placeholder={t('Languages Header')} 
+              />
+            </div>
+          </div>
+          <TextInput value={data.languages || ''} onChange={(v) => update('languages', v)} placeholder="English, French, Spanish" />
         </Field>
       </div>
       <div className="tip">

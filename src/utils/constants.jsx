@@ -90,9 +90,9 @@ export function createEmptyCertification() {
   };
 }
 
-export function createEmptySpacer() {
+export function createEmptySpacer(column = 'main') {
   return {
-    id: `spacer_${safeUUID()}`,
+    id: `spacer_${column}_${safeUUID()}`,
     type: 'spacer',
     height: 32,
   };
@@ -195,5 +195,6 @@ export const DEFAULT_DATA = {
     }
   ],
   sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'],
+  sectionSpacers: {},
 };
 

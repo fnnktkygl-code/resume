@@ -17,6 +17,8 @@ function MinimalistTemplate({
   onItemUpdate,
   onAddSpacer,
   onAddSectionSpacer,
+  onUpdateSectionSpacer,
+  onDeleteSectionSpacer,
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
@@ -24,9 +26,25 @@ function MinimalistTemplate({
     if (!h[key]) return t(tKey);
     const val = h[key].trim();
     if (!val) return t(tKey);
-    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    const vLower = val.toLowerCase();
+    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
     return val;
   };
+
+  const renderSkills = (skillsString, defaultClass) => {
+    if (!skillsString) return null;
+    const style = layout.skillStyle || 'pill'; // Make Minimalist default to pill? Actually, its current default is text. Let's make it respect global skillStyle. Or default to 'text' for Minimalist if not set? We set layout.skillStyle default to 'pill' in App.jsx. So if it's Minimalist, maybe it used text originally. Let's keep 'text' as default if layout.skillStyle is undefined, but wait, layout.skillStyle defaults to 'pill' globally. It's fine to just use the global style.
+    if (style === 'text' || !layout.skillStyle) { // Minimalist default is text
+      return <span style={{ fontSize: '9pt', color: textColor, lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+    }
+    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+    return (
+      <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null)}
+      </div>
+    );
+  };
+
   const p = data.personal;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
@@ -63,8 +81,8 @@ function MinimalistTemplate({
 
   const formatDate = (m, y) => {
     if (!m && !y) return '';
-    if (m && y) return `${m} ${y}`;
-    return y || m || '';
+    if (m && y) return `${t(m)} ${y}`;
+    return y || t(m) || '';
   };
 
   const primaryColor = layout.accentColor || '#1B6B3A';
@@ -223,20 +241,20 @@ function MinimalistTemplate({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {data.skills.technical && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}:</span>
-                  <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.technical}</span>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px', flexShrink: 0 }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}:</span>
+                  {renderSkills(data.skills.technical, 'skill-pill-accent')}
                 </div>
               )}
               {data.skills.soft && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}:</span>
-                  <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.soft}</span>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px', flexShrink: 0 }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}:</span>
+                  {renderSkills(data.skills.soft, 'skill-pill')}
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px' }}>{displayHeading('languages', 'Languages', 'Languages')}:</span>
-                  <span style={{ fontSize: '9pt', color: textColor }}>{data.skills.languages}</span>
+                  <span style={{ fontSize: '8.5pt', fontWeight: 'bold', color: 'var(--resume-text-secondary, #555)', display: 'inline-block', width: '100px', flexShrink: 0 }}>{displayHeading('languages', 'Languages', 'Languages')}:</span>
+                  {renderSkills(data.skills.languages, 'skill-pill-outline')}
                 </div>
               )}
             </div>
@@ -334,7 +352,19 @@ function MinimalistTemplate({
         if (sectionId.startsWith('spacer_')) {
           const spacerSec = data.customSections?.find(s => s.id === sectionId);
           if (!spacerSec) return null;
-          return <Wrapper {...getWrapProps(sectionId, { height: `${spacerSec.height}px` })} />;
+          return (
+            <Wrapper {...getWrapProps(sectionId)}>
+              {printMode ? (
+                <div style={{ height: `${spacerSec.height}px` }} />
+              ) : (
+                <NestedSpacer
+                  height={spacerSec.height}
+                  onChangeHeight={(h) => onUpdateSectionSpacer && onUpdateSectionSpacer(sectionId, h)}
+                  onDelete={() => onDeleteSectionSpacer && onDeleteSectionSpacer(sectionId)}
+                />
+              )}
+            </Wrapper>
+          );
         }
 
         if (sectionId.startsWith('custom_')) {
@@ -453,7 +483,7 @@ function MinimalistTemplate({
           return (
             <div key={sectionId}>
               {!printMode && onAddSectionSpacer && InsertSpacerButton && sectionIdx > 0 && (
-                <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+                <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId))} />
               )}
               {rendered}
             </div>

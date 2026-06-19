@@ -37,6 +37,8 @@ export default function ReorderSectionsModal({ isOpen, onClose, sectionOrder, cu
       return sec?.label || 'Custom';
     }
     if (id.startsWith('spacer_')) {
+      if (id.includes('_sidebar_')) return `${t('Spacer')} (Sidebar)`;
+      if (id.includes('_main_')) return `${t('Spacer')} (Main)`;
       return t('Spacer');
     }
     return id;

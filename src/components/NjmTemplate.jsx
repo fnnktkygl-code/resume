@@ -62,6 +62,8 @@ function NjmTemplate({
   onItemUpdate,
   onAddSpacer,
   onAddSectionSpacer,
+  onUpdateSectionSpacer,
+  onDeleteSectionSpacer,
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
@@ -79,8 +81,23 @@ function NjmTemplate({
     if (!h[key]) return t(tKey);
     const val = h[key].trim();
     if (!val) return t(tKey);
-    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    const vLower = val.toLowerCase();
+    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
     return val;
+  };
+
+  const renderSkills = (skillsString, defaultClass = 'skill-pill') => {
+    if (!skillsString) return null;
+    const style = layout.skillStyle || 'pill';
+    if (style === 'text') {
+      return <span style={{ lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+    }
+    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+    return (
+      <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null)}
+      </div>
+    );
   };
 
   const getWrapProps = (id) => {
@@ -140,8 +157,8 @@ function NjmTemplate({
 
   const formatDate = (m, y) => {
     if (!m && !y) return '';
-    if (m && y) return `${m} ${y}`;
-    return y || m || '';
+    if (m && y) return `${t(m)} ${y}`;
+    return y || t(m) || '';
   };
 
   const primaryColor = layout.accentColor || '#0F3A8C';
@@ -202,20 +219,20 @@ function NjmTemplate({
       case 'summary':
         if (!data.summary) return null;
         return (
-          <div key="summary" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('summary')} onClick={() => handleSectionClick('summary')}>
+          <Wrapper {...getWrapProps('summary')}>
             <div style={sectionHeaderStyle}>
               {displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}
             </div>
             <div style={{ fontWeight: '500', fontSize: '0.95em', color: textColor, textAlign: 'justify' }}>
               {parseMarkdown(data.summary)}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'experience':
         if (!validExp.length) return null;
         return (
-          <div key="experience" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('experience')} onClick={() => handleSectionClick('experience')}>
+          <Wrapper {...getWrapProps('experience')}>
             <div style={sectionHeaderStyle}>
               <Icons.Briefcase /> {displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}
             </div>
@@ -284,13 +301,13 @@ function NjmTemplate({
                 );
               })}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'education':
         if (!validEdu.length) return null;
         return (
-          <div key="education" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('education')} onClick={() => handleSectionClick('education')}>
+          <Wrapper {...getWrapProps('education')}>
             <div style={sectionHeaderStyle}>
               <Icons.Building /> {displayHeading('education', 'Education', 'EDUCATION')}
             </div>
@@ -336,20 +353,20 @@ function NjmTemplate({
                 );
               })}
             </div>
-          </div>
+          </Wrapper>
         );
 
       case 'skills':
         if (!hasSkills) return null;
         const skillsList = [];
         if (data.skills.technical) {
-          skillsList.push({ label: t('PROGRAMMING'), value: data.skills.technical });
+          skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical });
         }
         if (data.skills.soft) {
-          skillsList.push({ label: t('SOFT SKILLS'), value: data.skills.soft });
+          skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft });
         }
         return (
-          <div key="skills" className={onSectionClick ? "preview-interactive-section" : ""} style={wrapperStyle('skills')} onClick={() => handleSectionClick('skills')}>
+          <Wrapper {...getWrapProps('skills')}>
             <div style={sectionHeaderStyle}>
               <Icons.Lightbulb /> {displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}
             </div>
@@ -377,13 +394,13 @@ function NjmTemplate({
                       fontWeight: '500',
                       color: textColor
                     }}>
-                      {skill.value}
+                      {renderSkills(skill.value, 'skill-pill')}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </Wrapper>
         );
 
       case 'projects':
@@ -511,7 +528,19 @@ function NjmTemplate({
         if (sectionId.startsWith('spacer_')) {
           const spacerSec = data.customSections?.find(s => s.id === sectionId);
           if (!spacerSec) return null;
-          return <Wrapper {...getWrapProps(sectionId)} style={{ height: `${spacerSec.height}px` }} />;
+          return (
+            <Wrapper {...getWrapProps(sectionId)}>
+              {printMode ? (
+                <div style={{ height: `${spacerSec.height}px` }} />
+              ) : (
+                <NestedSpacer
+                  height={spacerSec.height}
+                  onChangeHeight={(h) => onUpdateSectionSpacer && onUpdateSectionSpacer(sectionId, h)}
+                  onDelete={() => onDeleteSectionSpacer && onDeleteSectionSpacer(sectionId)}
+                />
+              )}
+            </Wrapper>
+          );
         }
         return null;
     }
@@ -522,7 +551,7 @@ function NjmTemplate({
 
     // Column 1: Languages
     let langItems = [];
-    let langTitle = t('Languages');
+    let langTitle = displayHeading('languages', 'Languages', 'Languages');
     let langSectionId = 'skills';
     
     if (langSec) {
@@ -688,7 +717,7 @@ function NjmTemplate({
             return (
               <div key={sectionId}>
                 {!printMode && onAddSectionSpacer && InsertSpacerButton && sectionIdx > 0 && (
-                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId))} />
                 )}
                 {rendered}
               </div>

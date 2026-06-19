@@ -1,25 +1,38 @@
-import React, { useState } from 'react';
-import Modal from './Modal';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateCoverLetterWithProxy } from '../../services/geminiService';
 
 export default function CoverLetterModal({ isOpen, onClose, data }) {
   const { t, language } = useTranslation();
   const [jobDescription, setJobDescription] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [targetRole, setTargetRole] = useState('');
+  const [tone, setTone] = useState('Professional');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [coverLetter, setCoverLetter] = useState(null);
+  const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('print-cover-letter');
+    } else {
+      document.body.classList.remove('print-cover-letter');
+    }
+    return () => document.body.classList.remove('print-cover-letter');
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const isResumeEmpty = !data || !data.experience || data.experience.length === 0;
 
   const handleGenerate = async () => {
     if (!jobDescription.trim()) return;
     setIsGenerating(true);
     setError(null);
-    setCoverLetter(null);
 
     try {
-      const result = await generateCoverLetterWithProxy(data, jobDescription, language);
+      const combinedPrompt = `${jobDescription}\n\nCompany Name: ${companyName}\nTarget Role: ${targetRole}\nTone: ${tone}`;
+      const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
     } catch (err) {
       setError(err.message || t('An error occurred during generation.'));
@@ -28,92 +41,146 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
     }
   };
 
-  const copyToClipboard = () => {
-    if (coverLetter) {
-      navigator.clipboard.writeText(coverLetter);
-    }
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportWord = () => {
+    if (!coverLetter) return;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Cover Letter</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + `<div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.6; white-space: pre-wrap;">${coverLetter}</div>` + footer;
+    
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    fileDownload.href = source;
+    fileDownload.download = 'Cover_Letter.doc';
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('Cover Letter Generator')}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-          {t('Paste the job description below to generate a tailored cover letter based on your resume.')}
-        </p>
-
-        <textarea
-          className="resume-input"
-          style={{ minHeight: '120px', resize: 'vertical' }}
-          placeholder={t('Paste job description here...')}
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-        />
-
-        {error && (
-          <div style={{ padding: '12px', backgroundColor: 'var(--color-danger-light, #ffe6e6)', color: 'var(--color-danger, #d32f2f)', borderRadius: 'var(--radius-md)', fontSize: '0.9rem' }}>
-            {error}
-          </div>
-        )}
-
-        <button 
-          type="button"
-          className="btn-primary" 
-          onClick={handleGenerate}
-          disabled={!jobDescription.trim() || isGenerating}
-          style={{ width: '100%', justifyContent: 'center', padding: '12px', opacity: (!jobDescription.trim() || isGenerating) ? 0.7 : 1 }}
-        >
-          {isGenerating ? (
-            <><i className="fi fi-rr-spinner" style={{ animation: 'spin 1s linear infinite', marginRight: '8px' }}></i> {t('Generating...')}</>
-          ) : (
-            <><i className="fi fi-rr-magic-wand" style={{ marginRight: '8px' }}></i> {t('Generate Cover Letter')}</>
-          )}
+    <div className="cl-workspace-overlay">
+      <div className="cl-header">
+        <h2>
+          <i className="fi fi-rr-document"></i> {t('Cover Letter Workspace')}
+        </h2>
+        <button className="cl-close-btn" onClick={onClose}>
+          <i className="fi fi-rr-cross"></i> {t('Close Workspace')}
         </button>
-
-        {coverLetter && (
-          <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{t('Your Cover Letter')}</h3>
-              <button
-                type="button"
-                onClick={copyToClipboard}
-                title={t('Copy to clipboard')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-accent)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.9rem',
-                  fontWeight: '600'
-                }}
-              >
-                <i className="fi fi-rr-copy"></i> {t('Copy')}
-              </button>
-            </div>
-            
-            <div style={{ 
-              padding: '16px', 
-              backgroundColor: 'var(--color-surface-alt)', 
-              borderRadius: 'var(--radius-md)', 
-              border: '1px solid var(--color-border)',
-              whiteSpace: 'pre-wrap',
-              fontSize: '0.95rem',
-              lineHeight: '1.5',
-              maxHeight: '300px',
-              overflowY: 'auto',
-              fontFamily: 'var(--font-family, sans-serif)'
-            }}>
-              {coverLetter}
-            </div>
-          </div>
-        )}
       </div>
-    </Modal>
+
+      <div className="cl-workspace-main">
+        {/* Left Panel: Settings */}
+        <div className="cl-sidebar">
+          <div className="cl-sidebar-header">
+            <h3>{t('Job Details')}</h3>
+            <p>{t('Fill in the specifics below. Our AI will automatically tailor your cover letter using your resume data.')}</p>
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-building"></i> {t('Company Name')}
+            </label>
+            <input 
+              type="text" 
+              className="resume-input cl-input" 
+              placeholder={t('e.g. Google')}
+              value={companyName}
+              onChange={e => setCompanyName(e.target.value)}
+            />
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-briefcase"></i> {t('Target Role')}
+            </label>
+            <input 
+              type="text" 
+              className="resume-input cl-input" 
+              placeholder={t('e.g. Frontend Engineer')}
+              value={targetRole}
+              onChange={e => setTargetRole(e.target.value)}
+            />
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-document-signed"></i> {t('Job Description')}
+            </label>
+            <textarea
+              className="resume-input cl-textarea"
+              style={{ minHeight: '160px', resize: 'vertical' }}
+              placeholder={t('Paste the full job description here...')}
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+            />
+            <span className="cl-help-text">{t('The AI uses this to match your skills with their requirements.')}</span>
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-microphone"></i> {t('Tone of Voice')}
+            </label>
+            <select className="resume-input cl-input" value={tone} onChange={e => setTone(e.target.value)}>
+              <option value="Professional">{t('Professional & Polished')}</option>
+              <option value="Confident">{t('Confident & Direct')}</option>
+              <option value="Enthusiastic">{t('Enthusiastic & Passionate')}</option>
+            </select>
+          </div>
+
+          {error && (
+            <div className="cl-error-banner">
+              <i className="fi fi-rr-exclamation"></i> {error}
+            </div>
+          )}
+
+          {isResumeEmpty && (
+            <div className="cl-error-banner" style={{ backgroundColor: 'var(--color-warning-light, #fff3cd)', color: 'var(--color-warning-dark, #856404)', borderColor: 'rgba(133, 100, 4, 0.2)' }}>
+              <i className="fi fi-rr-info"></i> {t('Your resume is currently empty. Please fill out your experiences and skills before generating a personalized cover letter.')}
+            </div>
+          )}
+
+          <div className="cl-action-container">
+            <button 
+              type="button"
+              className="btn-primary cl-generate-btn" 
+              onClick={handleGenerate}
+              disabled={!jobDescription.trim() || isGenerating || isResumeEmpty}
+            >
+              {isGenerating ? (
+                <><i className="fi fi-rr-spinner cl-spin"></i> {t('Generating Magic...')}</>
+              ) : (
+                <><i className="fi fi-rr-magic-wand"></i> {t('Generate Cover Letter')}</>
+              )}
+            </button>
+            <span className="cl-powered-by">Powered by Google Gemini AI</span>
+          </div>
+        </div>
+
+        {/* Right Panel: Live Preview */}
+        <div className="cl-preview-area">
+          <div className="cl-toolbar">
+            <button className="btn-secondary" onClick={handlePrint} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
+              <i className="fi fi-rr-print"></i> {t('Export PDF')}
+            </button>
+            <button className="btn-secondary" onClick={handleExportWord} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
+              <i className="fi fi-rr-document-signed"></i> {t('Export Word')}
+            </button>
+            <button className="btn-secondary" onClick={() => coverLetter && navigator.clipboard.writeText(coverLetter)} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
+              <i className="fi fi-rr-copy"></i> {t('Copy')}
+            </button>
+          </div>
+
+          <textarea 
+            className="cl-a4-paper"
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            placeholder={t('Edit directly on the page...')}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

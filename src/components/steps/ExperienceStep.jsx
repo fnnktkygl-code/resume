@@ -80,7 +80,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist }) {
                 />
               </Field>
               <Field label={t('Start Month')}>
-                <Select value={exp.startMonth} onChange={(v) => updateExp(realIdx, 'startMonth', v)} options={MONTHS} placeholder={t('Month')} />
+                <Select value={exp.startMonth} onChange={(v) => updateExp(realIdx, 'startMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
               </Field>
               <Field label={t('Start Year')}>
                 <Select value={exp.startYear} onChange={(v) => updateExp(realIdx, 'startYear', v)} options={YEARS} placeholder={t('Year')} />
@@ -88,7 +88,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist }) {
               {!exp.current && (
                 <>
                   <Field label={t('End Month')}>
-                    <Select value={exp.endMonth} onChange={(v) => updateExp(realIdx, 'endMonth', v)} options={MONTHS} placeholder={t('Month')} />
+                    <Select value={exp.endMonth} onChange={(v) => updateExp(realIdx, 'endMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
                   </Field>
                   <Field label={t('End Year')}>
                     <Select value={exp.endYear} onChange={(v) => updateExp(realIdx, 'endYear', v)} options={YEARS} placeholder={t('Year')} />

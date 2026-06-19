@@ -29,9 +29,21 @@ function ResumePreview({
     if (!h[key]) return t(tKey);
     const val = h[key].trim();
     if (!val) return t(tKey);
-    if (val.toLowerCase() === defaultEn.toLowerCase() || val.toLowerCase() === key.toLowerCase()) return t(tKey);
+    const vLower = val.toLowerCase();
+    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
     return val;
   };
+
+  const renderSkills = (skillsString, defaultClass) => {
+    if (!skillsString) return null;
+    const style = layout.skillStyle || 'pill';
+    if (style === 'text') {
+      return <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+    }
+    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null);
+  };
+
   const p = data.personal;
   const hasContact = p.name || p.email || p.phone;
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
@@ -122,8 +134,8 @@ function ResumePreview({
  
   const formatDate = (m, y) => {
     if (!m && !y) return '';
-    if (m && y) return `${m} ${y}`;
-    return y || m || '';
+    if (m && y) return `${t(m)} ${y}`;
+    return y || t(m) || '';
   };
 
   // Drag & Drop handlers for Sections
@@ -536,24 +548,24 @@ function ResumePreview({
               {data.skills.technical && (
                 <div>
                   <strong>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
-                  <div className="skills-container">
-                    {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
+                  <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {renderSkills(data.skills.technical, 'skill-pill-accent')}
                   </div>
                 </div>
               )}
               {data.skills.soft && (
                 <div>
                   <strong>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
-                  <div className="skills-container">
-                    {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
+                  <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {renderSkills(data.skills.soft, 'skill-pill')}
                   </div>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div>
                   <strong>{displayHeading('languages', 'Languages', 'Languages')}</strong>
-                  <div className="skills-container">
-                    {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
+                  <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {renderSkills(data.skills.languages, 'skill-pill-outline')}
                   </div>
                 </div>
               )}

@@ -1,85 +1,19 @@
-import { memo } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
+import re
 
-import { getTranslation } from '../utils/translations';
+with open('src/components/ModernTemplate.jsx', 'r') as f:
+    content = f.read()
 
-function ModernTemplate({ 
-  data, 
-  layout = {}, 
-  language = 'en', 
-  onSectionClick, 
-  SectionWrapper,
-  // New props:
-  ItemWrapper,
-  NestedSpacer,
-  InsertSpacerButton,
-  onItemReorder,
-  onItemDelete,
-  onItemUpdate,
-  onAddSpacer,
-  onAddSectionSpacer,
-  onUpdateSectionSpacer,
-  onDeleteSectionSpacer,
-  printMode = false
-}) {
-  const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
-    return val;
-  };
+# We want to replace everything from `return (` inside `ModernTemplate` to the end of the file,
+# with a dynamic rendering function.
 
-  const renderSkills = (skillsString, defaultClass) => {
-    if (!skillsString) return null;
-    const style = layout.skillStyle || 'pill';
-    if (style === 'text') {
-      return <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
-    }
-    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null);
-  };
+# Find the start of the return statement
+match = re.search(r'  return \(\n    <div className="modern-resume"', content)
+start_idx = match.start()
 
-  const p = data.personal;
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
-  );
-  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const h = data.headings || {};
+header_part = content[:start_idx]
 
-  const getWrapProps = (id) => {
-    if (SectionWrapper) {
-      return { key: id, sectionId: id };
-    }
-    return {
-      key: id,
-      className: onSectionClick ? "preview-interactive-section" : "",
-      style: { cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' },
-      onClick: onSectionClick ? () => onSectionClick(id) : undefined
-    };
-  };
-
-  const Wrapper = SectionWrapper || 'div';
-
-  const {
-    fontSize = 10.5,
-    sectionSpacing = 8,
-    itemSpacing = 8,
-  } = layout;
-
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
-
-  const hasContact = p.email || p.phone || p.location || p.linkedin || p.github || p.website;
+# I have pre-written the new layout code for ModernTemplate
+new_layout = """  const hasContact = p.email || p.phone || p.location || p.linkedin || p.github || p.website;
 
   const renderSection = (sectionId) => {
     switch (sectionId) {
@@ -89,7 +23,7 @@ function ModernTemplate({
           <div key="contact">
             <div className="modern-sidebar-section-title">{t('Contact')}</div>
             {p.email && <div className="modern-sidebar-item"><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a></div>}
-            {p.phone && <div className="modern-sidebar-item"><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></div>}
+            {p.phone && <div className="modern-sidebar-item"><a href={`tel:${p.phone.replace(/\\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></div>}
             {p.location && <div className="modern-sidebar-item">{p.location}</div>}
             {p.linkedin && <div className="modern-sidebar-item"><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></div>}
             {p.github && <div className="modern-sidebar-item"><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></div>}
@@ -370,3 +304,8 @@ function ModernTemplate({
 }
 
 export default memo(ModernTemplate);
+"""
+
+new_content = header_part + new_layout
+with open('src/components/ModernTemplate.jsx', 'w') as f:
+    f.write(new_content)

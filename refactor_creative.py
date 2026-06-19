@@ -1,112 +1,67 @@
-import { memo } from 'react';
-import { parseMarkdown, formatUrl } from '../utils/formatText';
-import { getTranslation } from '../utils/translations';
+import re
 
-function CreativeTemplate({ 
-  data, 
-  layout = {}, 
-  language = 'en', 
-  onSectionClick, 
-  SectionWrapper,
-  // New props:
-  ItemWrapper,
-  NestedSpacer,
-  InsertSpacerButton,
-  onItemReorder,
-  onItemDelete,
-  onItemUpdate,
-  onAddSpacer,
-  onAddSectionSpacer,
-  onUpdateSectionSpacer,
-  onDeleteSectionSpacer,
-  printMode = false
-}) {
-  const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:') return t(tKey);
-    return val;
-  };
+with open('src/components/CreativeTemplate.jsx', 'r') as f:
+    content = f.read()
 
-  const renderSkills = (skillsString, inlineStyles) => {
-    if (!skillsString) return null;
-    const style = layout.skillStyle || 'pill';
-    if (style === 'text') {
-      return <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
-    }
-    const className = style === 'square' ? 'skill-square' : 'skill-pill';
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className} style={inlineStyles}>{skill.trim()}</span> : null);
-  };
+# Find the start of the return statement
+# We want to keep the header as is, and just refactor the body
+# Look for {/* Two-Column Grid Body */}
+match = re.search(r'      \{\/\* Two-Column Grid Body \*\/\}', content)
+start_idx = match.start()
 
-  const p = data.personal;
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
+header_part = content[:start_idx]
+
+# I have pre-written the new layout code for CreativeTemplate
+new_layout = """      {/* Two-Column Grid Body */}
+      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px' }}>
+        {/* Left Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {sidebarOrder.map((sectionId, idx) => {
+            const rendered = renderSection(sectionId);
+            if (!rendered) return null;
+            return (
+              <div key={sectionId}>
+                {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'sidebar')} />
+                )}
+                {rendered}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {mainOrder.map((sectionId, idx) => {
+            const rendered = renderSection(sectionId);
+            if (!rendered) return null;
+            return (
+              <div key={sectionId}>
+                {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'main')} />
+                )}
+                {rendered}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
-  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const h = data.headings || {};
+}
 
-  const getWrapProps = (id) => {
-    if (SectionWrapper) {
-      return { key: id, sectionId: id, style: wrapperStyle(id) };
-    }
-    return {
-      key: id,
-      className: onSectionClick ? "preview-interactive-section" : "",
-      style: wrapperStyle(id),
-      onClick: onSectionClick ? () => handleSectionClick(id) : undefined
-    };
-  };
+export default memo(CreativeTemplate);
+"""
 
-  const Wrapper = SectionWrapper || 'div';
+# Now we also need to inject `renderSection`, `isSidebar`, `sidebarOrder`, and `mainOrder` right before the `return` statement.
+match_return = re.search(r'  return \(\n    <div className="creative-resume"', content)
+pre_return_idx = match_return.start()
 
-  const {
-    fontSize = 10,
-    sectionSpacing = 12,
-    itemSpacing = 8,
-    lineHeight = 1.35
-  } = layout;
+setup_part = content[:pre_return_idx]
+post_setup_part = content[pre_return_idx:start_idx]
 
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
-
-  const primaryColor = layout.accentColor || '#1B6B3A';
-  const textColor = 'var(--resume-text-color, #222)';
-  const hasContact = p.name || p.email || p.phone;
-
-  const sectionHeaderStyle = {
-    color: primaryColor,
-    fontSize: '9.5pt',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '1.2px',
-    borderBottom: `2px solid ${primaryColor}`,
-    paddingBottom: '3px',
-    marginBottom: '8px'
-  };
-
-  const handleSectionClick = (sectionId) => {
-    if (onSectionClick) onSectionClick(sectionId);
-  };
-
-  const wrapperStyle = (sectionId) => ({
-    marginBottom: `${sectionSpacing}px`,
-    cursor: onSectionClick ? 'pointer' : 'default',
-    padding: onSectionClick ? '4px' : '0',
-    margin: onSectionClick ? `-4px` : `0 0 ${sectionSpacing}px 0`,
-    borderRadius: '4px'
-  });
-
-
+# But wait, `renderSection` must be defined in `setup_part`.
+setup_additions = """
   const isSidebar = (id) => {
     return ['summary', 'skills', 'certifications'].includes(id) || id.startsWith('spacer_sidebar_');
   };
@@ -363,82 +318,8 @@ function CreativeTemplate({
         return null;
     }
   };
-  return (
-    <div className="creative-resume" style={{ fontFamily: layout.fontFamily || "'Outfit', sans-serif", color: textColor, lineHeight: lineHeight }}>
-      {/* Top Header Section */}
-      <div style={{
-        borderBottom: `4px solid ${primaryColor}`,
-        paddingBottom: '16px',
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '20px'
-      }}>
-        <div style={{ flex: 1 }}>
-          {p.name && (
-            <h1 style={{ fontSize: '24pt', fontWeight: '800', color: textColor, margin: '0 0 2px 0', letterSpacing: '-0.5px' }}>
-              {p.name}
-            </h1>
-          )}
-          {p.tagline && (
-            <div style={{ fontSize: '11pt', fontWeight: '500', color: primaryColor, margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {p.tagline}
-            </div>
-          )}
-          {hasContact && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #555)' }}>
-              {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>✉ {p.email}</a>}
-              {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
-              {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
-              {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
-            </div>
-          )}
-        </div>
+"""
 
-        {p.showPhoto && p.photo && (
-          <div className="resume-photo-container" style={{ flexShrink: 0 }} data-testid="profile-photo-container">
-            <img src={p.photo} alt={p.name || "Profile"} style={{ width: '85px', height: '85px', borderRadius: '50%', objectFit: 'cover', border: `3px solid ${primaryColor}`, boxShadow: '0 4px 6px rgba(0,0,0,0.08)' }} />
-          </div>
-        )}
-      </div>
-
-      {/* Two-Column Grid Body */}
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '24px' }}>
-        {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {sidebarOrder.map((sectionId, idx) => {
-            const rendered = renderSection(sectionId);
-            if (!rendered) return null;
-            return (
-              <div key={sectionId}>
-                {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
-                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'sidebar')} />
-                )}
-                {rendered}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {mainOrder.map((sectionId, idx) => {
-            const rendered = renderSection(sectionId);
-            if (!rendered) return null;
-            return (
-              <div key={sectionId}>
-                {!printMode && onAddSectionSpacer && InsertSpacerButton && idx > 0 && (
-                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'main')} />
-                )}
-                {rendered}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default memo(CreativeTemplate);
+new_content = setup_part + setup_additions + post_setup_part + new_layout
+with open('src/components/CreativeTemplate.jsx', 'w') as f:
+    f.write(new_content)

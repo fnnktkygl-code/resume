@@ -137,7 +137,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   const [selectedChanges, setSelectedChanges] = useState({});
   
   const fileInputRef = useRef(null);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     if (!isOpen) {
@@ -173,7 +173,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     setError(null);
     
     try {
-      const result = await importResumeWithProxy(payload);
+      const result = await importResumeWithProxy({ ...payload, language });
       if (result) {
         const summary = {
           name: result.personal?.name || '',
@@ -205,7 +205,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     setError(null);
 
     try {
-      const result = await enhanceResumeWithProxy(parsedData);
+      const result = await enhanceResumeWithProxy(parsedData, language);
       if (result) {
         setEnhancedData(result);
         setSelectedChanges({}); // all selected by default
