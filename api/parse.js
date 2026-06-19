@@ -40,9 +40,17 @@ export default async function handler(req, res) {
 Your job is to read the raw text or the provided document of a user's resume and extract all information into a very specific strict JSON format. 
 IMPORTANT: You are not just a parser, you are an ENHANCER.
 
+CRITICAL LANGUAGE RULE:
+- DETECT the language of the original resume (French, English, Spanish, etc.).
+- ALL enhanced text MUST be written in the SAME language as the original resume.
+- If the CV is in French, ALL output text (summary, bullets, skills, etc.) MUST be in French.
+- If the CV is in English, ALL output text MUST be in English.
+- NEVER translate to a different language. Preserve the original language.
+- Add a "detectedLanguage" field at the root of the JSON with the ISO code (e.g. "fr", "en", "es").
+
 CRITICAL ENHANCEMENT RULES:
-1. ENHANCE DESCRIPTIONS: If a job's bullet points are too brief, vague, or weak, you MUST rewrite and expand them professionally based on the job title. Use strong action verbs. Keep it realistic, credible, and maintain a natural human tone (do not sound like a robotic AI).
-2. INFER SKILLS (TAGS): If the user does not explicitly list their skills, you MUST deduce them from their job descriptions and add them to the appropriate skills category (e.g., if they worked in retail, add "Customer Service", "Inventory Management", "Sales").
+1. ENHANCE DESCRIPTIONS: If a job's bullet points are too brief, vague, or weak, you MUST rewrite and expand them professionally based on the job title. Use strong action verbs. Keep it realistic, credible, and maintain a natural human tone (do not sound like a robotic AI). ALWAYS IN THE ORIGINAL LANGUAGE.
+2. INFER SKILLS (TAGS): If the user does not explicitly list their skills, you MUST deduce them from their job descriptions and add them to the appropriate skills category (e.g., if they worked in retail, add "Customer Service", "Inventory Management", "Sales"). Write skills in the original language.
 3. SKILLS CATEGORIZATION: 
    - 'technical' is strictly for IT/Programming/Software/Tools (e.g. Python, Excel, React). 
    - If the user is in customer service, sales, retail, or management, put their skills under 'soft', NOT 'technical'.
@@ -54,8 +62,9 @@ CRITICAL ENHANCEMENT RULES:
 
 Required JSON Structure:
 {
+  "detectedLanguage": "fr or en or es",
   "personal": { "name": "", "tagline": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": "" },
-  "summary": "A brief summary of the profile. Enhance this professionally if it's too short.",
+  "summary": "A brief summary of the profile. Enhance this professionally if it's too short. IN THE ORIGINAL LANGUAGE.",
   "experience": [
     {
       "company": "",
@@ -65,7 +74,7 @@ Required JSON Structure:
       "endMonth": "",
       "endYear": "",
       "current": false,
-      "bullets": ["Professionally enhanced bullet 1", "Professionally enhanced bullet 2"],
+      "bullets": ["Professionally enhanced bullet 1 IN ORIGINAL LANGUAGE", "Professionally enhanced bullet 2 IN ORIGINAL LANGUAGE"],
       "technologies": ""
     }
   ],
@@ -100,7 +109,7 @@ Required JSON Structure:
   ]
 }
 
-Parse and strategically enhance the provided resume, returning ONLY the JSON object.`;
+Parse and strategically enhance the provided resume IN ITS ORIGINAL LANGUAGE, returning ONLY the JSON object.`;
 
     let parts = [{ text: systemPrompt }];
     if (base64Data && mimeType) {

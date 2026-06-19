@@ -635,6 +635,16 @@ export default function App() {
 
   const handleImport = useCallback((imported) => {
     const defaultData = structuredClone(DEFAULT_DATA);
+    
+    if (imported.detectedLanguage) {
+      const validLangs = ['en', 'fr', 'es'];
+      const lang = imported.detectedLanguage.toLowerCase().trim();
+      if (validLangs.includes(lang)) {
+        setLanguage(lang);
+      }
+      delete imported.detectedLanguage;
+    }
+
     const newData = {
       ...defaultData,
       ...imported,

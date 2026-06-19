@@ -1,0 +1,498 @@
+import { useRef, useState, useEffect, useCallback, memo } from 'react';
+import ModernTemplate from './ModernTemplate';
+import NjmTemplate from './NjmTemplate';
+import CreativeTemplate from './CreativeTemplate';
+import MinimalistTemplate from './MinimalistTemplate';
+import { parseMarkdown, formatUrl } from '../utils/formatText';
+import { getTranslation } from '../utils/translations';
+
+function ResumePreview({ data, layout = {}, language = 'en', compact = false, printMode = false, template = 'standard', onSectionReorder, onSectionRemove, onSectionClick, onPagesCountChange }) {
+  const t = (key) => getTranslation(language, key);
+  const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
+  const p = data.personal;
+  const hasContact = p.name || p.email || p.phone;
+  const validExp = data.experience.filter(e => e.company || e.title);
+  const validEdu = data.education.filter(e => e.institution || e.degree);
+  const validProj = data.projects.filter(pr => pr.name);
+  const validCert = data.certifications.filter(c => c.name);
+  const hasCustomLangues = data.customSections?.some(s => 
+    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description)
+  );
+  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
+  const hasContent = hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length;
+
+  const h = data.headings || {};
+  const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
+
+  const { 
+    fontSize = 10.5, 
+    isCompact = false,
+    lineHeight = isCompact ? 1.3 : 1.45,
+    paddingX = isCompact ? 0.5 : 0.75,
+    paddingY = isCompact ? 0.5 : 0.75,
+    sectionSpacing = isCompact ? 4 : 8,
+    itemSpacing = isCompact ? 8 : 12,
+  } = layout;
+
+  const wrapperRef = useRef(null);
+  const contentRef = useRef(null);
+  const [wrapperWidth, setWrapperWidth] = useState(compact ? 500 : 500);
+  const [pagesCount, setPagesCount] = useState(1);
+  const [draggedSection, setDraggedSection] = useState(null);
+  const [dragOverSection, setDragOverSection] = useState(null);
+
+  useEffect(() => {
+    if (onPagesCountChange) {
+      onPagesCountChange(pagesCount);
+    }
+  }, [pagesCount, onPagesCountChange]);
+
+  useEffect(() => {
+    if (printMode || !wrapperRef.current) return;
+    let frame;
+    const observer = new ResizeObserver(entries => {
+      frame = requestAnimationFrame(() => {
+        if (wrapperRef.current) {
+          setWrapperWidth(wrapperRef.current.getBoundingClientRect().width);
+        }
+      });
+    });
+    observer.observe(wrapperRef.current);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [printMode]);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    let frame;
+    const observer = new ResizeObserver(() => {
+      frame = requestAnimationFrame(() => {
+        if (!contentRef.current) return;
+        let innerH = contentRef.current.offsetHeight;
+        if (template === 'modern') {
+          const sidebar = contentRef.current.querySelector('.modern-sidebar');
+          const main = contentRef.current.querySelector('.modern-main');
+          innerH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
+        }
+        const totalH = innerH + (paddingY * 2 * 96);
+        const neededPages = Math.max(1, Math.ceil(totalH / 1056));
+        setPagesCount(neededPages);
+      });
+    });
+    observer.observe(contentRef.current);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [hasContent, paddingY, fontSize, lineHeight, paddingX, sectionSpacing, itemSpacing, template]);
+
+  const pageWidth = 816;
+  const pageHeight = 1056;
+  const scale = printMode ? 1 : wrapperWidth / pageWidth;
+ 
+  const formatDate = (m, y) => {
+    if (!m && !y) return '';
+    if (m && y) return `${m} ${y}`;
+    return y || m || '';
+  };
+
+  // Drag & Drop handlers
+  const handleDragStart = useCallback((e, sectionId) => {
+    setDraggedSection(sectionId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sectionId);
+  }, []);
+
+  const handleDragOver = useCallback((e, sectionId) => {
+    e.preventDefault();
+    if (sectionId !== draggedSection) {
+      setDragOverSection(sectionId);
+    }
+  }, [draggedSection]);
+
+  const handleDrop = useCallback((e, sectionId) => {
+    e.preventDefault();
+    if (draggedSection && draggedSection !== sectionId && onSectionReorder) {
+      const newOrder = [...sectionOrder];
+      const fromIdx = newOrder.indexOf(draggedSection);
+      const toIdx = newOrder.indexOf(sectionId);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        newOrder.splice(fromIdx, 1);
+        newOrder.splice(toIdx, 0, draggedSection);
+        onSectionReorder(newOrder);
+      }
+    }
+    setDraggedSection(null);
+    setDragOverSection(null);
+  }, [draggedSection, sectionOrder, onSectionReorder]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedSection(null);
+    setDragOverSection(null);
+  }, []);
+
+  const SectionWrapper = ({ sectionId, className, style, children }) => {
+    const isDraggable = !printMode && onSectionReorder;
+    
+    const dragClass = isDraggable 
+      ? `draggable-section preview-interactive-section${draggedSection === sectionId ? ' dragging' : ''}${dragOverSection === sectionId ? ' drag-over' : ''}`
+      : (onSectionClick && !printMode ? 'preview-interactive-section' : '');
+      
+    const combinedClassName = `${dragClass} ${className || ''}`.trim();
+    
+    const interactiveStyle = onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
+    const combinedStyle = { ...interactiveStyle, ...(style || {}) };
+
+    const wrapProps = isDraggable ? {
+      draggable: true,
+      onDragStart: (e) => handleDragStart(e, sectionId),
+      onDragOver: (e) => handleDragOver(e, sectionId),
+      onDrop: (e) => handleDrop(e, sectionId),
+      onDragEnd: handleDragEnd,
+      className: combinedClassName,
+      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      style: combinedStyle
+    } : {
+      className: combinedClassName,
+      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      style: combinedStyle
+    };
+
+    return (
+      <div {...wrapProps}>
+        {isDraggable && (
+          <div className="section-actions" aria-hidden="true">
+            <span className="drag-handle" title={t('Drag to reorder')}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
+                <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
+              </svg>
+            </span>
+            <button 
+              className="section-delete" 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSectionRemove) onSectionRemove(sectionId);
+              }}
+              title={t('Delete')}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        )}
+        {children}
+      </div>
+    );
+  };
+
+  // Section renderers
+  const renderSection = (sectionId) => {
+
+    switch (sectionId) {
+      case 'summary':
+        if (!data.summary) return null;
+        return (
+          <SectionWrapper key="summary" sectionId="summary">
+            <div className="resume-section-header">{displayHeading('summary', 'Summary', 'EXECUTIVE SUMMARY')}</div>
+            <div>{parseMarkdown(data.summary)}</div>
+          </SectionWrapper>
+        );
+      case 'experience':
+        if (!validExp.length) return null;
+        return (
+          <SectionWrapper key="experience" sectionId="experience">
+            <div className="resume-section-header">{displayHeading('experience', 'Work Experience', 'WORK EXPERIENCE')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validExp.map((exp, i) => (
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-exp-header">
+                    {exp.link ? (
+                      <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
+                        {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                    ) : (
+                      <span className="resume-company">{exp.company}</span>
+                    )}
+                    <span className="resume-dates">
+                      {formatDate(exp.startMonth, exp.startYear)}
+                      {(exp.startMonth || exp.startYear) && ' — '}
+                      {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
+                    </span>
+                  </div>
+                  <div className="resume-title">{exp.title}</div>
+                  <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
+                    {exp.bullets.filter(Boolean).map((b, bi) => (
+                      <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionWrapper>
+        );
+      case 'education':
+        if (!validEdu.length) return null;
+        return (
+          <SectionWrapper key="education" sectionId="education">
+            <div className="resume-section-header">{displayHeading('education', 'Education', 'EDUCATION')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validEdu.map((edu, i) => (
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-exp-header">
+                    <span className="resume-company">{edu.institution}</span>
+                    <span className="resume-dates">
+                      {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
+                    </span>
+                  </div>
+                  <div className="resume-title">
+                    {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionWrapper>
+        );
+      case 'skills':
+        if (!hasSkills) return null;
+        return (
+          <SectionWrapper key="skills" sectionId="skills">
+            <div className="resume-section-header">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/1.5)}px` }}>
+              {data.skills.technical && (
+                <div>
+                  <strong>{h.technical}</strong>
+                  <div className="skills-container">
+                    {data.skills.technical.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-accent">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
+              {data.skills.soft && (
+                <div>
+                  <strong>{h.interpersonal}</strong>
+                  <div className="skills-container">
+                    {data.skills.soft.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
+              {data.skills.languages && !hasCustomLangues && (
+                <div>
+                  <strong>{h.languages}</strong>
+                  <div className="skills-container">
+                    {data.skills.languages.split(',').map((skill, si) => skill.trim() ? <span key={si} className="skill-pill-outline">{skill.trim()}</span> : null)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </SectionWrapper>
+        );
+      case 'projects':
+        if (!validProj.length) return null;
+        return (
+          <SectionWrapper key="projects" sectionId="projects">
+            <div className="resume-section-header">{displayHeading('projects', 'Projects', 'PROJECTS')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+              {validProj.map((pr, i) => (
+                <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-exp-header">
+                    <span className="resume-company">{pr.name}</span>
+                    {pr.link && <span className="resume-dates">{pr.link}</span>}
+                  </div>
+                  {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
+                  {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
+                  {pr.highlights.filter(Boolean).map((h, hi) => (
+                    <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </SectionWrapper>
+        );
+      case 'certifications':
+        if (!validCert.length) return null;
+        return (
+          <SectionWrapper key="certifications" sectionId="certifications">
+            <div className="resume-section-header">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
+              {validCert.map((c, i) => (
+                <div key={i} className="resume-bullet">
+                  <span style={{ marginRight: '6px' }}>•</span>
+                  <strong>{c.name}</strong> — {c.issuer}{c.date ? ` (${c.date})` : ''}
+                </div>
+              ))}
+            </div>
+          </SectionWrapper>
+        );
+      default:
+        if (sectionId.startsWith('spacer_')) {
+          const spacerSec = data.customSections?.find(s => s.id === sectionId);
+          if (!spacerSec) return null;
+          return <SectionWrapper key={sectionId} sectionId={sectionId} style={{ height: `${spacerSec.height}px` }} />;
+        }
+        if (sectionId.startsWith('custom_')) {
+          const customSec = data.customSections?.find(s => s.id === sectionId);
+          if (!customSec || !customSec.items.length) return null;
+          const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description);
+          if (!validItems.length) return null;
+
+          return (
+            <SectionWrapper key={sectionId} sectionId={sectionId}>
+              <div className="resume-section-header">{customSec.label || 'Custom'}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+                {validItems.map((item, i) => (
+                  <div key={i} style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-exp-header">
+                      {item.title && <span className="resume-company">{item.title}</span>}
+                      {item.date && <span className="resume-dates">{item.date}</span>}
+                    </div>
+                    {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                    {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                      {parseMarkdown(item.description)}
+                    </div>}
+                  </div>
+                ))}
+              </div>
+            </SectionWrapper>
+          );
+        }
+        return null;
+    }
+  };
+
+  const hexToRgb = (hex) => {
+    if (!hex) return '27, 107, 58';
+    let cleanHex = hex.replace('#', '');
+    if (cleanHex.length === 3) {
+      cleanHex = cleanHex.split('').map(char => char + char).join('');
+    }
+    const r = parseInt(cleanHex.slice(0, 2), 16);
+    const g = parseInt(cleanHex.slice(2, 4), 16);
+    const b = parseInt(cleanHex.slice(4, 6), 16);
+    return isNaN(r) ? '27, 107, 58' : `${r}, ${g}, ${b}`;
+  };
+
+  const accentColor = layout.accentColor || '#1B6B3A';
+  const fontFamily = layout.fontFamily || 'Inter';
+  const accentRgb = hexToRgb(accentColor);
+
+  const resumePageStyles = {
+    width: `${pageWidth}px`,
+    height: printMode ? 'auto' : `${pagesCount * pageHeight}px`,
+    minHeight: printMode ? 'auto' : `${pagesCount * pageHeight}px`,
+    transform: printMode ? 'none' : `scale(${scale})`,
+    transformOrigin: 'top left',
+    fontSize: `${fontSize}pt`,
+    lineHeight: lineHeight,
+    padding: template === 'modern' ? '0' : `${paddingY}in ${paddingX}in`,
+    fontFamily: fontFamily,
+    '--resume-accent-color': accentColor,
+    '--resume-accent-rgb': accentRgb,
+    '--resume-font-family': fontFamily,
+  };
+
+  const emptyText = t('empty_resume_message');
+
+  return (
+    <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%', position: 'relative' }}>
+      <div style={{ position: 'relative', minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale + (pagesCount - 1) * 24 * scale}px`, transition: 'min-height 0.2s ease-out' }}>
+        <div className="resume-page" style={resumePageStyles}>
+          {!hasContent ? (
+            <div ref={contentRef} className="resume-empty">
+              {emptyText}
+            </div>
+          ) : template === 'modern' ? (
+            <div ref={contentRef} style={{ height: '100%' }}>
+              <ModernTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+            </div>
+          ) : template === 'njm' ? (
+            <div ref={contentRef}>
+              <NjmTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+            </div>
+          ) : template === 'creative' ? (
+            <div ref={contentRef}>
+              <CreativeTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+            </div>
+          ) : template === 'minimalist' ? (
+            <div ref={contentRef}>
+              <MinimalistTemplate data={data} layout={layout} language={language} onSectionClick={!printMode ? onSectionClick : undefined} SectionWrapper={SectionWrapper} />
+            </div>
+          ) : (
+            <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+              {p.showPhoto && p.photo && (
+                <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(sectionSpacing / 2)}px` }} data-testid="profile-photo-container">
+                  <img src={p.photo} alt={p.name || "Profile"} style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color)` }} />
+                </div>
+              )}
+              {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
+              {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
+              {hasContact && (
+                <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                  {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
+                  {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
+                  {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
+                  {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+                </div>
+              )}
+
+              {sectionOrder.map(sectionId => renderSection(sectionId))}
+            </div>
+          )}
+        </div>
+
+        {/* Page break gutters */}
+        {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {
+          const topPos = (idx + 1) * pageHeight * scale;
+          const gutterHeight = 32 * scale;
+          return (
+            <div
+              key={idx}
+              style={{
+                position: 'absolute',
+                top: `${topPos - gutterHeight / 2}px`,
+                left: `-${24 * scale}px`,
+                right: `-${24 * scale}px`,
+                height: `${gutterHeight}px`,
+                backgroundColor: 'var(--color-bg)',
+                borderTop: '1px solid var(--color-border)',
+                borderBottom: '1px solid var(--color-border)',
+                boxShadow: '0 -4px 8px -4px rgba(0,0,0,0.1), 0 4px 8px -4px rgba(0,0,0,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                pointerEvents: 'none'
+              }}
+            >
+              <span style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                padding: '2px 10px',
+                fontSize: '10px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                boxShadow: 'var(--shadow-sm)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                pointerEvents: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                ✂️ {t('Page')} {idx + 1} / {idx + 2}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default memo(ResumePreview);
