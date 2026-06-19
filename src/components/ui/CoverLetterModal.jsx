@@ -231,6 +231,9 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                   <option value="Enthusiastic">{t('Enthusiastic')}</option>
                 </optgroup>
                 <optgroup label={t('Creative & Fun')}>
+                  <option value="Speak exactly like Kylian Mbappé. Use football/soccer metaphors, be extremely ambitious, confident, focused on winning, breaking records, teamwork, and use a professional yet determined tone. Mention 'projet', 'performance', 'collectif'.">{t('Kylian Mbappé')}</option>
+                  <option value="Speak exactly like Naruto Uzumaki from the anime Naruto. Be extremely energetic, use 'Believe it!' (or dattebayo equivalents), talk about never giving up, the 'Will of Fire', friendship, and your dream to be the best.">{t('Naruto Uzumaki')}</option>
+                  <option value="Speak exactly like Wednesday Addams from the Addams Family. Be incredibly deadpan, dark, morbid, cynical, and highly intelligent. Use sophisticated vocabulary with gothic undertones. Show zero enthusiasm but immense, terrifying competence.">{t('Wednesday Addams')}</option>
                   <option value="Manga Protagonist (Passionate, Determined, Shōnen anime style)">{t('Manga / Anime Hero')}</option>
                   <option value="Gamer (Strategic, Quest-Oriented, RPG style)">{t('Gamer / RPG Hero')}</option>
                   <option value="Epic Cinematic (Marvel style, Bold, Superhero flair)">{t('Cinematic / Superhero')}</option>
