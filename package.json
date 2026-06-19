@@ -20,6 +20,8 @@
     "@fontsource/open-sans": "^5.2.7",
     "@fontsource/outfit": "^5.2.8",
     "@fontsource/roboto": "^5.2.10",
+    "docx": "^9.7.1",
+    "file-saver": "^2.0.5",
     "mobile-drag-drop": "^3.0.0-rc.0",
     "pdfjs-dist": "^5.6.205",
     "react": "^19.0.0",

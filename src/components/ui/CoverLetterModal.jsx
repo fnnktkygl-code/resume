@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateCoverLetterWithProxy } from '../../services/geminiService';
+import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { saveAs } from 'file-saver';
 
 export default function CoverLetterModal({ isOpen, onClose, data }) {
   const { t, language } = useTranslation();
@@ -59,19 +61,37 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
     window.print();
   };
 
-  const handleExportWord = () => {
+  const handleExportWord = async () => {
     if (!coverLetter) return;
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Cover Letter</title></head><body>";
-    const footer = "</body></html>";
-    const sourceHTML = header + `<div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.6;">${coverLetter.replace(/\n/g, '<br/>')}</div>` + footer;
-    
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-    const fileDownload = document.createElement("a");
-    document.body.appendChild(fileDownload);
-    fileDownload.href = source;
-    fileDownload.download = 'Cover_Letter.doc';
-    fileDownload.click();
-    document.body.removeChild(fileDownload);
+    try {
+      const paragraphs = coverLetter.split('\n').map(line => {
+        return new Paragraph({
+          children: [
+            new TextRun({
+              text: line,
+              font: "Times New Roman",
+              size: 22,
+            }),
+          ],
+          spacing: {
+            after: 120,
+          }
+        });
+      });
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, "Cover_Letter.docx");
+    } catch (err) {
+      console.error("Docx generation error:", err);
+      setError(t('An error occurred while generating the document.'));
+    }
   };
 
   return (
