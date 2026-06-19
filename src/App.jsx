@@ -1075,6 +1075,13 @@ export default function App() {
                 >
                   <i className="fi fi-rr-trash"></i> {t('Clear')}
                 </button>
+                <div className="dropdown-divider mobile-only" />
+                <div className="dropdown-section-label mobile-only">{t('Language')}</div>
+                <div className="mobile-only" style={{ display: 'flex', gap: '8px', padding: '8px 16px' }}>
+                  <button className={`control-btn ${language === 'en' ? 'active' : ''}`} onClick={() => { handleLanguageChange('en'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>EN</button>
+                  <button className={`control-btn ${language === 'fr' ? 'active' : ''}`} onClick={() => { handleLanguageChange('fr'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>FR</button>
+                  <button className={`control-btn ${language === 'es' ? 'active' : ''}`} onClick={() => { handleLanguageChange('es'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>ES</button>
+                </div>
               </div>
             </div>
 
@@ -1845,6 +1852,7 @@ export default function App() {
               isOpen={isCoverLetterModalOpen}
               onClose={() => setIsCoverLetterModalOpen(false)}
               data={data}
+              onLanguageChange={handleLanguageChange}
             />
           )}
         </Suspense>

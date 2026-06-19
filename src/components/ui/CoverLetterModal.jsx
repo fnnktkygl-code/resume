@@ -4,7 +4,7 @@ import { generateCoverLetterWithProxy } from '../../services/geminiService';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 
-export default function CoverLetterModal({ isOpen, onClose, data }) {
+export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChange }) {
   const { t, language } = useTranslation();
   const defaultFontFamily = data?.layout?.fontFamily || 'Inter';
   const defaultFontSize = data?.layout?.fontSize || 10.5;
@@ -136,6 +136,30 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
           <div className="cl-sidebar-header">
             <h3>{t('Content Settings')}</h3>
             <p>{t('Details to tailor your cover letter.')}</p>
+          </div>
+
+          {/* Language Selector inside Modal for Mobile/Convenience */}
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-globe"></i> {t('Language')}
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                className={`control-btn ${language === 'en' ? 'active' : ''}`} 
+                onClick={() => onLanguageChange && onLanguageChange('en')} 
+                style={{ flex: 1, padding: '8px', fontSize: '13px' }}
+              >EN</button>
+              <button 
+                className={`control-btn ${language === 'fr' ? 'active' : ''}`} 
+                onClick={() => onLanguageChange && onLanguageChange('fr')} 
+                style={{ flex: 1, padding: '8px', fontSize: '13px' }}
+              >FR</button>
+              <button 
+                className={`control-btn ${language === 'es' ? 'active' : ''}`} 
+                onClick={() => onLanguageChange && onLanguageChange('es')} 
+                style={{ flex: 1, padding: '8px', fontSize: '13px' }}
+              >ES</button>
+            </div>
           </div>
 
           <div className="cl-form-group">
