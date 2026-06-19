@@ -5,6 +5,12 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/fraunces'
 import '@fontsource-variable/jetbrains-mono'
+import '@fontsource/roboto'
+import '@fontsource/open-sans'
+import '@fontsource/lato'
+import '@fontsource/lora'
+import '@fontsource/merriweather'
+import '@fontsource/outfit'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(

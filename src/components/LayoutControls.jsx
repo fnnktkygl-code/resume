@@ -81,7 +81,13 @@ export default function LayoutControls({ layout, onChange }) {
             }}
           >
             <option value="Inter">{t('Classic Sans (Inter)')}</option>
+            <option value="Roboto, sans-serif">{t('Clean Sans (Roboto)')}</option>
+            <option value="Open Sans, sans-serif">{t('Friendly Sans (Open Sans)')}</option>
+            <option value="Lato, sans-serif">{t('Warm Sans (Lato)')}</option>
+            <option value="Outfit, sans-serif">{t('Modern Geometric (Outfit)')}</option>
             <option value="Fraunces, Georgia, serif">{t('Elegant Serif (Fraunces)')}</option>
+            <option value="Lora, serif">{t('Readable Serif (Lora)')}</option>
+            <option value="Merriweather, serif">{t('Sturdy Serif (Merriweather)')}</option>
             <option value="JetBrains Mono, monospace">{t('Modern Mono (JetBrains)')}</option>
           </select>
         </div>
