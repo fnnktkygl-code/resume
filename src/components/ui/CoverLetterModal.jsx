@@ -6,15 +6,27 @@ import { saveAs } from 'file-saver';
 
 export default function CoverLetterModal({ isOpen, onClose, data }) {
   const { t, language } = useTranslation();
+  const defaultFontFamily = data?.layout?.fontFamily || 'Inter';
+  const defaultFontSize = data?.layout?.fontSize || 10.5;
+
   const [jobDescription, setJobDescription] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [tone, setTone] = useState('Professional');
+  const [clLength, setClLength] = useState('Standard');
+  const [clFontFamily, setClFontFamily] = useState(defaultFontFamily);
+  const [clFontSize, setClFontSize] = useState(defaultFontSize);
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (data?.layout?.fontFamily) setClFontFamily(data.layout.fontFamily);
+    if (data?.layout?.fontSize) setClFontSize(data.layout.fontSize);
+  }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -42,7 +54,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
     setError(null);
 
     try {
-      const combinedPrompt = `${jobDescription}\n\nCompany Name: ${companyName}\nTarget Role: ${targetRole}\nTone: ${tone}`;
+      const combinedPrompt = `${jobDescription}\n\nCompany Name: ${companyName}\nTarget Role: ${targetRole}\nTone: ${tone}\nLength Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
       if (window.innerWidth <= 768 && previewRef.current) {
@@ -64,13 +76,16 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
   const handleExportWord = async () => {
     if (!coverLetter) return;
     try {
+      const wordFont = clFontFamily.split(',')[0].replace(/['"]/g, '').trim();
+      const wordSize = Math.round(clFontSize * 2);
+
       const paragraphs = coverLetter.split('\n').map(line => {
         return new Paragraph({
           children: [
             new TextRun({
               text: line,
-              font: "Times New Roman",
-              size: 22,
+              font: wordFont,
+              size: wordSize,
             }),
           ],
           spacing: {
@@ -114,8 +129,8 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
         {/* Left Panel: Settings */}
         <div className="cl-sidebar">
           <div className="cl-sidebar-header">
-            <h3>{t('Job Details')}</h3>
-            <p>{t('Fill in the specifics below. Our AI will automatically tailor your cover letter using your resume data.')}</p>
+            <h3>{t('Content Settings')}</h3>
+            <p>{t('Details to tailor your cover letter.')}</p>
           </div>
 
           <div className="cl-form-group">
@@ -150,23 +165,64 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
             </label>
             <textarea
               className="resume-input cl-textarea"
-              style={{ minHeight: '160px', resize: 'vertical' }}
+              style={{ minHeight: '120px', resize: 'vertical' }}
               placeholder={t('Paste the full job description here...')}
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
             />
-            <span className="cl-help-text">{t('The AI uses this to match your skills with their requirements.')}</span>
+          </div>
+
+          <div className="cl-form-group" style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="cl-label">
+                <i className="fi fi-rr-microphone"></i> {t('Tone')}
+              </label>
+              <select className="resume-input cl-input" value={tone} onChange={e => setTone(e.target.value)} style={{ padding: '8px', fontSize: '13px' }}>
+                <option value="Professional">{t('Professional')}</option>
+                <option value="Confident">{t('Confident')}</option>
+                <option value="Enthusiastic">{t('Enthusiastic')}</option>
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="cl-label">
+                <i className="fi fi-rr-ruler-combined"></i> {t('Length')}
+              </label>
+              <select className="resume-input cl-input" value={clLength} onChange={e => setClLength(e.target.value)} style={{ padding: '8px', fontSize: '13px' }}>
+                <option value="Concise">{t('Concise')}</option>
+                <option value="Standard">{t('Standard')}</option>
+                <option value="Detailed">{t('Detailed')}</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style={{ borderColor: 'var(--color-border)', margin: '4px 0' }} />
+
+          <div className="cl-sidebar-header">
+            <h3>{t('Layout & Formatting')}</h3>
           </div>
 
           <div className="cl-form-group">
             <label className="cl-label">
-              <i className="fi fi-rr-microphone"></i> {t('Tone of Voice')}
+              <i className="fi fi-rr-text"></i> {t('Font Family')}
             </label>
-            <select className="resume-input cl-input" value={tone} onChange={e => setTone(e.target.value)}>
-              <option value="Professional">{t('Professional & Polished')}</option>
-              <option value="Confident">{t('Confident & Direct')}</option>
-              <option value="Enthusiastic">{t('Enthusiastic & Passionate')}</option>
+            <select className="resume-input cl-input" value={clFontFamily} onChange={e => setClFontFamily(e.target.value)} style={{ fontFamily: 'inherit' }}>
+              <option value="Inter">{t('Classic Sans (Inter)')}</option>
+              <option value="Roboto, sans-serif">{t('Clean Sans (Roboto)')}</option>
+              <option value="Open Sans, sans-serif">{t('Friendly Sans (Open Sans)')}</option>
+              <option value="Lato, sans-serif">{t('Warm Sans (Lato)')}</option>
+              <option value="Outfit, sans-serif">{t('Modern Geometric (Outfit)')}</option>
+              <option value="Fraunces, Georgia, serif">{t('Elegant Serif (Fraunces)')}</option>
+              <option value="Lora, serif">{t('Readable Serif (Lora)')}</option>
+              <option value="Merriweather, serif">{t('Sturdy Serif (Merriweather)')}</option>
+              <option value="JetBrains Mono, monospace">{t('Modern Mono (JetBrains)')}</option>
             </select>
+          </div>
+
+          <div className="cl-form-group">
+            <label className="cl-label">
+              <i className="fi fi-rr-text-size"></i> {t('Font Size')}: {clFontSize}pt
+            </label>
+            <input type="range" min="8" max="14" step="0.5" value={clFontSize} onChange={e => setClFontSize(Number(e.target.value))} />
           </div>
 
           {error && (
@@ -215,12 +271,12 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
           <textarea 
             ref={textareaRef}
             className="cl-a4-paper print-hidden"
-            style={{ overflow: 'hidden', minHeight: '60vh' }}
+            style={{ overflow: 'hidden', minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder={t('Edit directly on the page...')}
           />
-          <div className="cl-a4-paper print-only" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+          <div className="cl-a4-paper print-only" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}>
             {coverLetter}
           </div>
         </div>
