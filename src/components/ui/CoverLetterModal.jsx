@@ -11,6 +11,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
+  const previewRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,6 +35,11 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
       const combinedPrompt = `${jobDescription}\n\nCompany Name: ${companyName}\nTarget Role: ${targetRole}\nTone: ${tone}`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
       setCoverLetter(result);
+      if (window.innerWidth <= 768 && previewRef.current) {
+        setTimeout(() => {
+          previewRef.current.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     } catch (err) {
       setError(err.message || t('An error occurred during generation.'));
     } finally {
@@ -61,7 +67,12 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
   };
 
   return (
-    <div className="cl-workspace-overlay">
+    <div 
+      className="cl-workspace-overlay" 
+      onClick={(e) => {
+        if (e.target.classList.contains('cl-workspace-overlay')) onClose();
+      }}
+    >
       <div className="cl-header">
         <h2>
           <i className="fi fi-rr-document"></i> {t('Cover Letter Workspace')}
@@ -160,7 +171,7 @@ export default function CoverLetterModal({ isOpen, onClose, data }) {
         </div>
 
         {/* Right Panel: Live Preview */}
-        <div className="cl-preview-area">
+        <div className="cl-preview-area" ref={previewRef}>
           <div className="cl-toolbar">
             <button className="btn-secondary" onClick={handlePrint} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
               <i className="fi fi-rr-print"></i> {t('Export PDF')}

@@ -1583,6 +1583,7 @@ input[type="range"] {
   }
   .card-title { font-size: 18px; }
   .card-subtitle { font-size: 13px; }
+  .btn-primary, .btn-secondary, .btn-export, .cl-generate-btn { min-height: 44px; }
 }
 
 /* ============================================
@@ -2822,4 +2823,38 @@ input[type="range"] {
 
 .cl-spin {
   animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   Mobile Responsiveness for Cover Letter
+   ============================================ */
+@media (max-width: 768px) {
+  .cl-workspace-main {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .cl-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    overflow-y: visible;
+    padding: 16px;
+  }
+  .cl-preview-area {
+    padding: 16px 8px;
+    overflow-y: visible;
+  }
+  .cl-a4-paper {
+    width: 100%;
+    min-height: auto;
+    padding: 20px 16px;
+    font-size: 10pt;
+  }
+  .cl-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .cl-header {
+    padding: 12px 16px;
+  }
 }
