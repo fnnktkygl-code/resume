@@ -246,6 +246,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                   <option value="Gamer (Strategic, Quest-Oriented, RPG style)">{t('Gamer / RPG Hero')}</option>
                   <option value="Epic Cinematic (Marvel style, Bold, Superhero flair)">{t('Cinematic / Superhero')}</option>
                   <option value="Jedi / Zen Master (Wise, calm, Star Wars style)">{t('Jedi Master')}</option>
+                  <option value="Speak as someone who is brutally honest and only applying for this job because they need money to pay bills, buy things, and survive. Make zero effort to pretend you are passionate about the company or the role itself. Be extremely direct about the fact that you will work hard solely because you need the paycheck.">{t('Brutally Honest (Need Money)')}</option>
+                  <option value="Speak exactly like a very imaginative, enthusiastic 5-year-old child. Use very simple words, talk about your toys or mommy/daddy, and use childish logic to explain why you are good for the job. Do not be professional.">{t('5-Year-Old Child')}</option>
                 </optgroup>
                 <optgroup label={t('Custom')}>
                   <option value="CloneStyle">{t('My Own Style')}</option>

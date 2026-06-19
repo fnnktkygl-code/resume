@@ -524,7 +524,9 @@ export const TRANSLATIONS = {
     'Custom': 'Custom',
     'My Own Style': 'My Own Style',
     'Reference Letter': 'Reference Letter',
-    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Paste your past cover letter here so the AI can clone your unique writing style...'
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Paste your past cover letter here so the AI can clone your unique writing style...',
+    'Brutally Honest (Need Money)': 'Brutally Honest (Need Money)',
+    '5-Year-Old Child': '5-Year-Old Child'
   },
   fr: {
     // Shared / Formatting
@@ -1048,7 +1050,9 @@ export const TRANSLATIONS = {
     'Custom': 'Personnalisé',
     'My Own Style': 'Mon Propre Style',
     'Reference Letter': 'Lettre de référence',
-    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Collez une ancienne lettre de motivation ici pour que l\'IA puisse copier votre style d\'écriture...'
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Collez une ancienne lettre de motivation ici pour que l\'IA puisse copier votre style d\'écriture...',
+    'Brutally Honest (Need Money)': 'Honnête & Direct (Besoin d\'argent)',
+    '5-Year-Old Child': 'Enfant de 5 ans'
   },
   es: {
     // Shared / Formatting
@@ -1572,7 +1576,9 @@ export const TRANSLATIONS = {
     'Custom': 'Personalizado',
     'My Own Style': 'Mi Propio Estilo',
     'Reference Letter': 'Carta de referencia',
-    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Pega una antigua carta de presentación aquí para que la IA pueda clonar tu estilo de escritura...'
+    'Paste your past cover letter here so the AI can clone your unique writing style...': 'Pega una antigua carta de presentación aquí para que la IA pueda clonar tu estilo de escritura...',
+    'Brutally Honest (Need Money)': 'Honesto y Directo (Necesito Dinero)',
+    '5-Year-Old Child': 'Niño de 5 Años'
   },
 };
 
