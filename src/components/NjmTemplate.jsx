@@ -61,6 +61,7 @@ function NjmTemplate({
   onItemDelete,
   onItemUpdate,
   onAddSpacer,
+  onAddSectionSpacer,
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
@@ -672,8 +673,19 @@ function NjmTemplate({
       {/* Main Sections */}
       <div style={{ flex: 1 }}>
         {sectionOrder
-          .filter(s => s !== 'skills') // Skills is placed at the bottom usually, but let's let sectionOrder control it if we want. Wait, the user has Skills at the bottom.
-          .map(sectionId => renderSection(sectionId))}
+          .filter(s => s !== 'skills')
+          .map((sectionId, sectionIdx) => {
+            const rendered = renderSection(sectionId);
+            if (!rendered) return null;
+            return (
+              <div key={sectionId}>
+                {!printMode && onAddSectionSpacer && InsertSpacerButton && sectionIdx > 0 && (
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+                )}
+                {rendered}
+              </div>
+            );
+          })}
 
         {/* Render Skills */}
         {renderSection('skills')}

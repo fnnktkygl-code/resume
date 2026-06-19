@@ -21,7 +21,8 @@ function ResumePreview({
   onItemReorder,
   onItemDelete,
   onItemUpdate,
-  onAddSpacer
+  onAddSpacer,
+  onAddSectionSpacer
 }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => (!h[key] || h[key] === defaultEn) ? t(tKey) : h[key];
@@ -751,6 +752,7 @@ function ResumePreview({
                 onItemDelete={onItemDelete}
                 onItemUpdate={onItemUpdate}
                 onAddSpacer={onAddSpacer}
+                onAddSectionSpacer={onAddSectionSpacer}
                 printMode={printMode}
               />
             </div>
@@ -769,6 +771,7 @@ function ResumePreview({
                 onItemDelete={onItemDelete}
                 onItemUpdate={onItemUpdate}
                 onAddSpacer={onAddSpacer}
+                onAddSectionSpacer={onAddSectionSpacer}
                 printMode={printMode}
               />
             </div>
@@ -787,6 +790,7 @@ function ResumePreview({
                 onItemDelete={onItemDelete}
                 onItemUpdate={onItemUpdate}
                 onAddSpacer={onAddSpacer}
+                onAddSectionSpacer={onAddSectionSpacer}
                 printMode={printMode}
               />
             </div>
@@ -805,6 +809,7 @@ function ResumePreview({
                 onItemDelete={onItemDelete}
                 onItemUpdate={onItemUpdate}
                 onAddSpacer={onAddSpacer}
+                onAddSectionSpacer={onAddSectionSpacer}
                 printMode={printMode}
               />
             </div>
@@ -828,7 +833,18 @@ function ResumePreview({
                 </div>
               )}
 
-              {sectionOrder.map(sectionId => renderSection(sectionId))}
+              {sectionOrder.map((sectionId, sectionIdx) => {
+                const rendered = renderSection(sectionId);
+                if (!rendered) return null;
+                return (
+                  <div key={sectionId}>
+                    {!printMode && onAddSectionSpacer && sectionIdx > 0 && (
+                      <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+                    )}
+                    {rendered}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

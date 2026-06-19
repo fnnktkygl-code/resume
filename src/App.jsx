@@ -620,6 +620,19 @@ export default function App() {
     setStep(step + 1);
   };
 
+  const handleAddSectionSpacer = useCallback((indexInOrder) => {
+    const newSpacer = createEmptySpacer();
+    setData(prev => {
+      const newOrder = [...prev.sectionOrder];
+      newOrder.splice(indexInOrder, 0, newSpacer.id);
+      return {
+        ...prev,
+        customSections: [...(prev.customSections || []), newSpacer],
+        sectionOrder: newOrder
+      };
+    });
+  }, []);
+
   const handleImport = useCallback((imported) => {
     const defaultData = structuredClone(DEFAULT_DATA);
     const newData = {
@@ -1559,6 +1572,7 @@ export default function App() {
                 onItemDelete={handleItemDelete}
                 onItemUpdate={handleItemUpdate}
                 onAddSpacer={handleItemAddSpacer}
+                onAddSectionSpacer={handleAddSectionSpacer}
                 compact 
               />
             </aside>
@@ -1704,6 +1718,7 @@ export default function App() {
                 onItemDelete={handleItemDelete}
                 onItemUpdate={handleItemUpdate}
                 onAddSpacer={handleItemAddSpacer}
+                onAddSectionSpacer={handleAddSectionSpacer}
               />
             </div>
           </div>

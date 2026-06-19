@@ -16,6 +16,7 @@ function MinimalistTemplate({
   onItemDelete,
   onItemUpdate,
   onAddSpacer,
+  onAddSectionSpacer,
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
@@ -440,7 +441,18 @@ function MinimalistTemplate({
 
       {/* Main Content */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {sectionOrder.map(sectionId => renderSection(sectionId))}
+        {sectionOrder.map((sectionId, sectionIdx) => {
+          const rendered = renderSection(sectionId);
+          if (!rendered) return null;
+          return (
+            <div key={sectionId}>
+              {!printMode && onAddSectionSpacer && InsertSpacerButton && sectionIdx > 0 && (
+                <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+              )}
+              {rendered}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
