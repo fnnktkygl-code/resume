@@ -90,12 +90,22 @@ function NjmTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      return <span style={{ lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <span style={{ lineHeight: '1.5' }}>
+          {skillsArray.map((skill, si) => (
+            <span key={si}>
+              {si > 0 && ' • '}
+              {parseMarkdown(skill)}
+            </span>
+          ))}
+        </span>
+      );
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return (
       <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null)}
+        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
       </div>
     );
   };

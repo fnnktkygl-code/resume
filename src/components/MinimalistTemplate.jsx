@@ -33,14 +33,24 @@ function MinimalistTemplate({
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
-    const style = layout.skillStyle || 'pill'; // Make Minimalist default to pill? Actually, its current default is text. Let's make it respect global skillStyle. Or default to 'text' for Minimalist if not set? We set layout.skillStyle default to 'pill' in App.jsx. So if it's Minimalist, maybe it used text originally. Let's keep 'text' as default if layout.skillStyle is undefined, but wait, layout.skillStyle defaults to 'pill' globally. It's fine to just use the global style.
-    if (style === 'text' || !layout.skillStyle) { // Minimalist default is text
-      return <span style={{ fontSize: '9pt', color: textColor, lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+    const style = layout.skillStyle || 'pill';
+    if (style === 'text' || !layout.skillStyle) {
+      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <span style={{ fontSize: '9pt', color: textColor, lineHeight: '1.5' }}>
+          {skillsArray.map((skill, si) => (
+            <span key={si}>
+              {si > 0 && ' • '}
+              {parseMarkdown(skill)}
+            </span>
+          ))}
+        </span>
+      );
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return (
       <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null)}
+        {skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
       </div>
     );
   };

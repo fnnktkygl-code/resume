@@ -36,10 +36,20 @@ function ModernTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      return <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>
+          {skillsArray.map((skill, si) => (
+            <span key={si}>
+              {si > 0 && ' • '}
+              {parseMarkdown(skill)}
+            </span>
+          ))}
+        </span>
+      );
     }
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{skill.trim()}</span> : null);
+    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
   };
 
   const p = data.personal;

@@ -2,6 +2,13 @@ import { memo } from 'react';
 import { parseMarkdown, formatUrl } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 
+const Icons = {
+  Briefcase: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+  GraduationCap: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>,
+  Folder: () => <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+  Lightbulb: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>,
+};
+
 function CreativeTemplate({ 
   data, 
   layout = {}, 
@@ -35,10 +42,20 @@ function CreativeTemplate({
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
     if (style === 'text') {
-      return <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>{skillsString.split(',').map(s => s.trim()).filter(Boolean).join(' • ')}</span>;
+      const skillsArray = skillsString.split(',').map(s => s.trim()).filter(Boolean);
+      return (
+        <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>
+          {skillsArray.map((skill, si) => (
+            <span key={si}>
+              {si > 0 && ' • '}
+              {parseMarkdown(skill)}
+            </span>
+          ))}
+        </span>
+      );
     }
     const className = style === 'square' ? 'skill-square' : 'skill-pill';
-    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className} style={inlineStyles}>{skill.trim()}</span> : null);
+    return skillsString.split(',').map((skill, si) => skill.trim() ? <span key={si} className={className} style={inlineStyles}>{parseMarkdown(skill.trim())}</span> : null);
   };
 
   const p = data.personal;
