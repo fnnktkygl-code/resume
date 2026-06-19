@@ -94,18 +94,7 @@ function ModernTemplate({
   const renderSection = (sectionId) => {
     switch (sectionId) {
       case 'contact':
-        if (!hasContact) return null;
-        return (
-          <div key="contact">
-            <div className="modern-sidebar-section-title">{t('Contact')}</div>
-            {p.email && <div className="modern-sidebar-item"><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a></div>}
-            {p.phone && <div className="modern-sidebar-item"><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></div>}
-            {p.location && <div className="modern-sidebar-item">{p.location}</div>}
-            {p.linkedin && <div className="modern-sidebar-item"><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></div>}
-            {p.github && <div className="modern-sidebar-item"><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></div>}
-            {p.website && <div className="modern-sidebar-item"><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></div>}
-          </div>
-        );
+        return null; // Handled directly in sidebar
       case 'skills':
         if (!hasSkills) return null;
         return (
@@ -345,6 +334,18 @@ function ModernTemplate({
         )}
         {p.name && <div className="resume-name">{p.name}</div>}
         {p.tagline && <div className="resume-tagline">{p.tagline}</div>}
+
+        {hasContact && (
+          <div style={{ marginBottom: `${sectionSpacing}px` }}>
+            <div className="modern-sidebar-section-title">{t('Contact')}</div>
+            {p.email && <div className="modern-sidebar-item"><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a></div>}
+            {p.phone && <div className="modern-sidebar-item"><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></div>}
+            {p.location && <div className="modern-sidebar-item">{p.location}</div>}
+            {p.linkedin && <div className="modern-sidebar-item"><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></div>}
+            {p.github && <div className="modern-sidebar-item"><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></div>}
+            {p.website && <div className="modern-sidebar-item"><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></div>}
+          </div>
+        )}
 
         {sidebarOrder.map((sectionId, idx) => {
           const rendered = renderSection(sectionId);
