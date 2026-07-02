@@ -20,28 +20,32 @@ function mergeSelected(original, modified, selectedIds) {
   }
 
   original.experience?.forEach((exp, idx) => {
-    const modExp = modified.experience?.[idx];
+    if (exp.isSpacer) return;
+    const modExp = modified.experience?.find(e => e.id === exp.id) || modified.experience?.[idx];
     if (!modExp || !merged.experience?.[idx]) return;
 
-    if (selectedIds.has(`exp.${idx}.title`) && modExp.title !== exp.title) {
+    const expId = exp.id || idx;
+    if (selectedIds.has(`exp.${expId}.title`) && modExp.title !== exp.title) {
       merged.experience[idx].title = modExp.title;
     }
     exp.bullets?.forEach((bullet, bIdx) => {
-      if (selectedIds.has(`exp.${idx}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
+      if (selectedIds.has(`exp.${expId}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
         merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
       }
     });
   });
 
   original.projects?.forEach((proj, idx) => {
-    const modProj = modified.projects?.[idx];
+    if (proj.isSpacer) return;
+    const modProj = modified.projects?.find(p => p.id === proj.id) || modified.projects?.[idx];
     if (!modProj || !merged.projects?.[idx]) return;
 
-    if (selectedIds.has(`proj.${idx}.desc`) && modProj.description !== proj.description) {
+    const projId = proj.id || idx;
+    if (selectedIds.has(`proj.${projId}.desc`) && modProj.description !== proj.description) {
       merged.projects[idx].description = modProj.description;
     }
     proj.highlights?.forEach((h, bIdx) => {
-      if (selectedIds.has(`proj.${idx}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
+      if (selectedIds.has(`proj.${projId}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
         merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
       }
     });

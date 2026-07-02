@@ -53,15 +53,17 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     }
 
     // Experience Diff
-    original.experience?.forEach((exp) => {
+    original.experience?.forEach((exp, idx) => {
       if (exp.isSpacer) return;
-      const modExp = modified.experience?.find(e => e.id === exp.id);
+      const modExp = modified.experience?.find(e => e.id === exp.id) || modified.experience?.[idx];
       if (!modExp) return;
+
+      const expId = exp.id || idx;
 
       // Title change
       if (exp.title !== modExp.title && modExp.title) {
         items.push({
-          id: `exp.${exp.id}.title`,
+          id: `exp.${expId}.title`,
           section: `${t('Experience')} : ${exp.company || ''}`,
           type: 'text',
           original: exp.title,
@@ -74,7 +76,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         const modBullet = modExp.bullets?.[bIdx];
         if (bullet !== modBullet && modBullet) {
           items.push({
-            id: `exp.${exp.id}.bullet.${bIdx}`,
+            id: `exp.${expId}.bullet.${bIdx}`,
             section: `${exp.company || ''} — ${exp.title || ''}`,
             type: 'text',
             original: bullet,
@@ -85,14 +87,16 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     });
 
     // Projects Diff
-    original.projects?.forEach((proj) => {
+    original.projects?.forEach((proj, idx) => {
       if (proj.isSpacer) return;
-      const modProj = modified.projects?.find(p => p.id === proj.id);
+      const modProj = modified.projects?.find(p => p.id === proj.id) || modified.projects?.[idx];
       if (!modProj) return;
+
+      const projId = proj.id || idx;
 
       if (proj.description !== modProj.description && modProj.description) {
         items.push({
-          id: `proj.${proj.id}.desc`,
+          id: `proj.${projId}.desc`,
           section: `${t('Project')}: ${proj.name || ''}`,
           type: 'text',
           original: proj.description,
@@ -104,7 +108,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         const modBullet = modProj.highlights?.[bIdx];
         if (bullet !== modBullet && modBullet) {
           items.push({
-            id: `proj.${proj.id}.highlight.${bIdx}`,
+            id: `proj.${projId}.highlight.${bIdx}`,
             section: `${t('Project')}: ${proj.name || ''}`,
             type: 'text',
             original: bullet,
