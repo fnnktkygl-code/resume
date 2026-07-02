@@ -1754,6 +1754,7 @@ export default function App() {
               sectionLabel={aiSectionFillConfig.sectionLabel}
               resumeContext={aiSectionFillConfig.resumeContext}
               targetJobDescription={aiSectionFillConfig.targetJobDescription}
+              onUpdateTargetJob={(val) => dispatch({ type: 'UPDATE_TARGET_JOB', payload: val })}
               onApply={(suggestions, type) => {
                 aiSectionFillConfig.onApply(suggestions, type);
                 setAiSectionFillConfig(null);

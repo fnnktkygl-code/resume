@@ -555,7 +555,13 @@ export const TRANSLATIONS = {
     'Add a target Job Description in the banner above for tailored suggestions': 'Add a target Job Description in the banner above for tailored suggestions',
     'Context used': 'Context used',
     'Analyzing your profile...': 'Analyzing your profile...',
-    'AI Suggest': 'AI Suggest'
+    'AI Suggest': 'AI Suggest',
+    'Tailoring to Job Offer / ATS': 'Tailoring to Job Offer / ATS',
+    'Tip: Tailor to a Job Offer (Optional)': 'Tip: Tailor to a Job Offer (Optional)',
+    'Edit offer': 'Edit offer',
+    'Hide': 'Hide',
+    'Paste the target job advertisement below so AI aligns keywords specifically for this role:': 'Paste the target job advertisement below so AI aligns keywords specifically for this role:',
+    'Paste target job advertisement / offer here (optional)...': 'Paste target job advertisement / offer here (optional)...'
   },
   fr: {
     // Shared / Formatting
@@ -1110,7 +1116,13 @@ export const TRANSLATIONS = {
     'Add a target Job Description in the banner above for tailored suggestions': 'Ajoutez une description de poste dans le bandeau ci-dessus pour des suggestions sur mesure',
     'Context used': 'Contexte utilisé',
     'Analyzing your profile...': 'Analyse de votre profil...',
-    'AI Suggest': 'Suggestion IA'
+    'AI Suggest': 'Suggestion IA',
+    'Tailoring to Job Offer / ATS': 'Ciblé sur votre offre d\'emploi / ATS',
+    'Tip: Tailor to a Job Offer (Optional)': 'Astuce : Cibler une offre d\'emploi (Optionnel)',
+    'Edit offer': 'Modifier l\'offre',
+    'Hide': 'Masquer',
+    'Paste the target job advertisement below so AI aligns keywords specifically for this role:': 'Collez l\'annonce du poste visé ci-dessous pour que l\'IA adapte ses suggestions à cette offre spécifique :',
+    'Paste target job advertisement / offer here (optional)...': 'Collez le texte de l\'offre d\'emploi visée ici (optionnel)...'
   },
   es: {
     // Shared / Formatting
@@ -1644,7 +1656,13 @@ export const TRANSLATIONS = {
     'Add a target Job Description in the banner above for tailored suggestions': 'Agregue una descripción de puesto arriba para obtener sugerencias personalizadas',
     'Context used': 'Contexto utilizado',
     'Analyzing your profile...': 'Analizando su perfil...',
-    'AI Suggest': 'Sugerir con IA'
+    'AI Suggest': 'Sugerir con IA',
+    'Tailoring to Job Offer / ATS': 'Adaptado a la oferta laboral / ATS',
+    'Tip: Tailor to a Job Offer (Optional)': 'Consejo: Adaptar a una oferta laboral (Opcional)',
+    'Edit offer': 'Editar oferta',
+    'Hide': 'Ocultar',
+    'Paste the target job advertisement below so AI aligns keywords specifically for this role:': 'Pegue el anuncio del puesto objetivo a continuación para que la IA adapte las palabras clave a este rol:',
+    'Paste target job advertisement / offer here (optional)...': 'Pegue la oferta laboral objetivo aquí (opcional)...'
   },
 };
 

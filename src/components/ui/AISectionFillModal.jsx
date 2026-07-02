@@ -21,6 +21,7 @@ export default function AISectionFillModal({
   sectionLabel,
   resumeContext,
   targetJobDescription,
+  onUpdateTargetJob,
   onApply,
 }) {
   const { t, language } = useTranslation();
@@ -28,8 +29,8 @@ export default function AISectionFillModal({
   const [suggestions, setSuggestions] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [error, setError] = useState(null);
-
-  const hasJobDescription = !!targetJobDescription?.trim();
+  const [localJobDescription, setLocalJobDescription] = useState(targetJobDescription || '');
+  const [showJdInput, setShowJdInput] = useState(!targetJobDescription?.trim());
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -46,7 +47,7 @@ export default function AISectionFillModal({
       const result = await generateSectionContentWithProxy(
         sectionType,
         contextWithLabel,
-        targetJobDescription,
+        localJobDescription,
         language
       );
       setSuggestions(result);
@@ -218,41 +219,62 @@ export default function AISectionFillModal({
     <Modal isOpen={isOpen} onClose={onClose} title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* JD Banner info */}
-        {hasJobDescription ? (
-          <div
-            style={{
-              padding: '10px 12px',
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              color: 'rgb(16, 185, 129)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>🎯</span>
-            <span>{t('Suggestions aligned with your target Job Description')}</span>
+        {/* Job Description Optional Input */}
+        <div
+          style={{
+            padding: '12px',
+            background: localJobDescription?.trim() ? 'rgba(16, 185, 129, 0.08)' : 'var(--color-surface-alt)',
+            border: `1px solid ${localJobDescription?.trim() ? 'rgba(16, 185, 129, 0.3)' : 'var(--color-border)'}`,
+            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '600', color: localJobDescription?.trim() ? 'rgb(16, 185, 129)' : 'var(--color-text)' }}>
+              <span>{localJobDescription?.trim() ? '🎯' : '💡'}</span>
+              <span>{localJobDescription?.trim() ? t('Tailoring to Job Offer / ATS') : t('Tip: Tailor to a Job Offer (Optional)')}</span>
+            </div>
+            {localJobDescription?.trim() && (
+              <button
+                type="button"
+                onClick={() => setShowJdInput(!showJdInput)}
+                style={{ background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}
+              >
+                {showJdInput ? t('Hide') : t('Edit offer')}
+              </button>
+            )}
           </div>
-        ) : (
-          <div
-            style={{
-              padding: '10px 12px',
-              background: 'var(--color-surface-alt)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              color: 'var(--color-text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>💡</span>
-            <span>{t('Add a target Job Description in the banner above for tailored suggestions')}</span>
-          </div>
-        )}
+
+          {!localJobDescription?.trim() && (
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+              {t('Paste the target job advertisement below so AI aligns keywords specifically for this role:')}
+            </div>
+          )}
+
+          {showJdInput && (
+            <textarea
+              placeholder={t('Paste target job advertisement / offer here (optional)...')}
+              value={localJobDescription}
+              onChange={(e) => {
+                setLocalJobDescription(e.target.value);
+                onUpdateTargetJob && onUpdateTargetJob(e.target.value);
+              }}
+              style={{
+                width: '100%',
+                minHeight: '70px',
+                padding: '8px',
+                fontSize: '0.8rem',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                resize: 'vertical',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)'
+              }}
+            />
+          )}
+        </div>
 
         {/* Profile Context used */}
         {resumeContext && (
