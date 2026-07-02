@@ -161,31 +161,55 @@ function ResumePreview({
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     const section = e.target.closest('.draggable-section');
-    if (section) section.classList.add('drag-over');
+    if (section) {
+      const rect = section.getBoundingClientRect();
+      const relativeY = e.clientY - rect.top;
+      if (relativeY < rect.height / 2) {
+        section.classList.add('drag-over-top');
+        section.classList.remove('drag-over-bottom');
+      } else {
+        section.classList.add('drag-over-bottom');
+        section.classList.remove('drag-over-top');
+      }
+    }
   }, []);
 
   const handleDragLeave = useCallback((e) => {
     const section = e.target.closest('.draggable-section');
-    if (section) section.classList.remove('drag-over');
+    if (section) {
+      section.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    }
   }, []);
 
   const handleDrop = useCallback((e, sectionId) => {
     e.preventDefault();
     const section = e.target.closest('.draggable-section');
-    if (section) section.classList.remove('drag-over');
+    let isTop = false;
+    if (section) {
+      isTop = section.classList.contains('drag-over-top');
+      section.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    }
     
     try {
       const dataStr = e.dataTransfer.getData('application/json');
       if (!dataStr) return;
       const data = JSON.parse(dataStr);
-      if (data.type === 'section' && data.sectionId && data.sectionId !== sectionId && onSectionReorder) {
-        const newOrder = [...sectionOrder];
-        const fromIdx = newOrder.indexOf(data.sectionId);
-        const toIdx = newOrder.indexOf(sectionId);
-        if (fromIdx !== -1 && toIdx !== -1) {
-          newOrder.splice(fromIdx, 1);
-          newOrder.splice(toIdx, 0, data.sectionId);
-          onSectionReorder(newOrder);
+      if (data.type === 'section' && data.sectionId && onSectionReorder) {
+        const fromIdx = sectionOrder.indexOf(data.sectionId);
+        const index = sectionOrder.indexOf(sectionId);
+        if (fromIdx !== -1 && index !== -1) {
+          let toIdx = index;
+          if (fromIdx < index && isTop) {
+            toIdx = index - 1;
+          } else if (fromIdx > index && !isTop) {
+            toIdx = index + 1;
+          }
+          if (fromIdx !== toIdx) {
+            const newOrder = [...sectionOrder];
+            const [moved] = newOrder.splice(fromIdx, 1);
+            newOrder.splice(toIdx, 0, moved);
+            onSectionReorder(newOrder);
+          }
         }
       }
     } catch(err) {}
@@ -193,7 +217,9 @@ function ResumePreview({
 
   const handleDragEnd = useCallback((e) => {
     e.target.closest('.draggable-section')?.classList.remove('dragging');
-    document.querySelectorAll('.draggable-section.drag-over').forEach(el => el.classList.remove('drag-over'));
+    document.querySelectorAll('.draggable-section').forEach(el => 
+      el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom')
+    );
   }, []);
 
   // Item drag & drop handlers
@@ -210,35 +236,62 @@ function ResumePreview({
     e.preventDefault();
     e.stopPropagation();
     const item = e.target.closest('.draggable-item');
-    if (item) item.classList.add('drag-over');
+    if (item) {
+      const rect = item.getBoundingClientRect();
+      const relativeY = e.clientY - rect.top;
+      if (relativeY < rect.height / 2) {
+        item.classList.add('drag-over-top');
+        item.classList.remove('drag-over-bottom');
+      } else {
+        item.classList.add('drag-over-bottom');
+        item.classList.remove('drag-over-top');
+      }
+    }
   }, []);
 
   const handleItemDragLeave = useCallback((e) => {
     e.stopPropagation();
     const item = e.target.closest('.draggable-item');
-    if (item) item.classList.remove('drag-over');
+    if (item) {
+      item.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    }
   }, []);
 
   const handleItemDrop = useCallback((e, sectionId, index) => {
     e.preventDefault();
     e.stopPropagation();
     const item = e.target.closest('.draggable-item');
-    if (item) item.classList.remove('drag-over');
+    let isTop = false;
+    if (item) {
+      isTop = item.classList.contains('drag-over-top');
+      item.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    }
     
     const data = e.dataTransfer.getData('text/plain');
     if (!data) return;
     const [fromSectionId, , fromIndexStr] = data.split(':');
     const fromIndex = parseInt(fromIndexStr, 10);
     
-    if (fromSectionId === sectionId && fromIndex !== index && onItemReorder) {
-      onItemReorder(sectionId, fromIndex, index);
+    if (fromSectionId === sectionId && onItemReorder) {
+      let toIndex = index;
+      if (fromIndex < index && isTop) {
+        toIndex = index - 1;
+      } else if (fromIndex > index && !isTop) {
+        toIndex = index + 1;
+      }
+      
+      if (fromIndex !== toIndex) {
+        onItemReorder(sectionId, fromIndex, toIndex);
+      }
     }
   }, [onItemReorder]);
 
   const handleItemDragEnd = useCallback((e) => {
     e.stopPropagation();
     e.target.closest('.draggable-item')?.classList.remove('dragging');
-    document.querySelectorAll('.draggable-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    document.querySelectorAll('.draggable-item').forEach(el => 
+      el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom')
+    );
   }, []);
 
   const ItemWrapper = ({ sectionId, itemId, index, className, style, children }) => {
@@ -866,8 +919,8 @@ function ResumePreview({
                 if (!rendered) return null;
                 return (
                   <div key={sectionId}>
-                    {!printMode && onAddSectionSpacer && sectionIdx > 0 && (
-                      <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx)} />
+                    {!printMode && onAddSectionSpacer && (
+                      <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionIdx - 1)} />
                     )}
                     {rendered}
                   </div>

@@ -3,9 +3,9 @@ import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { matchKeywordsWithProxy } from '../../services/geminiService';
 
-export default function ATSKeywordsModal({ isOpen, onClose, data }) {
+export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onApplied }) {
   const { t, language } = useTranslation();
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -48,7 +48,12 @@ export default function ATSKeywordsModal({ isOpen, onClose, data }) {
           style={{ minHeight: '150px', resize: 'vertical' }}
           placeholder={t('Paste job description here...')}
           value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
+          onChange={(e) => {
+            setJobDescription(e.target.value);
+            if (dispatch) {
+              dispatch({ type: 'UPDATE_TARGET_JOB_DESCRIPTION', payload: e.target.value });
+            }
+          }}
         />
 
         {error && (
@@ -95,6 +100,47 @@ export default function ATSKeywordsModal({ isOpen, onClose, data }) {
                       </span>
                     ))}
                   </div>
+                  {dispatch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentSkills = data.skills?.technical || '';
+                        const missingKws = result.missingKeywords.join(', ');
+                        const newSkills = currentSkills ? `${currentSkills}, ${missingKws}` : missingKws;
+                        
+                        dispatch({
+                          type: 'UPDATE_SKILLS',
+                          payload: { ...data.skills, technical: newSkills }
+                        });
+                        
+                        // Re-run the analysis since the skills have been updated
+                        handleAnalyze();
+                        if (onApplied) {
+                          onApplied();
+                        }
+                      }}
+                      style={{
+                        marginTop: '12px',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: 'var(--color-accent-contrast)',
+                        backgroundColor: 'var(--color-accent)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        alignSelf: 'flex-start',
+                        transition: 'transform 0.1s'
+                      }}
+                      onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
+                      onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      <i className="fi fi-rr-magic-wand"></i> {t('✨ Auto Inject missing keywords')}
+                    </button>
+                  )}
                 </div>
               )}
 

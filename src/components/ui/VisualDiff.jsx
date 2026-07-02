@@ -53,14 +53,15 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     }
 
     // Experience Diff
-    original.experience?.forEach((exp, idx) => {
-      const modExp = modified.experience?.[idx];
+    original.experience?.forEach((exp) => {
+      if (exp.isSpacer) return;
+      const modExp = modified.experience?.find(e => e.id === exp.id);
       if (!modExp) return;
 
       // Title change
       if (exp.title !== modExp.title && modExp.title) {
         items.push({
-          id: `exp.${idx}.title`,
+          id: `exp.${exp.id}.title`,
           section: `${t('Experience')} : ${exp.company || ''}`,
           type: 'text',
           original: exp.title,
@@ -73,7 +74,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         const modBullet = modExp.bullets?.[bIdx];
         if (bullet !== modBullet && modBullet) {
           items.push({
-            id: `exp.${idx}.bullet.${bIdx}`,
+            id: `exp.${exp.id}.bullet.${bIdx}`,
             section: `${exp.company || ''} — ${exp.title || ''}`,
             type: 'text',
             original: bullet,
@@ -84,13 +85,14 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     });
 
     // Projects Diff
-    original.projects?.forEach((proj, idx) => {
-      const modProj = modified.projects?.[idx];
+    original.projects?.forEach((proj) => {
+      if (proj.isSpacer) return;
+      const modProj = modified.projects?.find(p => p.id === proj.id);
       if (!modProj) return;
 
       if (proj.description !== modProj.description && modProj.description) {
         items.push({
-          id: `proj.${idx}.desc`,
+          id: `proj.${proj.id}.desc`,
           section: `${t('Project')}: ${proj.name || ''}`,
           type: 'text',
           original: proj.description,
@@ -102,7 +104,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         const modBullet = modProj.highlights?.[bIdx];
         if (bullet !== modBullet && modBullet) {
           items.push({
-            id: `proj.${idx}.highlight.${bIdx}`,
+            id: `proj.${proj.id}.highlight.${bIdx}`,
             section: `${t('Project')}: ${proj.name || ''}`,
             type: 'text',
             original: bullet,

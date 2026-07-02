@@ -20,28 +20,30 @@ function mergeSelected(original, modified, selectedIds) {
   }
 
   original.experience?.forEach((exp, idx) => {
-    const modExp = modified.experience?.[idx];
+    if (exp.isSpacer) return;
+    const modExp = modified.experience?.find(e => e.id === exp.id);
     if (!modExp || !merged.experience?.[idx]) return;
 
-    if (selectedIds.has(`exp.${idx}.title`) && modExp.title !== exp.title) {
+    if (selectedIds.has(`exp.${exp.id}.title`) && modExp.title !== exp.title) {
       merged.experience[idx].title = modExp.title;
     }
     exp.bullets?.forEach((bullet, bIdx) => {
-      if (selectedIds.has(`exp.${idx}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
+      if (selectedIds.has(`exp.${exp.id}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
         merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
       }
     });
   });
 
   original.projects?.forEach((proj, idx) => {
-    const modProj = modified.projects?.[idx];
+    if (proj.isSpacer) return;
+    const modProj = modified.projects?.find(p => p.id === proj.id);
     if (!modProj || !merged.projects?.[idx]) return;
 
-    if (selectedIds.has(`proj.${idx}.desc`) && modProj.description !== proj.description) {
+    if (selectedIds.has(`proj.${proj.id}.desc`) && modProj.description !== proj.description) {
       merged.projects[idx].description = modProj.description;
     }
     proj.highlights?.forEach((h, bIdx) => {
-      if (selectedIds.has(`proj.${idx}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
+      if (selectedIds.has(`proj.${proj.id}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
         merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
       }
     });
@@ -55,19 +57,20 @@ function mergeSelected(original, modified, selectedIds) {
 
 export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language }) {
   const { t } = useTranslation();
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [tailoredResult, setTailoredResult] = useState(null);
-  const selectedRef = useRef(new Set());
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
     if (!isOpen) {
-      setJobDescription('');
+      // Don't reset job description to empty, keep the global state
+      setError('');
       setError('');
       setTailoredResult(null);
       setIsLoading(false);
-      selectedRef.current = new Set();
+      setSelectedIds(new Set());
     }
   }, [isOpen]);
 
@@ -91,12 +94,12 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
   };
 
   const handleSelectionChange = useCallback((ids) => {
-    selectedRef.current = ids;
+    setSelectedIds(ids);
   }, []);
 
   const handleApply = () => {
     if (tailoredResult) {
-      const merged = mergeSelected(data, tailoredResult, selectedRef.current);
+      const merged = mergeSelected(data, tailoredResult, selectedIds);
       onTailorSuccess(merged);
       onClose();
     }
@@ -119,7 +122,7 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
             <button 
               className="btn-primary" 
               onClick={handleApply}
-              disabled={selectedRef.current.size === 0}
+              disabled={selectedIds.size === 0}
             >
               {t('Apply Selected Changes')}
             </button>
@@ -164,33 +167,37 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
         ) : (
           /* Show JD Input view */
           <>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              {t('Paste the job description below. We will use Google Gemini to rewrite your experiences and highlight the most relevant skills.')}
-            </p>
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
+            {t('Paste the job description below. The AI will adapt your summary, skills, and experience to perfectly match the role.')}
+          </p>
 
-            <div>
-              <label htmlFor="jd-input" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                {t('Job Description')}
-              </label>
-              <textarea
-                id="jd-input"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                disabled={isLoading}
-                placeholder={t('Paste the full job description here...')}
-                style={{
-                  width: '100%',
-                  minHeight: '150px',
-                  padding: '0.75rem',
-                  borderRadius: 'var(--radius)',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: 'var(--bg-tertiary)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '8px' }}>
+              {t('Job Description')} <span style={{ color: 'var(--color-danger)' }}>*</span>
+            </label>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => {
+                setJobDescription(e.target.value);
+                if (dispatch) {
+                  dispatch({ type: 'UPDATE_TARGET_JOB_DESCRIPTION', payload: e.target.value });
+                }
+              }}
+              placeholder={t('Paste job description here...')}
+              style={{
+                width: '100%',
+                minHeight: '150px',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                fontFamily: 'inherit',
+                fontSize: '0.95rem',
+                resize: 'vertical'
+              }}
+            />
+          </div>
           </>
         )}
 

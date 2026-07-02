@@ -65,12 +65,22 @@ ABSOLUTE RULES:
 7. Tips MUST be in ${targetLang}.
 8. CRITICAL LANGUAGE RULE: You MUST write the output tips entirely in ${targetLang}. Do NOT write them in English unless the target language is English. If the target language is French, write them in French. If the target language is Spanish, write them in Spanish.
 
-OUTPUT FORMAT — Return ONLY this JSON:
+STEP 3 — ACTIONABLE CTA MAPPING:
+For EACH tip, you MUST assign one of the following "action" codes to allow the UI to auto-resolve the issue:
+- "OPEN_STAR_GENERATOR": Use this if an experience lacks metrics, impact, or uses weak verbs. (You MUST also provide the "targetIndex" which is the 0-based index of the experience array in the JSON).
+- "OPEN_KEYWORD_MATCHER": Use this if the resume lacks target job keywords or the skills section needs better alignment.
+- "OPEN_TAILOR_MODAL": Use this if the entire summary or overall profile feels too generic and needs a complete rewrite.
+- null: Use this ONLY if the tip is structural (e.g. "remove your photo", "make it 1 page") and cannot be auto-fixed by an AI text generator.
+
+OUTPUT FORMAT — Return ONLY this JSON structure:
 {
   "tips": [
-    "Tip 1...",
-    "Tip 2...",
-    "Tip 3..."
+    {
+      "title": "Short title of the issue",
+      "description": "Detailed explanation of what is wrong and how to fix it.",
+      "action": "OPEN_STAR_GENERATOR", 
+      "targetIndex": 0
+    }
   ]
 }
 DO NOT include markdown code fences.`;

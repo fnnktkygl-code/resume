@@ -1,11 +1,38 @@
 import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange }) {
+export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill }) {
   const { t } = useTranslation();
   const update = (field, val) => onChange({ ...data, [field]: val });
   const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
   const updateStyle = (val) => onLayoutChange && onLayoutChange({ ...layout, skillStyle: val });
+
+  const AISuggestButton = ({ sectionType }) => (
+    <button
+      type="button"
+      onClick={() => onAISectionFill?.(sectionType)}
+      className="btn-ai-suggest"
+      title={t('AI Suggestions')}
+      style={{
+        background: 'var(--color-accent-light)',
+        border: 'none',
+        color: 'var(--color-accent)',
+        cursor: 'pointer',
+        padding: '4px 10px',
+        fontSize: '11px',
+        fontWeight: '600',
+        borderRadius: '6px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        transition: 'all 0.15s ease',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      ✨ {t('AI Suggest')}
+    </button>
+  );
+
   return (
     <div className="card">
       <div className="card-title">{t('Skills')}</div>
@@ -43,7 +70,12 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             placeholder={t('SKILLS & TOOLS')} 
           />
         </Field>
-        <Field label={t('Technical Skills')} full>
+        <Field label={
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {t('Technical Skills')}
+            {onAISectionFill && <AISuggestButton sectionType="skills_technical" />}
+          </span>
+        } full>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
@@ -60,7 +92,12 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             rows={3}
           />
         </Field>
-        <Field label={t('Soft Skills')} full>
+        <Field label={
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {t('Soft Skills')}
+            {onAISectionFill && <AISuggestButton sectionType="skills_soft" />}
+          </span>
+        } full>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
@@ -72,7 +109,12 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
           </div>
           <TextInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile Project Management" />
         </Field>
-        <Field label={t('Languages')} full>
+        <Field label={
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {t('Languages')}
+            {onAISectionFill && <AISuggestButton sectionType="skills_languages" />}
+          </span>
+        } full>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
@@ -91,3 +133,4 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
     </div>
   );
 }
+

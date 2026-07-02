@@ -430,7 +430,7 @@ function CreativeTemplate({
             return (
               <div key={sectionId}>
                 {!printMode && onAddSectionSpacer && InsertSpacerButton && (
-                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'sidebar')} />
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId) - 1, 'sidebar')} />
                 )}
                 {rendered}
               </div>
@@ -446,7 +446,7 @@ function CreativeTemplate({
             return (
               <div key={sectionId}>
                 {!printMode && onAddSectionSpacer && InsertSpacerButton && (
-                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId), 'main')} />
+                  <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId) - 1, 'main')} />
                 )}
                 {rendered}
               </div>

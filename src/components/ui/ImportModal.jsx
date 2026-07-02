@@ -135,6 +135,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   const [parsedData, setParsedData] = useState(null);
   const [enhancedData, setEnhancedData] = useState(null);
   const [selectedChanges, setSelectedChanges] = useState({});
+  const [originalInput, setOriginalInput] = useState(null);
   
   const fileInputRef = useRef(null);
   const { t, language } = useTranslation();
@@ -171,6 +172,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   const processWithAI = async (payload) => {
     setIsProcessing(true);
     setError(null);
+    setOriginalInput(payload.originalInput || null);
     
     try {
       const result = await importResumeWithProxy({ ...payload, language });
@@ -295,8 +297,16 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     setError(null);
     
     try {
+      const { extractTextFromPDF } = await import('../../utils/pdfExtractor.js');
+      const textFromPdf = await extractTextFromPDF(file);
+
       const base64Data = await readFileAsBase64(file);
-      await processWithAI({ base64Data, mimeType: file.type });
+      const blobUrl = URL.createObjectURL(file);
+      await processWithAI({ 
+        base64Data, 
+        mimeType: file.type, 
+        originalInput: { type: 'pdf', url: blobUrl, text: textFromPdf } 
+      });
     } catch (err) {
       setError(t('Failed to process file. Please try text mode.'));
       setIsProcessing(false);
@@ -334,7 +344,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
       setError(t('Please provide some text.'));
       return;
     }
-    processWithAI({ text: rawText });
+    processWithAI({ text: rawText, originalInput: { type: 'text', text: rawText } });
   };
 
   return (
@@ -395,7 +405,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
                 style={{ flex: 2, justifyContent: 'center' }}
                 onClick={() => {
                   const finalData = applySelectedChanges();
-                  onImportSuccess(finalData);
+                  onImportSuccess(finalData, parsedData, originalInput);
                   onClose();
                 }}
               >
@@ -456,7 +466,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
                 className="btn-secondary" 
                 style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
                 onClick={() => {
-                  onImportSuccess(parsedData);
+                  onImportSuccess(parsedData, parsedData, originalInput);
                   onClose();
                 }}
               >

@@ -197,4 +197,4 @@ export const DEFAULT_DATA = {
   sectionOrder: ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'],
   sectionSpacers: {},
 };
-
+export const DEFAULT_SECTION_ORDER = ['contact', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];

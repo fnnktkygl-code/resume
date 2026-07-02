@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { createEmptyCustomItem } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function CustomStep({ section, onChange, onDelete }) {
+export default function CustomStep({ section, onChange, onDelete, onAISectionFill }) {
   const { t } = useTranslation();
 
   if (!section) return null;
@@ -26,6 +26,26 @@ export default function CustomStep({ section, onChange, onDelete }) {
   const removeItem = (realIdx) => {
     if (visibleItems.length <= 1) return;
     const updatedItems = section.items.filter((_, i) => i !== realIdx);
+    onChange({ ...section, items: updatedItems });
+  };
+
+  const moveItem = (realIdx, direction) => {
+    const itemIndices = section.items
+      .map((item, idx) => ({ id: item.id, isSpacer: !!item.isSpacer, idx }))
+      .filter(item => !item.isSpacer)
+      .map(item => item.idx);
+    
+    const currentPos = itemIndices.indexOf(realIdx);
+    if (currentPos === -1) return;
+    
+    const targetPos = currentPos + direction;
+    if (targetPos < 0 || targetPos >= itemIndices.length) return;
+    
+    const targetIdx = itemIndices[targetPos];
+    const updatedItems = [...section.items];
+    const temp = updatedItems[realIdx];
+    updatedItems[realIdx] = updatedItems[targetIdx];
+    updatedItems[targetIdx] = temp;
     onChange({ ...section, items: updatedItems });
   };
 
@@ -116,9 +136,35 @@ export default function CustomStep({ section, onChange, onDelete }) {
             <div key={item.id} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div className="card-title">{section.label || t('Item')} {visibleItems.length > 1 ? `#${ii + 1}` : ''}</div>
-                {visibleItems.length > 1 && (
-                  <button className="btn-danger" onClick={() => removeItem(realIdx)}>{t('Remove')}</button>
-                )}
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {visibleItems.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className="control-btn"
+                        onClick={() => moveItem(realIdx, -1)}
+                        disabled={ii === 0}
+                        style={{ padding: '6px', opacity: ii === 0 ? 0.3 : 1, cursor: ii === 0 ? 'default' : 'pointer' }}
+                        title={t('Move Up')}
+                      >
+                        <i className="fi fi-rr-arrow-up"></i>
+                      </button>
+                      <button
+                        type="button"
+                        className="control-btn"
+                        onClick={() => moveItem(realIdx, 1)}
+                        disabled={ii === visibleItems.length - 1}
+                        style={{ padding: '6px', opacity: ii === visibleItems.length - 1 ? 0.3 : 1, cursor: ii === visibleItems.length - 1 ? 'default' : 'pointer' }}
+                        title={t('Move Down')}
+                      >
+                        <i className="fi fi-rr-arrow-down"></i>
+                      </button>
+                    </>
+                  )}
+                  {visibleItems.length > 1 && (
+                    <button className="btn-danger" onClick={() => removeItem(realIdx)} style={{ marginLeft: '6px' }}>{t('Remove')}</button>
+                  )}
+                </div>
               </div>
               
               <div className="field-grid">
@@ -167,6 +213,35 @@ export default function CustomStep({ section, onChange, onDelete }) {
       </div>
 
       <button className="btn-add" onClick={addItem}>+ {t('Add another item')}</button>
+      {onAISectionFill && (
+        <button
+          type="button"
+          onClick={() => {
+            let type = 'custom_generic';
+            if (isAtouts) type = 'custom_atouts';
+            else if (isLoisirs) type = 'custom_loisirs';
+            else if (isLangues) type = 'custom_langues';
+            onAISectionFill(type, section.label);
+          }}
+          style={{
+            background: 'var(--color-accent-light)',
+            border: 'none',
+            color: 'var(--color-accent)',
+            cursor: 'pointer',
+            padding: '6px 14px',
+            fontSize: '12px',
+            fontWeight: '600',
+            borderRadius: '8px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            transition: 'all 0.15s ease',
+            marginTop: '4px',
+          }}
+        >
+          ✨ {t('AI Suggest Items')}
+        </button>
+      )}
     </div>
   );
 }

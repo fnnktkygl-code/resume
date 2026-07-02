@@ -9,14 +9,15 @@ export function Field({ label, children, full }) {
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text' }) {
+export function TextInput({ value, onChange, placeholder, type = 'text', style, className }) {
   return (
     <input
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="input"
+      className={`input ${className || ''}`.trim()}
+      style={style}
     />
   );
 }

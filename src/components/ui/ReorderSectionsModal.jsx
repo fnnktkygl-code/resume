@@ -26,6 +26,7 @@ export default function ReorderSectionsModal({ isOpen, onClose, sectionOrder, cu
   };
 
   const getSectionLabel = (id) => {
+    if (id === 'contact') return t('Contact Information');
     if (id === 'summary') return t('Summary');
     if (id === 'experience') return t('Experience');
     if (id === 'education') return t('Education');

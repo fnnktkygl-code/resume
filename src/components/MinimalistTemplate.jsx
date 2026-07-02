@@ -493,7 +493,7 @@ function MinimalistTemplate({
           return (
             <div key={sectionId}>
               {!printMode && onAddSectionSpacer && InsertSpacerButton && (
-                <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId))} />
+                <InsertSpacerButton onClick={() => onAddSectionSpacer(sectionOrder.indexOf(sectionId) - 1)} />
               )}
               {rendered}
             </div>

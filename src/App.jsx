@@ -3,6 +3,11 @@ import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, creat
 import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR, DEMO_DATA_1_PAGE_ES, DEMO_DATA_2_PAGES_ES } from './utils/demoData';
 import AtsScore from './components/AtsScore';
 import ResumePreview from './components/ResumePreview';
+import { Document, Page, pdfjs } from 'react-pdf';
+import PDFWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
+
 import PersonalStep from './components/steps/PersonalStep';
 import SummaryStep from './components/steps/SummaryStep';
 import ExperienceStep from './components/steps/ExperienceStep';
@@ -18,15 +23,22 @@ import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
 import Modal from './components/ui/Modal';
+import Header from './components/Header';
+import useResumeHistory from './hooks/useResumeHistory';
+import useResumeDocuments from './hooks/useResumeDocuments';
+import resumeReducer from './reducers/resumeReducer';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
 const AIBoldifyModal = lazy(() => import('./components/ui/AIBoldifyModal'));
+const AIBulletPointsModal = lazy(() => import('./components/ui/AIBulletPointsModal'));
 const OnboardingModal = lazy(() => import('./components/ui/OnboardingModal'));
 const CVManagerModal = lazy(() => import('./components/ui/CVManagerModal'));
 const ReorderSectionsModal = lazy(() => import('./components/ui/ReorderSectionsModal'));
 const CoverLetterModal = lazy(() => import('./components/ui/CoverLetterModal'));
+const AISectionFillModal = lazy(() => import('./components/ui/AISectionFillModal'));
 import ImportModal from './components/ui/ImportModal';
+import { buildResumeContext, checkResumeReadiness } from './utils/buildResumeContext';
 
 const STORAGE_KEY = 'resume-builder-data';
 const THEME_KEY = 'resume-builder-theme';
@@ -45,7 +57,7 @@ const DEFAULT_LAYOUT = {
   fontFamily: 'Inter',
 };
 
-const DEFAULT_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];
+const DEFAULT_SECTION_ORDER = ['contact', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];
 
 function detectLanguage() {
   try {
@@ -137,7 +149,6 @@ function loadTemplate() {
 
 export default function App() {
   const [step, setStep] = useState(0);
-  const [data, setData] = useState(loadData);
   const [theme, setTheme] = useState(loadTheme);
   const [saved, setSaved] = useState(false);
   const [language, setLanguage] = useState(detectLanguage);
@@ -158,9 +169,29 @@ export default function App() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [activeAITipCallback, setActiveAITipCallback] = useState(null);
 
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [originalImportInput, setOriginalImportInput] = useState(null);
+  const [aiBulletConfig, setAiBulletConfig] = useState(null);
+  const [aiSectionFillConfig, setAiSectionFillConfig] = useState(null);
+
+  const [
+    data,
+    dispatch,
+    {
+      past,
+      future,
+      undo,
+      redo,
+      aiSnapshot,
+      setAiSnapshot,
+      saveSnapshot,
+      restoreSnapshot
+    }
+  ] = useResumeHistory(resumeReducer, loadData);
+
   const [importSnapshot, setImportSnapshot] = useState(() => {
     try {
       const listSaved = localStorage.getItem('resume-builder-cv-list');
@@ -178,6 +209,33 @@ export default function App() {
   const [fullscreenZoom, setFullscreenZoom] = useState(1.0);
   const [editorPagesCount, setEditorPagesCount] = useState(1);
   const [isPreviewHeaderCollapsed, setIsPreviewHeaderCollapsed] = useState(false);
+  
+  const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+
+  const t = (key) => getTranslation(language, key);
+
+  const {
+    cvList,
+    activeCvId,
+    handleLoadCv,
+    handleCreateCv,
+    handleDuplicateCv,
+    handleRenameCv,
+    handleDeleteCv,
+    handleExportData,
+    handleImportData
+  } = useResumeDocuments({
+    data,
+    dispatch,
+    importSnapshot,
+    setImportSnapshot,
+    setStep,
+    setIsCvManagerOpen,
+    language,
+    t
+  });
+
   const [viewportSize, setViewportSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1200,
     height: typeof window !== 'undefined' ? window.innerHeight : 800
@@ -231,56 +289,7 @@ export default function App() {
     }
   }, [layout.accentColor]);
 
-  // Multi-CV states
-  const [cvList, setCvList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('resume-builder-cv-list');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    const initialCv = {
-      id: 'default',
-      name: detectLanguage() === 'fr' ? 'Mon CV Principal' : 'My Primary Resume',
-      lastModified: Date.now(),
-      data: loadData()
-    };
-    localStorage.setItem('resume-builder-cv-list', JSON.stringify([initialCv]));
-    return [initialCv];
-  });
-
-  const [activeCvId, setActiveCvId] = useState(() => {
-    try {
-      return localStorage.getItem('resume-builder-active-cv-id') || 'default';
-    } catch {
-      return 'default';
-    }
-  });
-
-  const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
-  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
-
-  // Sync current data edits to the active CV in cvList and persist
-  useEffect(() => {
-    setCvList(prev => {
-      const updated = prev.map(cv => {
-        if (cv.id === activeCvId) {
-          return {
-            ...cv,
-            lastModified: Date.now(),
-            data: data,
-            importSnapshot: importSnapshot
-          };
-        }
-        return cv;
-      });
-      localStorage.setItem('resume-builder-cv-list', JSON.stringify(updated));
-      return updated;
-    });
-  }, [data, activeCvId, importSnapshot]);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
 
   // Close template dropdown on outside click
@@ -294,103 +303,14 @@ export default function App() {
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [isTemplateDropdownOpen]);
+
   const [sectionToDelete, setSectionToDelete] = useState(null);
   const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '', onUpdate: null });
-  // A2 — AI Snapshot: stores a copy of data before any AI mutation for one-click undo
-  const [aiSnapshot, setAiSnapshot] = useState(null);
-  const saveSnapshot = useCallback(() => setAiSnapshot(structuredClone(data)), [data]);
-  const restoreSnapshot = useCallback(() => { if (aiSnapshot) { setData(aiSnapshot); setAiSnapshot(null); } }, [aiSnapshot]);
-
-  // A1 — Undo/Redo state stack
-  const [past, setPast] = useState([]);
-  const [future, setFuture] = useState([]);
-  const lastPushedStateRef = useRef(JSON.stringify(data));
-  const debounceTimerRef = useRef(null);
-
-  const pushToHistory = useCallback((newState) => {
-    const serialized = JSON.stringify(newState);
-    if (serialized === lastPushedStateRef.current) return;
-
-    setPast(prev => {
-      const nextPast = [...prev, JSON.parse(lastPushedStateRef.current)];
-      if (nextPast.length > 50) nextPast.shift();
-      return nextPast;
-    });
-    setFuture([]); // Clear future on new edits
-    lastPushedStateRef.current = serialized;
-  }, []);
-
-  const undo = useCallback(() => {
-    if (past.length === 0) return;
-    const previous = past[past.length - 1];
-    const newPast = past.slice(0, past.length - 1);
-
-    setPast(newPast);
-    setFuture(prev => [data, ...prev]);
-    
-    lastPushedStateRef.current = JSON.stringify(previous);
-    setData(previous);
-  }, [past, data]);
-
-  const redo = useCallback(() => {
-    if (future.length === 0) return;
-    const next = future[0];
-    const newFuture = future.slice(1);
-
-    setFuture(newFuture);
-    setPast(prev => [...prev, data]);
-
-    lastPushedStateRef.current = JSON.stringify(next);
-    setData(next);
-  }, [future, data]);
-
-  useEffect(() => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      pushToHistory(data);
-    }, 1000); // Debounce typing history to 1s
-
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, [data, pushToHistory]);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
-
-      if (cmdOrCtrl && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      } else if (cmdOrCtrl && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        redo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
   const removeSection = useCallback((sectionId) => {
-    setData(prev => {
-      const isCustom = sectionId.startsWith('custom_') || sectionId.startsWith('spacer_');
-      return {
-        ...prev,
-        sectionOrder: prev.sectionOrder.filter(id => id !== sectionId),
-        ...(isCustom && {
-          customSections: (prev.customSections || []).filter(s => s.id !== sectionId)
-        })
-      };
-    });
+    dispatch({ type: 'REMOVE_SECTION', payload: sectionId });
     setSectionToDelete(null);
     setStep(prevStep => Math.max(0, prevStep - 1));
   }, []);
-
-  const t = (key) => getTranslation(language, key);
 
   const hasContent = useMemo(() => {
     const p = data.personal;
@@ -525,26 +445,19 @@ export default function App() {
         }]
       };
 
-      setData(prev => {
-        const customSections = [...(prev.customSections || [])];
-        if (!customSections.some(s => s.id === sectionId)) {
-          customSections.push(newSec);
+      dispatch({
+        type: 'SET_DATA',
+        payload: {
+          ...data,
+          customSections: [...(data.customSections || []), newSec],
+          sectionOrder: [...(data.sectionOrder || []), sectionId]
         }
-        const sectionOrder = [...(prev.sectionOrder || [])];
-        if (!sectionOrder.includes(sectionId)) {
-          sectionOrder.push(sectionId);
-        }
-        return {
-          ...prev,
-          customSections,
-          sectionOrder
-        };
       });
 
       setStep(allSteps.length);
       setShowMobilePreview(false);
     }
-  }, [allSteps, language]);
+  }, [allSteps, language, data, dispatch]);
 
   const handleStepperDragStart = (e, sectionId) => {
     if (sectionId === 'personal') {
@@ -589,68 +502,29 @@ export default function App() {
   };
 
   const addCustomSection = () => {
-    const newSection = createEmptyCustomSection('New Section');
-    setData(prev => ({
-      ...prev,
-      customSections: [...(prev.customSections || []), newSection],
-      sectionOrder: [...prev.sectionOrder, newSection.id]
-    }));
+    dispatch({ type: 'ADD_CUSTOM_SECTION', payload: 'New Section' });
     setStep(allSteps.length); // Navigate to the new step right away
   };
 
   const addSpacerSection = () => {
-    const newSpacer = createEmptySpacer();
-    setData(prev => {
-      const currentStepId = allSteps[step]?.id;
-      const newOrder = [...prev.sectionOrder];
-      const index = newOrder.indexOf(currentStepId);
-      
-      if (index !== -1) {
-        newOrder.splice(index + 1, 0, newSpacer.id);
-      } else {
-        newOrder.unshift(newSpacer.id);
-      }
-
-      return {
-        ...prev,
-        customSections: [...(prev.customSections || []), newSpacer],
-        sectionOrder: newOrder
-      };
-    });
+    const currentStepId = allSteps[step]?.id;
+    dispatch({ type: 'ADD_SPACER_SECTION', payload: { currentStepId } });
     setStep(step + 1);
   };
 
   const handleAddSectionSpacer = useCallback((indexInOrder, column = 'main') => {
-    const newSpacer = createEmptySpacer(column);
-    setData(prev => {
-      const newOrder = [...prev.sectionOrder];
-      newOrder.splice(indexInOrder, 0, newSpacer.id);
-      return {
-        ...prev,
-        customSections: [...(prev.customSections || []), newSpacer],
-        sectionOrder: newOrder
-      };
-    });
-  }, []);
+    dispatch({ type: 'ADD_SECTION_SPACER', payload: { indexInOrder, column } });
+  }, [dispatch]);
 
   const handleUpdateSectionSpacer = useCallback((spacerId, height) => {
-    setData(prev => ({
-      ...prev,
-      customSections: (prev.customSections || []).map(s => 
-        s.id === spacerId ? { ...s, height } : s
-      )
-    }));
-  }, []);
+    dispatch({ type: 'UPDATE_SECTION_SPACER', payload: { spacerId, height } });
+  }, [dispatch]);
 
   const handleDeleteSectionSpacer = useCallback((spacerId) => {
-    setData(prev => ({
-      ...prev,
-      sectionOrder: prev.sectionOrder.filter(id => id !== spacerId),
-      customSections: prev.customSections.filter(s => s.id !== spacerId)
-    }));
-  }, []);
+    dispatch({ type: 'DELETE_SECTION_SPACER', payload: spacerId });
+  }, [dispatch]);
 
-  const handleImport = useCallback((imported) => {
+  const handleImport = useCallback((imported, originalImported = null, originalInput = null) => {
     const defaultData = structuredClone(DEFAULT_DATA);
     
     if (imported.detectedLanguage) {
@@ -662,7 +536,7 @@ export default function App() {
       delete imported.detectedLanguage;
     }
 
-    const newData = {
+    let newData = {
       ...defaultData,
       ...imported,
       headings: { ...defaultData.headings, ...imported.headings },
@@ -672,13 +546,76 @@ export default function App() {
       certifications: imported.certifications || DEFAULT_DATA.certifications,
       sectionOrder: imported.sectionOrder || DEFAULT_SECTION_ORDER,
     };
-    setData(newData);
-    setImportSnapshot(newData);
-  }, []);
+
+    const ensureId = (arr) => {
+      if (!Array.isArray(arr)) return arr;
+      return arr.map(item => ({
+        ...item,
+        id: item.id || `item_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`
+      }));
+    };
+
+    newData.experience = ensureId(newData.experience);
+    newData.education = ensureId(newData.education);
+    newData.projects = ensureId(newData.projects);
+    newData.certifications = ensureId(newData.certifications);
+    if (Array.isArray(newData.customSections)) {
+      newData.customSections = newData.customSections.map(sec => ({
+        ...sec,
+        id: sec.id || `custom_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`,
+        items: ensureId(sec.items)
+      }));
+    }
+
+    let snapshotData = newData;
+    
+    if (originalImported) {
+      snapshotData = {
+        ...defaultData,
+        ...originalImported,
+        headings: { ...defaultData.headings, ...(originalImported.headings || {}) },
+        personal: { ...defaultData.personal, ...(originalImported.personal || {}) },
+        skills: { ...defaultData.skills, ...(originalImported.skills || {}) },
+        projects: originalImported.projects || DEFAULT_DATA.projects,
+        certifications: originalImported.certifications || DEFAULT_DATA.certifications,
+        sectionOrder: originalImported.sectionOrder || DEFAULT_SECTION_ORDER,
+      };
+      
+      const copyIds = (targetArr, sourceArr) => {
+        if (!Array.isArray(targetArr)) return targetArr;
+        if (!Array.isArray(sourceArr)) return targetArr;
+        return targetArr.map((item, i) => ({
+          ...item,
+          id: sourceArr[i]?.id || item.id || `item_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`
+        }));
+      };
+
+      snapshotData.experience = copyIds(snapshotData.experience, newData.experience);
+      snapshotData.education = copyIds(snapshotData.education, newData.education);
+      snapshotData.projects = copyIds(snapshotData.projects, newData.projects);
+      snapshotData.certifications = copyIds(snapshotData.certifications, newData.certifications);
+      if (Array.isArray(snapshotData.customSections)) {
+        snapshotData.customSections = snapshotData.customSections.map((sec, i) => ({
+          ...sec,
+          id: newData.customSections?.[i]?.id || sec.id || `custom_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`,
+          items: copyIds(sec.items, newData.customSections?.[i]?.items)
+        }));
+      }
+    }
+    
+    if (originalInput?.text) {
+      snapshotData.originalText = originalInput.text;
+    }
+
+    dispatch({ type: 'SET_DATA', payload: newData });
+    setImportSnapshot(snapshotData);
+    setOriginalImportInput(originalInput);
+  }, [dispatch]);
 
   const clearData = () => {
-    setData({ ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] });
+    dispatch({ type: 'SET_DATA', payload: { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] } });
     setImportSnapshot(null);
+    setOriginalImportInput(null);
     setStep(0);
     setShowClearConfirm(false);
   };
@@ -692,10 +629,9 @@ export default function App() {
     }
     const cloned = structuredClone(demoData);
     if (!cloned.sectionOrder) cloned.sectionOrder = [...DEFAULT_SECTION_ORDER];
-    setData(cloned);
+    dispatch({ type: 'SET_DATA', payload: cloned });
     setStep(0);
-    setMobileMenuOpen(false);
-  }, [language]);
+  }, [language, dispatch]);
 
   const handleOnboardingSelect = useCallback((option) => {
     localStorage.setItem('resume-builder-onboarded', 'true');
@@ -709,208 +645,49 @@ export default function App() {
     }
   }, [loadDemoData, clearData]);
 
-  const handleLoadCv = useCallback((id) => {
-    const target = cvList.find(c => c.id === id);
-    if (target) {
-      setActiveCvId(id);
-      setData(target.data);
-      setImportSnapshot(target.importSnapshot || null);
-      localStorage.setItem('resume-builder-active-cv-id', id);
-      setStep(0);
-      setIsCvManagerOpen(false);
-    }
-  }, [cvList]);
-
-  const handleCreateCv = useCallback(() => {
-    const newId = 'cv_' + Date.now();
-    const newCv = {
-      id: newId,
-      name: `${t('New Resume')} (${cvList.length + 1})`,
-      lastModified: Date.now(),
-      data: { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] }
-    };
-    const nextList = [...cvList, newCv];
-    setCvList(nextList);
-    localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
-
-    setActiveCvId(newId);
-    setData(newCv.data);
-    localStorage.setItem('resume-builder-active-cv-id', newId);
-    setStep(0);
-    setIsCvManagerOpen(false);
-  }, [cvList, t]);
-
-  const handleDuplicateCv = useCallback((id) => {
-    const source = cvList.find(c => c.id === id);
-    if (source) {
-      const newId = 'cv_' + Date.now();
-      const newCv = {
-        id: newId,
-        name: `${source.name} (${t('copy')})`,
-        lastModified: Date.now(),
-        data: structuredClone(source.data)
-      };
-      const nextList = [...cvList, newCv];
-      setCvList(nextList);
-      localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
-    }
-  }, [cvList, t]);
-
-  const handleRenameCv = useCallback((id, name) => {
-    setCvList(prev => {
-      const next = prev.map(c => c.id === id ? { ...c, name, lastModified: Date.now() } : c);
-      localStorage.setItem('resume-builder-cv-list', JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  const handleDeleteCv = useCallback((id) => {
-    if (cvList.length <= 1) return;
-    const nextList = cvList.filter(c => c.id !== id);
-    setCvList(nextList);
-    localStorage.setItem('resume-builder-cv-list', JSON.stringify(nextList));
-
-    if (activeCvId === id) {
-      const fallback = nextList[0];
-      setActiveCvId(fallback.id);
-      setData(fallback.data);
-      localStorage.setItem('resume-builder-active-cv-id', fallback.id);
-      setStep(0);
-    }
-  }, [cvList, activeCvId]);
-
-  const handleExportData = useCallback(() => {
-    const dataStr = JSON.stringify(cvList, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `resume-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [cvList]);
-
-  const handleImportData = useCallback((importedCvList) => {
-    if (Array.isArray(importedCvList) && importedCvList.length > 0) {
-      setCvList(importedCvList);
-      localStorage.setItem('resume-builder-cv-list', JSON.stringify(importedCvList));
-      const firstCv = importedCvList[0];
-      setActiveCvId(firstCv.id);
-      localStorage.setItem('resume-builder-active-cv-id', firstCv.id);
-      setData(firstCv.data);
-      alert(t('Backup restored successfully!'));
-    }
-  }, [t]);
-
   const handleSectionReorder = useCallback((newOrder) => {
-    setData(prev => ({ ...prev, sectionOrder: newOrder }));
-  }, []);
+    dispatch({ type: 'REORDER_SECTIONS', payload: newOrder });
+  }, [dispatch]);
 
   const handleItemReorder = useCallback((sectionId, fromIdx, toIdx) => {
-    setData(prev => {
-      const next = { ...prev };
-      let list;
-      if (sectionId.startsWith('custom_')) {
-        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
-        if (secIndex === -1) return prev;
-        list = [...next.customSections[secIndex].items];
-        const [moved] = list.splice(fromIdx, 1);
-        list.splice(toIdx, 0, moved);
-        next.customSections = [...next.customSections];
-        next.customSections[secIndex] = { ...next.customSections[secIndex], items: list };
-      } else {
-        list = [...(next[sectionId] || [])];
-        const [moved] = list.splice(fromIdx, 1);
-        list.splice(toIdx, 0, moved);
-        next[sectionId] = list;
-      }
-      return next;
-    });
-  }, []);
+    dispatch({ type: 'REORDER_ITEMS', payload: { sectionId, fromIdx, toIdx } });
+  }, [dispatch]);
 
   const handleItemDelete = useCallback((sectionId, index) => {
-    setData(prev => {
-      const next = { ...prev };
-      if (sectionId.startsWith('custom_')) {
-        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
-        if (secIndex === -1) return prev;
-        const items = next.customSections[secIndex].items.filter((_, i) => i !== index);
-        next.customSections = [...next.customSections];
-        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
-      } else {
-        next[sectionId] = (next[sectionId] || []).filter((_, i) => i !== index);
-      }
-      return next;
-    });
-  }, []);
+    dispatch({ type: 'DELETE_ITEM', payload: { sectionId, index } });
+  }, [dispatch]);
 
   const handleItemUpdate = useCallback((sectionId, index, updatedItem) => {
-    setData(prev => {
-      const next = { ...prev };
-      if (sectionId.startsWith('custom_')) {
-        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
-        if (secIndex === -1) return prev;
-        const items = [...next.customSections[secIndex].items];
-        items[index] = updatedItem;
-        next.customSections = [...next.customSections];
-        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
-      } else {
-        const items = [...(next[sectionId] || [])];
-        items[index] = updatedItem;
-        next[sectionId] = items;
-      }
-      return next;
-    });
-  }, []);
+    dispatch({ type: 'UPDATE_ITEM', payload: { sectionId, index, updatedItem } });
+  }, [dispatch]);
 
   const handleItemAddSpacer = useCallback((sectionId, index) => {
-    setData(prev => {
-      const next = { ...prev };
-      const newSpacer = {
-        id: `item_spacer_${crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`,
-        isSpacer: true,
-        height: 24
-      };
-      if (sectionId.startsWith('custom_')) {
-        const secIndex = next.customSections.findIndex(s => s.id === sectionId);
-        if (secIndex === -1) return prev;
-        const items = [...next.customSections[secIndex].items];
-        items.splice(index, 0, newSpacer);
-        next.customSections = [...next.customSections];
-        next.customSections[secIndex] = { ...next.customSections[secIndex], items };
-      } else {
-        const items = [...(next[sectionId] || [])];
-        items.splice(index, 0, newSpacer);
-        next[sectionId] = items;
-      }
-      return next;
-    });
-  }, []);
+    dispatch({ type: 'ADD_ITEM_SPACER', payload: { sectionId, index } });
+  }, [dispatch]);
   
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
-    setData(prev => {
-      const isDemo1 = prev.personal.name === 'Hoshi Fenneko';
-      const isDemo2 = isDemo1 && prev.experience.length > 2;
-      
-      let nextData = prev;
-      if (lang === 'fr') {
-        if (isDemo2) nextData = DEMO_DATA_2_PAGES_FR;
-        else if (isDemo1) nextData = DEMO_DATA_1_PAGE_FR;
+    const isDemo1 = data.personal.name === 'Hoshi Fenneko';
+    const isDemo2 = isDemo1 && data.experience.length > 2;
+    
+    let nextData = data;
+    if (lang === 'fr') {
+      if (isDemo2) nextData = DEMO_DATA_2_PAGES_FR;
+      else if (isDemo1) nextData = DEMO_DATA_1_PAGE_FR;
 
-        const customSections = (nextData.customSections || []).map(s => {
-          if (s.id === 'custom_langues') return { ...s, label: 'Langues' };
-          if (s.id === 'custom_atouts') return { ...s, label: 'Atouts' };
-          if (s.id === 'custom_loisirs') return { ...s, label: 'Loisirs' };
-          return s;
-        });
+      const customSections = (nextData.customSections || []).map(s => {
+        if (s.id === 'custom_langues') return { ...s, label: 'Langues' };
+        if (s.id === 'custom_atouts') return { ...s, label: 'Atouts' };
+        if (s.id === 'custom_loisirs') return { ...s, label: 'Loisirs' };
+        return s;
+      });
 
-        return { 
+      dispatch({
+        type: 'SET_DATA',
+        payload: { 
           ...nextData,
           customSections,
-          sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
             summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Resumen Profesional') ? 'Profil' : nextData.headings.summary,
@@ -924,22 +701,25 @@ export default function App() {
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Presente') ? 'Présent' : nextData.headings.present
           }
-        };
-      } else if (lang === 'es') {
-        if (isDemo2) nextData = DEMO_DATA_2_PAGES_ES;
-        else if (isDemo1) nextData = DEMO_DATA_1_PAGE_ES;
+        }
+      });
+    } else if (lang === 'es') {
+      if (isDemo2) nextData = DEMO_DATA_2_PAGES_ES;
+      else if (isDemo1) nextData = DEMO_DATA_1_PAGE_ES;
 
-        const customSections = (nextData.customSections || []).map(s => {
-          if (s.id === 'custom_langues') return { ...s, label: 'Idiomas' };
-          if (s.id === 'custom_atouts') return { ...s, label: 'Fortalezas' };
-          if (s.id === 'custom_loisirs') return { ...s, label: 'Aficiones' };
-          return s;
-        });
+      const customSections = (nextData.customSections || []).map(s => {
+        if (s.id === 'custom_langues') return { ...s, label: 'Idiomas' };
+        if (s.id === 'custom_atouts') return { ...s, label: 'Fortalezas' };
+        if (s.id === 'custom_loisirs') return { ...s, label: 'Aficiones' };
+        return s;
+      });
 
-        return { 
+      dispatch({
+        type: 'SET_DATA',
+        payload: { 
           ...nextData,
           customSections,
-          sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
             summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Profil') ? 'Resumen Profesional' : nextData.headings.summary,
@@ -953,22 +733,25 @@ export default function App() {
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certifications') ? 'Certificaciones' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Présent') ? 'Presente' : nextData.headings.present
           }
-        };
-      } else {
-        if (isDemo2) nextData = DEMO_DATA_2_PAGES;
-        else if (isDemo1) nextData = DEMO_DATA_1_PAGE;
+        }
+      });
+    } else {
+      if (isDemo2) nextData = DEMO_DATA_2_PAGES;
+      else if (isDemo1) nextData = DEMO_DATA_1_PAGE;
 
-        const customSections = (nextData.customSections || []).map(s => {
-          if (s.id === 'custom_langues') return { ...s, label: 'Languages' };
-          if (s.id === 'custom_atouts') return { ...s, label: 'Strengths' };
-          if (s.id === 'custom_loisirs') return { ...s, label: 'Hobbies' };
-          return s;
-        });
+      const customSections = (nextData.customSections || []).map(s => {
+        if (s.id === 'custom_langues') return { ...s, label: 'Languages' };
+        if (s.id === 'custom_atouts') return { ...s, label: 'Strengths' };
+        if (s.id === 'custom_loisirs') return { ...s, label: 'Hobbies' };
+        return s;
+      });
 
-        return { 
+      dispatch({
+        type: 'SET_DATA',
+        payload: { 
           ...nextData,
           customSections,
-          sectionOrder: prev.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
           headings: {
             ...nextData.headings,
             summary: (nextData.headings.summary === 'Profil' || nextData.headings.summary === 'Resumen Profesional') ? 'Summary' : nextData.headings.summary,
@@ -982,9 +765,9 @@ export default function App() {
             certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
             present: (nextData.headings.present === 'Présent' || nextData.headings.present === 'Presente') ? 'Present' : nextData.headings.present
           }
-        };
-      }
-    });
+        }
+      });
+    }
   };
 
   // Check which steps have data for completion indicators
@@ -1005,6 +788,26 @@ export default function App() {
         return false;
     }
   };
+  const handleAITriggerAction = (action, targetIndex, onSuccess) => {
+    if (onSuccess) setActiveAITipCallback(() => onSuccess);
+    
+    if (action === 'OPEN_STAR_GENERATOR') {
+      const expIndex = targetIndex ?? 0;
+      const exp = data.experience[expIndex];
+      if (exp) {
+        setAiBulletConfig({
+          isOpen: true,
+          text: exp.bullets?.[0] || exp.description || '',
+          index: expIndex,
+          bulletIndex: 0
+        });
+        const expStepIdx = allSteps.findIndex(s => s.id === 'experience');
+        if (expStepIdx !== -1) setStep(expStepIdx);
+      }
+    } else if (action === 'OPEN_TAILOR_MODAL') {
+      setIsTailorOpen(true);
+    }
+  };
 
   return (
     <TranslationContext.Provider value={language}>
@@ -1013,83 +816,19 @@ export default function App() {
         <a href="#main-content" className="skip-link">{t('Skip to main content')}</a>
 
         {/* Header — M1: simplified, demos in overflow menu */}
-        <header className="header">
-          <div className="header-left">
-            <button
-              className="logo logo-btn"
-              onClick={() => { window.location.hash = ''; }}
-              title={t('Back to home')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              Resu<span className="logo-accent">Me</span>
-            </button>
-            <span className="badge">ATS Ready</span>
-          </div>
-          <div className="header-right">
-            <span className="privacy-note"><i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}</span>
-
-            {/* Cover Letter Generator */}
-            <button className="btn-demo desktop-only" style={{ marginRight: '8px', border: '1px solid var(--color-border)' }} onClick={() => setIsCoverLetterModalOpen(true)}>
-              <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
-            </button>
-
-            {/* Primary action: Import CV */}
-            <button className="btn-demo btn-import-primary desktop-only" onClick={() => setShowImportModal(true)}>
-              <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
-            </button>
-
-            {/* S3: Demos + Clear moved to overflow menu */}
-            <div className="header-overflow-menu">
-              <button
-                className="mobile-menu-btn header-more-btn"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="More options"
-                aria-expanded={mobileMenuOpen}
-              >
-                <i className="fi fi-rr-menu-dots"></i>
-              </button>
-              <div className={`mobile-menu-dropdown header-dropdown${mobileMenuOpen ? ' open' : ''}`}>
-                <div className="dropdown-section-label">{t('My Documents')}</div>
-                <button className="btn-demo dropdown-item mobile-only" onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}>
-                  <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
-                </button>
-                <button className="btn-demo dropdown-item mobile-only" onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}>
-                  <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
-                </button>
-                <button className="btn-demo dropdown-item" onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}>
-                  <i className="fi fi-rr-folder"></i> {t('Manage My Resumes')}
-                </button>
-                <div className="dropdown-divider" />
-                <div className="dropdown-section-label">{t('Examples')}</div>
-                <button className="btn-demo dropdown-item" onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}>
-                  <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
-                </button>
-                <button className="btn-demo dropdown-item" onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}>
-                  <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
-                </button>
-                <div className="dropdown-divider" />
-                <button
-                  className="btn-demo dropdown-item dropdown-danger"
-                  onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}
-                  disabled={!hasContent}
-                >
-                  <i className="fi fi-rr-trash"></i> {t('Clear')}
-                </button>
-                <div className="dropdown-divider mobile-only" />
-                <div className="dropdown-section-label mobile-only">{t('Language')}</div>
-                <div className="mobile-only" style={{ display: 'flex', gap: '8px', padding: '8px 16px' }}>
-                  <button className={`control-btn ${language === 'en' ? 'active' : ''}`} onClick={() => { handleLanguageChange('en'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>EN</button>
-                  <button className={`control-btn ${language === 'fr' ? 'active' : ''}`} onClick={() => { handleLanguageChange('fr'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>FR</button>
-                  <button className={`control-btn ${language === 'es' ? 'active' : ''}`} onClick={() => { handleLanguageChange('es'); setMobileMenuOpen(false); }} style={{ flex: 1, padding: '6px' }}>ES</button>
-                </div>
-              </div>
-            </div>
-
-            <button className="theme-toggle" onClick={toggleTheme} aria-label={t('Toggle theme')}>
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
-          </div>
-        </header>
+        <Header 
+          t={t}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          language={language}
+          handleLanguageChange={handleLanguageChange}
+          hasContent={hasContent}
+          setIsCoverLetterModalOpen={setIsCoverLetterModalOpen}
+          setShowImportModal={setShowImportModal}
+          setIsCvManagerOpen={setIsCvManagerOpen}
+          loadDemoData={loadDemoData}
+          setShowClearConfirm={setShowClearConfirm}
+        />
 
         {/* Main */}
         <main className="main" id="main-content">
@@ -1152,7 +891,7 @@ export default function App() {
             </nav>
 
             {/* ATS Score */}
-            <AtsScore data={data} />
+            <AtsScore data={data} dispatch={dispatch} onTriggerAction={handleAITriggerAction} />
 
             {/* Step Content */}
             <div className="animate-fade-in" key={currentId}>
@@ -1164,7 +903,7 @@ export default function App() {
                   </div>
                   <button 
                     className="btn-primary" 
-                    onClick={() => setData(prev => ({ ...prev, sectionOrder: [...prev.sectionOrder, currentId] }))}
+                    onClick={() => dispatch({ type: 'REORDER_SECTIONS', payload: [...data.sectionOrder, currentId] })}
                     style={{ padding: '6px 16px', fontSize: '14px' }}
                   >
                     + {t('Add to Resume')}
@@ -1176,21 +915,47 @@ export default function App() {
                 <PersonalStep 
                   data={data.personal} 
                   headings={data.headings}
-                  onChange={(v) => setData({ ...data, personal: v })} 
-                  onHeadingsChange={(v) => setData({ ...data, headings: v })}
+                  onChange={(v) => dispatch({ type: 'UPDATE_PERSONAL', payload: v })} 
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onAISectionFill={() => {
+                    const readiness = checkResumeReadiness(data);
+                    if (readiness.isEmpty) {
+                      alert(t('Please fill in at least your professional title or some work experience before using AI suggestions.'));
+                      return;
+                    }
+                    setAiSectionFillConfig({
+                      isOpen: true,
+                      sectionType: 'tagline',
+                      sectionLabel: t('Professional Title / Tagline'),
+                      resumeContext: buildResumeContext(data),
+                      targetJobDescription: data.targetJobDescription || null,
+                      onApply: (suggestions) => {
+                        saveSnapshot();
+                        if (suggestions && suggestions.length > 0) {
+                          const firstSelected = suggestions[0];
+                          const titleText = typeof firstSelected === 'string' ? firstSelected : (firstSelected.title || firstSelected.name || '');
+                          if (titleText) {
+                            dispatch({ type: 'UPDATE_PERSONAL', payload: { ...data.personal, tagline: titleText } });
+                          }
+                        }
+                      }
+                    });
+                  }}
                 />
               )}
               {currentId === 'summary' && (
                 <SummaryStep 
                   data={data.summary} 
-                  onChange={(v) => setData({ ...data, summary: v })} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_SUMMARY', payload: v })} 
+                  headings={data.headings}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   onAIAssist={(text) => setAiBoldConfig({ 
                     isOpen: true, 
                     text, 
                     contextType: 'summary', 
                     onUpdate: (newText) => {
-                      setAiSnapshot(structuredClone(data));
-                      setData(prev => ({...prev, summary: newText}));
+                      saveSnapshot();
+                      dispatch({ type: 'UPDATE_SUMMARY', payload: newText });
                     }
                   })}
                 />
@@ -1198,79 +963,167 @@ export default function App() {
               {currentId === 'experience' && (
                 <ExperienceStep 
                   data={data.experience} 
-                  onChange={(v) => setData({ ...data, experience: v })} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_EXPERIENCE', payload: v })} 
+                  headings={data.headings}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   onAIAssist={(text, index, bulletIndex) => {
-                    setAiBoldConfig({
+                    setAiBulletConfig({
                       isOpen: true, 
                       text, 
-                      contextType: 'experience',
-                      onUpdate: (newText) => {
-                        setAiSnapshot(structuredClone(data));
-                        setData(prev => {
-                          const newExp = [...prev.experience];
-                          newExp[index] = {
-                            ...newExp[index],
-                            bullets: newExp[index].bullets.map((b, i) => i === bulletIndex ? newText : b)
-                          };
-                          return {...prev, experience: newExp};
-                        });
-                      }
+                      index,
+                      bulletIndex
                     });
                   }}
                 />
               )}
               {currentId === 'education' && (
-                <EducationStep data={data.education} onChange={(v) => setData({ ...data, education: v })} />
+                <EducationStep 
+                  data={data.education} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_EDUCATION', payload: v })} 
+                  headings={data.headings}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                />
               )}
               {currentId === 'skills' && (
                 <SkillsStep 
                   data={data.skills} 
-                  onChange={(v) => setData({ ...data, skills: v })} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_SKILLS', payload: v })} 
                   headings={data.headings}
-                  onHeadingsChange={(v) => setData({ ...data, headings: v })}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   layout={layout}
                   onLayoutChange={setLayout}
+                  onAISectionFill={(subSection) => {
+                    const readiness = checkResumeReadiness(data);
+                    if (readiness.isEmpty) {
+                      alert(t('Please fill in at least your professional title or some work experience before using AI suggestions.'));
+                      return;
+                    }
+                    const labelMap = { skills_technical: t('Technical Skills'), skills_soft: t('Soft Skills'), skills_languages: t('Languages') };
+                    setAiSectionFillConfig({
+                      isOpen: true,
+                      sectionType: subSection,
+                      sectionLabel: labelMap[subSection] || subSection,
+                      resumeContext: buildResumeContext(data),
+                      targetJobDescription: data.targetJobDescription || null,
+                      onApply: (suggestions, type) => {
+                        saveSnapshot();
+                        if (type === 'skills_technical') {
+                          const current = data.skills.technical ? data.skills.technical.split(',').map(s => s.trim()).filter(Boolean) : [];
+                          const merged = [...new Set([...current, ...suggestions])];
+                          dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, technical: merged.join(', ') } });
+                        } else if (type === 'skills_soft') {
+                          const current = data.skills.soft ? data.skills.soft.split(',').map(s => s.trim()).filter(Boolean) : [];
+                          const merged = [...new Set([...current, ...suggestions])];
+                          dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, soft: merged.join(', ') } });
+                        } else if (type === 'skills_languages') {
+                          const langStrings = suggestions.map(l => typeof l === 'string' ? l : `${l.name} (${l.level})`);
+                          const current = data.skills.languages ? data.skills.languages.split(',').map(s => s.trim()).filter(Boolean) : [];
+                          const merged = [...new Set([...current, ...langStrings])];
+                          dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, languages: merged.join(', ') } });
+                        }
+                      }
+                    });
+                  }}
                 />
               )}
               {currentId === 'projects' && (
                 <ProjectsStep 
                   data={data.projects} 
-                  onChange={(v) => setData({ ...data, projects: v })} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_PROJECTS', payload: v })} 
+                  headings={data.headings}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBoldConfig({
                       isOpen: true, 
                       text, 
                       contextType: 'projects',
                       onUpdate: (newText) => {
-                        setAiSnapshot(structuredClone(data));
-                        setData(prev => {
-                          const newProj = [...prev.projects];
-                          if (bulletIndex === -1) {
-                            newProj[index] = { ...newProj[index], description: newText };
-                          } else {
-                            newProj[index] = {
-                              ...newProj[index],
-                              highlights: newProj[index].highlights.map((hl, i) => i === bulletIndex ? newText : hl)
-                            };
-                          }
-                          return {...prev, projects: newProj};
-                        });
+                        saveSnapshot();
+                        const newProj = [...data.projects];
+                        if (bulletIndex === -1) {
+                          newProj[index] = { ...newProj[index], description: newText };
+                        } else {
+                          newProj[index] = {
+                            ...newProj[index],
+                            highlights: newProj[index].highlights.map((hl, i) => i === bulletIndex ? newText : hl)
+                          };
+                        }
+                        dispatch({ type: 'UPDATE_PROJECTS', payload: newProj });
                       }
                     });
                   }}
                 />
               )}
               {currentId === 'certifications' && (
-                <CertificationsStep data={data.certifications} onChange={(v) => setData({ ...data, certifications: v })} />
+                <CertificationsStep 
+                  data={data.certifications} 
+                  onChange={(v) => dispatch({ type: 'UPDATE_CERTIFICATIONS', payload: v })}
+                  headings={data.headings}
+                  onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onAISectionFill={() => {
+                    const readiness = checkResumeReadiness(data);
+                    if (readiness.isEmpty) {
+                      alert(t('Please fill in at least your professional title or some work experience before using AI suggestions.'));
+                      return;
+                    }
+                    setAiSectionFillConfig({
+                      isOpen: true,
+                      sectionType: 'certifications',
+                      sectionLabel: t('Certifications'),
+                      resumeContext: buildResumeContext(data),
+                      targetJobDescription: data.targetJobDescription || null,
+                      onApply: (suggestions) => {
+                        saveSnapshot();
+                        const newCerts = suggestions.map(cert => ({
+                          id: crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+                          name: cert.name || '',
+                          issuer: cert.issuer || '',
+                          date: '',
+                          credentialUrl: '',
+                        }));
+                        dispatch({ type: 'UPDATE_CERTIFICATIONS', payload: [...data.certifications, ...newCerts] });
+                      }
+                    });
+                  }}
+                />
               )}
               {currentId?.startsWith('custom_') && (
                 <CustomStep 
                   section={data.customSections.find(s => s.id === currentId)} 
                   onChange={(updatedSec) => {
                     const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
-                    setData({ ...data, customSections: mapped });
+                    dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
                   }} 
                   onDelete={() => setSectionToDelete(currentId)}
+                  onAISectionFill={(sectionType, sectionLabel) => {
+                    const readiness = checkResumeReadiness(data);
+                    if (readiness.isEmpty) {
+                      alert(t('Please fill in at least your professional title or some work experience before using AI suggestions.'));
+                      return;
+                    }
+                    setAiSectionFillConfig({
+                      isOpen: true,
+                      sectionType,
+                      sectionLabel: sectionLabel || t('Custom Section'),
+                      resumeContext: buildResumeContext(data),
+                      targetJobDescription: data.targetJobDescription || null,
+                      onApply: (suggestions) => {
+                        saveSnapshot();
+                        const currentSection = data.customSections.find(s => s.id === currentId);
+                        if (!currentSection) return;
+                        const newItems = suggestions.map(item => ({
+                          id: crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+                          title: item.title || item.name || (typeof item === 'string' ? item : ''),
+                          subtitle: item.subtitle || item.issuer || item.level || '',
+                          date: item.date || '',
+                          description: item.description || '',
+                        }));
+                        const updatedSection = { ...currentSection, items: [...currentSection.items, ...newItems] };
+                        const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSection : s);
+                        dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
+                      }
+                    });
+                  }}
                 />
               )}
               {currentId?.startsWith('spacer_') && (
@@ -1278,7 +1131,7 @@ export default function App() {
                   data={data.customSections.find(s => s.id === currentId)} 
                   onChange={(updatedSec) => {
                     const mapped = (data.customSections || []).map(s => s.id === currentId ? updatedSec : s);
-                    setData({ ...data, customSections: mapped });
+                    dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
                   }} 
                   onDelete={() => setSectionToDelete(currentId)}
                 />
@@ -1621,17 +1474,29 @@ export default function App() {
             </aside>
         </main>
 
-        {/* Mobile Preview FAB — shown on ≤1024px */}
-        <button 
-          className="mobile-preview-fab"
-          onClick={() => setShowMobilePreview(true)}
-        >
-          <i className="fi fi-rr-eye"></i> {t('Preview')}
-        </button>
+        {/* Mobile Bottom Navigation — shown on ≤1024px */}
+        <nav className="mobile-bottom-nav">
+          <div className="mobile-bottom-nav-inner">
+            <button 
+              className={`mobile-nav-btn ${!showMobilePreview ? 'active' : ''}`}
+              onClick={() => setShowMobilePreview(false)}
+            >
+              <i className="fi fi-rr-edit"></i>
+              {t('Edit')}
+            </button>
+            <button 
+              className={`mobile-nav-btn ${showMobilePreview ? 'active' : ''}`}
+              onClick={() => setShowMobilePreview(true)}
+            >
+              <i className="fi fi-rr-eye"></i>
+              {t('Preview')}
+            </button>
+          </div>
+        </nav>
 
         {/* Mobile Preview Overlay */}
         {showMobilePreview && (
-          <div className="mobile-preview-overlay">
+          <div className="mobile-preview-overlay" style={{ bottom: 'env(safe-area-inset-bottom, 60px)' }}>
             <div className="mobile-preview-header">
               <span className="preview-label">{t('Live Preview')}</span>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -1754,7 +1619,7 @@ export default function App() {
                 layout={layout} 
                 language={language} 
                 template={template} 
-                onSectionReorder={(newOrder) => setData(prev => ({ ...prev, sectionOrder: newOrder }))}
+                onSectionReorder={(newOrder) => dispatch({ type: 'REORDER_SECTIONS', payload: newOrder })}
                 onSectionRemove={setSectionToDelete}
                 onSectionClick={handleSectionClick}
                 onItemReorder={handleItemReorder}
@@ -1778,7 +1643,7 @@ export default function App() {
               language={language} 
               onTranslationSuccess={(newData) => {
                 setAiSnapshot(structuredClone(data));
-                setData(newData);
+                dispatch({ type: 'SET_DATA', payload: newData });
               }}
             />
           )}
@@ -1786,11 +1651,12 @@ export default function App() {
             <AITailorModal 
               isOpen={isTailorOpen} 
               onClose={() => setIsTailorOpen(false)} 
-              data={data} 
+              data={data}
+              dispatch={dispatch} 
               language={language}
               onTailorSuccess={(newData) => {
                 setAiSnapshot(structuredClone(data));
-                setData(newData);
+                dispatch({ type: 'SET_DATA', payload: newData });
               }}
             />
           )}
@@ -1801,7 +1667,7 @@ export default function App() {
               data={data}
               onBoldifySuccess={(newData) => {
                 setAiSnapshot(structuredClone(data));
-                setData(newData);
+                dispatch({ type: 'SET_DATA', payload: newData });
               }}
             />
           )}
@@ -1812,6 +1678,30 @@ export default function App() {
               textData={aiBoldConfig.text}
               contextType={aiBoldConfig.contextType}
               onUpdate={aiBoldConfig.onUpdate}
+            />
+          )}
+          {aiBulletConfig?.isOpen && (
+            <AIBulletPointsModal
+              isOpen={true}
+              onClose={(applied) => {
+                if (applied && activeAITipCallback) {
+                  activeAITipCallback();
+                  setActiveAITipCallback(null);
+                }
+                setAiBulletConfig(null);
+              }}
+              experienceText={aiBulletConfig.text}
+              onSelectBullet={(newText) => {
+                saveSnapshot();
+                const newExp = [...data.experience];
+                newExp[aiBulletConfig.index] = {
+                  ...newExp[aiBulletConfig.index],
+                  bullets: newExp[aiBulletConfig.index].bullets.map((b, i) => 
+                    i === aiBulletConfig.bulletIndex ? newText : b
+                  )
+                };
+                dispatch({ type: 'UPDATE_EXPERIENCE', payload: newExp });
+              }}
             />
           )}
           {showOnboarding && (
@@ -1852,7 +1742,22 @@ export default function App() {
               isOpen={isCoverLetterModalOpen}
               onClose={() => setIsCoverLetterModalOpen(false)}
               data={data}
+              dispatch={dispatch}
               onLanguageChange={handleLanguageChange}
+            />
+          )}
+          {aiSectionFillConfig?.isOpen && (
+            <AISectionFillModal
+              isOpen={true}
+              onClose={() => setAiSectionFillConfig(null)}
+              sectionType={aiSectionFillConfig.sectionType}
+              sectionLabel={aiSectionFillConfig.sectionLabel}
+              resumeContext={aiSectionFillConfig.resumeContext}
+              targetJobDescription={aiSectionFillConfig.targetJobDescription}
+              onApply={(suggestions, type) => {
+                aiSectionFillConfig.onApply(suggestions, type);
+                setAiSectionFillConfig(null);
+              }}
             />
           )}
         </Suspense>
@@ -1860,8 +1765,8 @@ export default function App() {
         <ImportModal 
           isOpen={showImportModal} 
           onClose={() => setShowImportModal(false)} 
-          onImportSuccess={(parsedData) => {
-            handleImport(parsedData);
+          onImportSuccess={(parsedData, originalData, originalInput) => {
+            handleImport(parsedData, originalData, originalInput);
             setShowImportModal(false);
           }}
           language={language}
@@ -2095,18 +2000,6 @@ export default function App() {
               </div>
               <div className="fullscreen-toolbar-actions">
                 <button 
-                  className="btn-secondary" 
-                  onClick={() => {
-                    if (window.confirm(t('Are you sure?') + '\n' + t('This action cannot be undone.'))) {
-                      setImportSnapshot(null);
-                      setShowBeforeAfter(false);
-                    }
-                  }}
-                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', marginRight: '12px' }}
-                >
-                  🗑️ {t('Clear Original')}
-                </button>
-                <button 
                   className="btn-primary" 
                   onClick={() => setShowBeforeAfter(false)}
                   style={{ minWidth: 'auto', padding: '8px 16px' }}
@@ -2120,17 +2013,73 @@ export default function App() {
                 <div className="before-after-label">
                   <span>{t('Original (Imported)')}</span>
                 </div>
-                <div className="before-after-preview-container">
-                  <ResumePreview 
-                    data={importSnapshot} 
-                    layout={layout} 
-                    language={language} 
-                    template={template}
-                    compact
-                  />
+                <div className="before-after-preview-container" style={{ background: '#f9fafb', display: 'flex', flexDirection: 'column' }}>
+                  {originalImportInput?.type === 'pdf' ? (
+                     <div style={{ width: '100%', height: '100%', overflowY: 'auto', display: 'flex', justifyContent: 'center', background: '#e5e7eb', padding: '20px 0' }}>
+                        <Document 
+                          file={originalImportInput.url}
+                          loading={<div style={{ padding: '20px' }}>Chargement du PDF...</div>}
+                          error={<div style={{ padding: '20px', textAlign: 'center' }}><p>Impossible de lire le PDF.</p><a href={originalImportInput.url} download="original_resume.pdf" className="btn-primary">Télécharger</a></div>}
+                        >
+                          <Page pageNumber={1} width={500} renderTextLayer={false} renderAnnotationLayer={false} />
+                        </Document>
+                     </div>
+                  ) : (
+                    <div style={{ whiteSpace: 'pre-wrap', padding: '30px', fontSize: '13px', height: '100%', overflowY: 'auto', color: '#374151', textAlign: 'left', lineHeight: '1.6', fontFamily: 'monospace' }}>
+                      {(() => {
+                      if (originalImportInput?.type === 'text' && originalImportInput.text) {
+                        return originalImportInput.text;
+                      }
+                      if (importSnapshot?.originalText) {
+                        return importSnapshot.originalText;
+                      }
+                      // Reconstruct plain text from importSnapshot
+                      const snap = importSnapshot;
+                      if (!snap) return '';
+                      let lines = [];
+                      if (snap.personal) {
+                        if (snap.personal.name) lines.push(snap.personal.name.toUpperCase());
+                        if (snap.personal.tagline) lines.push(snap.personal.tagline);
+                        const c = [snap.personal.email, snap.personal.phone, snap.personal.location].filter(Boolean);
+                        if (c.length) lines.push(c.join(' | '));
+                        lines.push('');
+                      }
+                      if (snap.summary) {
+                        lines.push('--- ' + (t('Summary') || 'Summary').toUpperCase() + ' ---');
+                        lines.push(snap.summary);
+                        lines.push('');
+                      }
+                      if (snap.experience?.length) {
+                        lines.push('--- ' + (t('Experience') || 'Experience').toUpperCase() + ' ---');
+                        snap.experience.forEach(exp => {
+                          lines.push(`${exp.title || ''} - ${exp.company || ''}`);
+                          if (exp.startMonth || exp.startYear) {
+                            lines.push(`${exp.startMonth || ''} ${exp.startYear || ''} to ${exp.current ? 'Present' : (exp.endMonth || '') + ' ' + (exp.endYear || '')}`);
+                          }
+                          if (exp.bullets) exp.bullets.forEach(b => lines.push(`• ${b}`));
+                          lines.push('');
+                        });
+                      }
+                      if (snap.education?.length) {
+                        lines.push('--- ' + (t('Education') || 'Education').toUpperCase() + ' ---');
+                        snap.education.forEach(ed => {
+                          lines.push(`${ed.degree || ''} in ${ed.field || ''}`);
+                          lines.push(`${ed.institution || ''} (${ed.startYear || ''} - ${ed.endYear || ''})`);
+                          lines.push('');
+                        });
+                      }
+                      if (snap.skills?.technical || snap.skills?.soft) {
+                        lines.push('--- ' + (t('Skills') || 'Skills').toUpperCase() + ' ---');
+                        if (snap.skills.technical) lines.push(`Technical: ${snap.skills.technical}`);
+                        if (snap.skills.soft) lines.push(`Soft: ${snap.skills.soft}`);
+                        lines.push('');
+                      }
+                      return lines.join('\n');
+                    })()}
+                  </div>
+                  )}
                 </div>
               </div>
-              
               <div className="before-after-column">
                 <div className="before-after-label">
                   <span>{t('Current')}</span>

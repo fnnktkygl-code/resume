@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ProjectsStep({ data, onChange, onAIAssist }) {
+export default function ProjectsStep({ data, onChange, onAIAssist, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -35,17 +35,72 @@ export default function ProjectsStep({ data, onChange, onAIAssist }) {
     onChange(data.filter((_, i) => i !== realIdx));
   };
 
+  const moveItem = (realIdx, direction) => {
+    const itemIndices = data
+      .map((item, idx) => ({ id: item.id, isSpacer: !!item.isSpacer, idx }))
+      .filter(item => !item.isSpacer)
+      .map(item => item.idx);
+    
+    const currentPos = itemIndices.indexOf(realIdx);
+    if (currentPos === -1) return;
+    
+    const targetPos = currentPos + direction;
+    if (targetPos < 0 || targetPos >= itemIndices.length) return;
+    
+    const targetIdx = itemIndices[targetPos];
+    const updated = [...data];
+    const temp = updated[realIdx];
+    updated[realIdx] = updated[targetIdx];
+    updated[targetIdx] = temp;
+    onChange(updated);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
+        <TextInput
+          value={headings?.projects || ''}
+          onChange={v => onHeadingsChange?.({ ...headings, projects: v })}
+          placeholder={t('Projects')}
+          style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
+        />
+      </div>
       {visibleItems.map((proj, pi) => {
         const realIdx = data.findIndex(item => item.id === proj.id);
         return (
           <div key={proj.id} className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div className="card-title">{t('Project')} {visibleItems.length > 1 ? `#${pi + 1}` : ''}</div>
-              {visibleItems.length > 1 && (
-                <button className="btn-danger" onClick={() => removeProj(realIdx)}>{t('Remove')}</button>
-              )}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {visibleItems.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="control-btn"
+                      onClick={() => moveItem(realIdx, -1)}
+                      disabled={pi === 0}
+                      style={{ padding: '6px', opacity: pi === 0 ? 0.3 : 1, cursor: pi === 0 ? 'default' : 'pointer' }}
+                      title={t('Move Up')}
+                    >
+                      <i className="fi fi-rr-arrow-up"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="control-btn"
+                      onClick={() => moveItem(realIdx, 1)}
+                      disabled={pi === visibleItems.length - 1}
+                      style={{ padding: '6px', opacity: pi === visibleItems.length - 1 ? 0.3 : 1, cursor: pi === visibleItems.length - 1 ? 'default' : 'pointer' }}
+                      title={t('Move Down')}
+                    >
+                      <i className="fi fi-rr-arrow-down"></i>
+                    </button>
+                  </>
+                )}
+                {visibleItems.length > 1 && (
+                  <button className="btn-danger" onClick={() => removeProj(realIdx)} style={{ marginLeft: '6px' }}>{t('Remove')}</button>
+                )}
+              </div>
             </div>
             <div className="field-grid">
               <Field label={t('Project Name')}>

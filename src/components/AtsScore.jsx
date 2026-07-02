@@ -4,13 +4,16 @@ import { memo, useState } from 'react';
 import { analyzeResumeWithProxy } from '../services/geminiService';
 import ATSKeywordsModal from './ui/ATSKeywordsModal';
 
-function AtsScore({ data }) {
+function AtsScore({ data, dispatch, onTriggerAction }) {
   const { t, language } = useTranslation();
-  const { score, tips } = computeAtsScore(data);
+  const { score, tips, isMatchScore } = computeAtsScore(data);
   const [aiTips, setAiTips] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
   const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState(false);
+  const [isJobDescriptionExpanded, setIsJobDescriptionExpanded] = useState(false);
+  const [currentTipPage, setCurrentTipPage] = useState(0);
+  const tipsPerPage = 3;
 
   const checklist = [
     { label: t('Personal Info'), completed: !!(data.personal.name || data.personal.email) },
@@ -46,6 +49,18 @@ function AtsScore({ data }) {
   };
 
   const displayTips = aiTips || tips;
+  const totalTipPages = Math.ceil(displayTips.length / tipsPerPage);
+  const currentTips = displayTips.slice(currentTipPage * tipsPerPage, (currentTipPage + 1) * tipsPerPage);
+
+  const removeTip = (tipToRemove) => {
+    if (aiTips) {
+      const newTips = aiTips.filter(t => t !== tipToRemove);
+      setAiTips(newTips.length > 0 ? newTips : null);
+      if (currentTipPage >= Math.ceil(newTips.length / tipsPerPage)) {
+        setCurrentTipPage(Math.max(0, Math.ceil(newTips.length / tipsPerPage) - 1));
+      }
+    }
+  };
 
   return (
     <div className="ats-widget">
@@ -64,7 +79,7 @@ function AtsScore({ data }) {
           <div className="ats-score-text" style={{ color }}>{score}</div>
         </div>
         <div className="ats-info" style={{ flex: 1 }}>
-          <h3>{t('ATS Readiness')}</h3>
+          <h3>{isMatchScore ? t('Target Job Match') : t('ATS Readiness')}</h3>
           <p style={{ marginBottom: '8px' }}>{statusText}</p>
           <button 
             onClick={handleAnalyze} 
@@ -146,10 +161,59 @@ function AtsScore({ data }) {
         </div>
       </div>
       
+      {/* Target Job Input Toggle */}
+      <div style={{ marginTop: '12px' }}>
+        <button
+          onClick={() => setIsJobDescriptionExpanded(!isJobDescriptionExpanded)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--color-text-secondary)',
+            fontSize: '0.8rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: 0
+          }}
+        >
+          <i className={`fi fi-rr-angle-${isJobDescriptionExpanded ? 'up' : 'down'}`}></i>
+          {isMatchScore ? t('Edit Target Job') : t('Paste Job Description for Live Match')}
+        </button>
+        
+        {isJobDescriptionExpanded && (
+          <div style={{ marginTop: '8px' }}>
+            <textarea
+              placeholder={t('Paste job description here...')}
+              value={data.targetJobDescription || ''}
+              onChange={(e) => dispatch && dispatch({ type: 'UPDATE_TARGET_JOB', payload: e.target.value })}
+              style={{
+                width: '100%',
+                minHeight: '80px',
+                padding: '8px',
+                fontSize: '0.8rem',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                resize: 'vertical',
+                backgroundColor: 'var(--color-bg)'
+              }}
+            />
+          </div>
+        )}
+      </div>
+      
       <ATSKeywordsModal 
         isOpen={isKeywordsModalOpen} 
         onClose={() => setIsKeywordsModalOpen(false)} 
         data={data} 
+        dispatch={dispatch}
+        onApplied={() => {
+          if (aiTips) {
+            const keywordTip = aiTips.find(t => t.action === 'OPEN_KEYWORD_MATCHER');
+            if (keywordTip) removeTip(keywordTip);
+          }
+        }}
       />
  
       {/* Completeness Checklist */}
@@ -186,16 +250,118 @@ function AtsScore({ data }) {
       </div>
 
       {displayTips.length > 0 && (
-        <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')}>
-          {displayTips.map((tip, i) => (
-            <div key={i} className="ats-tip-item" role="listitem">
-              {aiTips ? (
-                <span dangerouslySetInnerHTML={{ __html: tip.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-              ) : (
-                t(tip)
-              )}
-            </div>
-          ))}
+        <div className="ats-tips-container" style={{ marginTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text)' }}>
+              {t('Recommendations')} ({displayTips.length})
+            </span>
+            {totalTipPages > 1 && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button 
+                  onClick={() => setCurrentTipPage(prev => Math.max(0, prev - 1))}
+                  disabled={currentTipPage === 0}
+                  style={{
+                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === 0 ? 'not-allowed' : 'pointer', opacity: currentTipPage === 0 ? 0.5 : 1
+                  }}
+                >
+                  <i className="fi fi-rr-angle-left" style={{ fontSize: '10px' }}></i>
+                </button>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                  {currentTipPage + 1} / {totalTipPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentTipPage(prev => Math.min(totalTipPages - 1, prev + 1))}
+                  disabled={currentTipPage === totalTipPages - 1}
+                  style={{
+                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === totalTipPages - 1 ? 'not-allowed' : 'pointer', opacity: currentTipPage === totalTipPages - 1 ? 0.5 : 1
+                  }}
+                >
+                  <i className="fi fi-rr-angle-right" style={{ fontSize: '10px' }}></i>
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')} style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '180px' }}>
+            {currentTips.map((tip, i) => {
+              if (aiTips) {
+                // AI Tips are now structured objects
+                return (
+                  <div key={i} className="ats-tip-item animate-fade-in" role="listitem" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '13px' }}>{tip.title}</div>
+                    <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', lineHeight: '1.4' }}>{tip.description}</div>
+                    
+                    {tip.action && (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                        <button 
+                          onClick={() => {
+                            if (tip.action === 'OPEN_KEYWORD_MATCHER') {
+                              setIsKeywordsModalOpen(true);
+                            } else if (onTriggerAction) {
+                              onTriggerAction(tip.action, tip.targetIndex, () => removeTip(tip));
+                            }
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: 'var(--color-accent-contrast)',
+                            backgroundColor: 'var(--color-accent)',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'transform 0.1s'
+                          }}
+                          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
+                          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                          {tip.action === 'OPEN_STAR_GENERATOR' && <><i className="fi fi-rr-magic-wand"></i> {t('✨ AI STAR Rewrite')}</>}
+                          {tip.action === 'OPEN_KEYWORD_MATCHER' && <><i className="fi fi-rr-search-alt"></i> {t('Add missing keywords')}</>}
+                          {tip.action === 'OPEN_TAILOR_MODAL' && <><i className="fi fi-rr-magic-wand"></i> {t('Tailor entire resume')}</>}
+                        </button>
+                        
+                        <button
+                          onClick={() => removeTip(tip)}
+                          title={t('Skip')}
+                          style={{
+                            padding: '6px 12px',
+                            background: 'transparent',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '6px',
+                            color: 'var(--color-text-secondary)',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: '500'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.color = 'var(--color-text)';
+                            e.currentTarget.style.borderColor = 'var(--color-text-muted)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.color = 'var(--color-text-secondary)';
+                            e.currentTarget.style.borderColor = 'var(--color-border)';
+                          }}
+                        >
+                          {t('Skip')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                // Standard tips are strings (translation keys)
+                return (
+                  <div key={i} className="ats-tip-item animate-fade-in" role="listitem">
+                    {t(tip)}
+                  </div>
+                );
+              }
+            })}
+          </div>
         </div>
       )}
     </div>

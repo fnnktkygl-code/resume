@@ -52,8 +52,9 @@ Target Language for the content: ${targetLang}.
 Rules:
 1. Emphasize skills and experiences that align with the job description.
 2. Rewrite bullet points using strong action verbs relevant to the job requirements.
-3. Do NOT invent new facts, degrees, or jobs that are not in the original resume.
-4. Maintain a highly professional tone.
+3. CRITICAL: You MUST extract the specific technical and hard skills (keywords) from the Job Description and literally inject them into the "skills.technical" comma-separated list, and weave them into the summary and bullet points. If you do not include the exact keywords from the JD, the ATS score will drop.
+4. Do NOT invent new facts, degrees, or jobs that are not in the original resume.
+5. Maintain a highly professional tone.
 5. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.
 6. STRICT PAGE BUDGET & OVERFLOW PREVENTION: The tailored content must fit cleanly on either exactly 1 page or exactly 2 pages. Avoid creating length that overflows by just a few lines onto a new page (e.g. 1.1 pages or 2.1 pages).
    - If the input resume is short, keep bullet points short and limit them to 2-3 per experience to guarantee it fits on exactly 1 page.
@@ -455,6 +456,65 @@ export async function generateCoverLetterWithProxy(data, jobDescription, languag
     return result.coverLetter;
   } catch (error) {
     console.error('Cover Letter Error:', error);
+    throw error;
+  }
+}
+
+export async function generateBulletPointsWithProxy(experienceText, language) {
+  try {
+    const res = await fetch('/api/generateBulletPoints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ experienceText, language })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to generate bullet points');
+    }
+    const result = await res.json();
+    return result.bulletPoints;
+  } catch (error) {
+    console.error('Bullet Points Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generates AI suggestions for a specific CV section.
+ * Uses the candidate's full profile context + optional job description
+ * to produce coherent, credible suggestions.
+ *
+ * @param {string} sectionType - Type of section to fill
+ * @param {Object} resumeContext - Condensed resume context from buildResumeContext()
+ * @param {string|null} targetJobDescription - Optional job description for targeting
+ * @param {string} language - 'en' | 'fr' | 'es'
+ * @returns {Promise<Object>} AI-generated suggestions
+ */
+export async function generateSectionContentWithProxy(sectionType, resumeContext, targetJobDescription, language) {
+  try {
+    const res = await fetch('/api/generateSectionContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sectionType, resumeContext, targetJobDescription, language })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      if (res.status === 429 || err.error === 'QUOTA_EXCEEDED') {
+        const error = new Error('QUOTA_EXCEEDED');
+        error.code = 'QUOTA_EXCEEDED';
+        throw error;
+      }
+      throw new Error(err.message || err.error || 'Failed to generate section content');
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('refresh-quota'));
+    }
+
+    const result = await res.json();
+    return result.suggestions;
+  } catch (error) {
+    console.error('Section Content Error:', error);
     throw error;
   }
 }

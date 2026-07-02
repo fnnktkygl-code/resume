@@ -4,12 +4,12 @@ import { generateCoverLetterWithProxy } from '../../services/geminiService';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 
-export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChange }) {
+export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLanguageChange }) {
   const { t, language } = useTranslation();
   const defaultFontFamily = data?.layout?.fontFamily || 'Inter';
   const defaultFontSize = data?.layout?.fontSize || 10.5;
 
-  const [jobDescription, setJobDescription] = useState('');
+  const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
   const [companyName, setCompanyName] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [referenceLetter, setReferenceLetter] = useState('');
@@ -31,19 +31,14 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
   }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [coverLetter]);
-
-  useEffect(() => {
     if (isOpen) {
       document.body.classList.add('print-cover-letter');
     } else {
       document.body.classList.remove('print-cover-letter');
     }
-    return () => document.body.classList.remove('print-cover-letter');
+    return () => {
+      document.body.classList.remove('print-cover-letter');
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -187,8 +182,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
             </select>
           </div>
 
-          <div className="cl-form-group" style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-            <div style={{ flex: 1 }}>
+          <div className="cl-form-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="cl-label">
                 <i className="fi fi-rr-building"></i> {t('Company')} <span style={{ fontSize: '0.8em', color: 'var(--color-text-tertiary)', fontWeight: 'normal' }}>({t('Optional')})</span>
               </label>
@@ -200,8 +195,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                 onChange={e => setCompanyName(e.target.value)}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <label className="cl-label">
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+              <label className="cl-label" style={{ whiteSpace: 'nowrap' }}>
                 <i className="fi fi-rr-briefcase"></i> {t('Role')} <span style={{ fontSize: '0.8em', color: 'var(--color-text-tertiary)', fontWeight: 'normal' }}>({t('Optional')})</span>
               </label>
               <input 
@@ -214,21 +209,25 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
             </div>
           </div>
 
-          <div className="cl-form-group">
-            <label className="cl-label">
-              <i className="fi fi-rr-document-signed"></i> {t('Job Description')}
-            </label>
+          <div className="field-group">
+            <label className="field-label">{t('Target Job Description')} <span style={{ color: 'var(--color-danger)' }}>*</span></label>
             <textarea
-              className="resume-input cl-textarea"
-              style={{ minHeight: '120px', resize: 'vertical' }}
-              placeholder={t('Paste the full job description here...')}
+              ref={textareaRef}
+              className="form-input"
               value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+              onChange={(e) => {
+                setJobDescription(e.target.value);
+                if (dispatch) {
+                  dispatch({ type: 'UPDATE_TARGET_JOB_DESCRIPTION', payload: e.target.value });
+                }
+              }}
+              placeholder={t('Paste the job description here so the AI can tailor the letter...')}
+              rows={4}
             />
           </div>
 
-          <div className="cl-form-group" style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-            <div style={{ flex: 1 }}>
+          <div className="cl-form-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="cl-label">
                 <i className="fi fi-rr-microphone"></i> {t('Tone')}
               </label>
@@ -262,7 +261,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
                 </optgroup>
               </select>
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="cl-label">
                 <i className="fi fi-rr-ruler-combined"></i> {t('Length')}
               </label>
@@ -362,14 +361,16 @@ export default function CoverLetterModal({ isOpen, onClose, data, onLanguageChan
             </button>
           </div>
 
-          <textarea 
+          <div 
             ref={textareaRef}
             className="cl-a4-paper print-hidden"
-            style={{ overflow: 'hidden', minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}
-            value={coverLetter}
-            onChange={(e) => setCoverLetter(e.target.value)}
-            placeholder={t('Edit directly on the page...')}
-          />
+            style={{ minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt`, outline: 'none' }}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => setCoverLetter(e.currentTarget.innerText)}
+          >
+            {coverLetter || '\u200B'}
+          </div>
           <div className="cl-a4-paper print-only" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}>
             {coverLetter}
           </div>

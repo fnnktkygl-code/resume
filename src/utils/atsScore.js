@@ -78,5 +78,37 @@ export function computeAtsScore(data) {
   const validCert = data.certifications.filter(c => c.name && c.issuer);
   if (validCert.length > 0) score += 2;
 
-  return { score: Math.min(score, 100), tips: tips.slice(0, 5) };
+  // --- Live ATS Match Score (Feature 1) ---
+  if (data.targetJobDescription && data.targetJobDescription.trim().length > 20) {
+    const stopWords = new Set(['the', 'and', 'for', 'with', 'that', 'this', 'you', 'are', 'your', 'from', 'will', 'have', 'experience', 'work', 'team', 'skills', 'can', 'not', 'our', 'all', 'any', 'but', 'pour', 'avec', 'vous', 'dans', 'nous', 'votre', 'sur', 'des', 'les', 'une', 'qui', 'que', 'pas', 'par', 'est', 'sont', 'faire']);
+    const jdWords = data.targetJobDescription.toLowerCase().match(/[a-zÀ-ÿ]{4,}/g) || [];
+    const keywords = [...new Set(jdWords.filter(w => !stopWords.has(w)))];
+
+    if (keywords.length > 0) {
+      let matchCount = 0;
+      const missingKeywords = [];
+      keywords.forEach(kw => {
+        if (profileSignals.includes(kw)) {
+          matchCount++;
+        } else {
+          missingKeywords.push(kw);
+        }
+      });
+
+      const matchPercentage = Math.round((matchCount / keywords.length) * 100);
+      
+      // Blend the structural score (30%) with the keyword match score (70%)
+      const baseScore = Math.min(score, 100);
+      const blendedScore = Math.round((baseScore * 0.3) + (matchPercentage * 0.7));
+
+      const matchTips = [];
+      if (missingKeywords.length > 0) {
+        matchTips.push(`Missing keywords: ${missingKeywords.slice(0, 5).join(', ')}`);
+      }
+      
+      return { score: blendedScore, tips: [...matchTips, ...tips].slice(0, 5), isMatchScore: true };
+    }
+  }
+
+  return { score: Math.min(score, 100), tips: tips.slice(0, 5), isMatchScore: false };
 }
