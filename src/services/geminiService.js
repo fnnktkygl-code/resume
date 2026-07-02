@@ -204,6 +204,31 @@ export const enhanceWithProxy = async (textData, contextType) => {
   }
 };
 
+export const rewriteWithProxy = async (textData, contextType, language) => {
+  try {
+    const response = await fetch('/api/rewrite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ textData, contextType, language }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      if (data.error === 'QUOTA_EXCEEDED') throw new Error('API quota exceeded. Please try again later.');
+      throw new Error(data.error || `Server error: ${response.status}`);
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('refresh-quota'));
+    }
+    
+    return data.rewrittenText;
+  } catch (error) {
+    console.error('AI Rewrite Proxy Error:', error);
+    throw error;
+  }
+};
+
+
 export const importResumeWithProxy = async ({ text, base64Data, mimeType, language }) => {
   try {
     const response = await fetch('/api/parse', {

@@ -679,7 +679,21 @@ function NjmTemplate({
   return (
     <div className="njm-resume" style={resumePageStyles}>
       {/* Header Info */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: `${sectionSpacing}px` }}>
+      <div 
+        className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start', 
+          gap: '20px', 
+          marginBottom: `${sectionSpacing}px`,
+          cursor: onSectionClick && !printMode ? 'pointer' : 'default',
+          padding: onSectionClick && !printMode ? '4px' : undefined,
+          margin: onSectionClick && !printMode ? '-4px -4px 4px -4px' : undefined,
+          borderRadius: '4px'
+        }}
+        onClick={onSectionClick && !printMode ? () => onSectionClick('personal') : undefined}
+      >
         <div style={{ flex: 1 }}>
           {p.name && (
             <div style={{ color: primaryColor, fontSize: '2em', fontWeight: 600, letterSpacing: '-0.5px' }}>

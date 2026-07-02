@@ -896,23 +896,30 @@ function ResumePreview({
             </div>
           ) : (
             <div ref={contentRef} style={{ gap: `${sectionSpacing}px`, display: 'flex', flexDirection: 'column', minWidth: 0, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-              {p.showPhoto && p.photo && (
-                <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(sectionSpacing / 2)}px` }} data-testid="profile-photo-container">
-                  <img src={p.photo} alt={p.name || "Profile"} style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color)` }} />
-                </div>
-              )}
-              {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
-              {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
-              {hasContact && (
-                <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
-                  {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
-                  {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
-                  {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
-                  {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
-                  {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
-                  {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
-                </div>
-              )}
+              <div
+                className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
+                style={onSectionClick && !printMode ? { cursor: 'pointer', padding: '4px', margin: '-4px', borderRadius: '4px' } : {}}
+                onClick={onSectionClick && !printMode ? () => onSectionClick('personal') : undefined}
+                title={onSectionClick && !printMode ? t('Click to edit personal info') : undefined}
+              >
+                {p.showPhoto && p.photo && (
+                  <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(sectionSpacing / 2)}px` }} data-testid="profile-photo-container">
+                    <img src={p.photo} alt={p.name || "Profile"} style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color)` }} />
+                  </div>
+                )}
+                {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
+                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
+                {hasContact && (
+                  <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                    {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
+                    {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
+                    {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                    {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                    {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
+                    {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+                  </div>
+                )}
+              </div>
 
               {sectionOrder.map((sectionId, sectionIdx) => {
                 const rendered = renderSection(sectionId);

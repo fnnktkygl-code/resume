@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea } from '../ui/FormFields';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ProjectsStep({ data, onChange, onAIAssist, headings, onHeadingsChange }) {
+export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -117,6 +117,8 @@ export default function ProjectsStep({ data, onChange, onAIAssist, headings, onH
                   value={proj.description}
                   onChange={(v) => updateProj(realIdx, 'description', v)}
                   onAIAssist={() => onAIAssist?.(proj.description, realIdx, -1)}
+                  onAIBold={() => onAIBold?.(proj.description, realIdx, -1)}
+                  onAIRewrite={() => (onAIRewrite || onAIAssist)?.(proj.description, realIdx, -1)}
                   placeholder="Built a real-time analytics platform processing 1M+ events/day with sub-second dashboard updates."
                   rows={2}
                 />
@@ -133,6 +135,8 @@ export default function ProjectsStep({ data, onChange, onAIAssist, headings, onH
                         value={hl}
                         onChange={(v) => updateHighlight(realIdx, hi, v)}
                         onAIAssist={() => onAIAssist?.(hl, realIdx, hi)}
+                        onAIBold={() => onAIBold?.(hl, realIdx, hi)}
+                        onAIRewrite={() => (onAIRewrite || onAIAssist)?.(hl, realIdx, hi)}
                         placeholder="Reduced data pipeline latency by 60% through query optimization"
                         rows={2}
                       />

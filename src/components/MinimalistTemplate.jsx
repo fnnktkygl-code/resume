@@ -443,14 +443,22 @@ function MinimalistTemplate({
   return (
     <div className="minimalist-resume" style={resumeStyles}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: `1px solid var(--resume-border-color, #ddd)`,
-        paddingBottom: '14px',
-        marginBottom: '20px'
-      }}>
+      <div 
+        className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `1px solid var(--resume-border-color, #ddd)`,
+          paddingBottom: '14px',
+          marginBottom: '20px',
+          cursor: onSectionClick && !printMode ? 'pointer' : 'default',
+          padding: onSectionClick && !printMode ? '4px 4px 14px 4px' : '0 0 14px 0',
+          margin: onSectionClick && !printMode ? '-4px -4px 20px -4px' : '0 0 20px 0',
+          borderRadius: '4px'
+        }}
+        onClick={onSectionClick && !printMode ? () => onSectionClick('personal') : undefined}
+      >
         <div style={{ flex: 1 }}>
           {p.name && (
             <div style={{ fontSize: '20pt', fontWeight: 'bold', color: textColor, letterSpacing: '-0.3px' }}>

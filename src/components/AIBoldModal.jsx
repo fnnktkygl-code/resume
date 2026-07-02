@@ -1,33 +1,52 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../utils/TranslationContext';
 import Modal from './ui/Modal';
-import { enhanceWithProxy, translateTextWithProxy } from '../services/geminiService';
+import { enhanceWithProxy, translateTextWithProxy, rewriteWithProxy } from '../services/geminiService';
 import { parseMarkdown } from '../utils/formatText';
 
-export default function AIBoldModal({ isOpen, onClose, textData, contextType, onUpdate }) {
+export default function AIBoldModal({ isOpen, onClose, textData, contextType, initialTab, onUpdate }) {
   const { t, language } = useTranslation();
-  const [activeTab, setActiveTab] = useState('enhance'); // 'enhance' or 'translate'
+  const [activeTab, setActiveTab] = useState(initialTab || 'bold'); // 'bold', 'rewrite', or 'translate'
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [targetLang, setTargetLang] = useState(language === 'fr' ? 'en' : 'fr');
   const [proposedText, setProposedText] = useState('');
 
-  // Auto-run Enhance on open
   useEffect(() => {
     if (isOpen && textData) {
-      setActiveTab('enhance');
-      handleEnhance();
+      const tab = initialTab || 'bold';
+      setActiveTab(tab);
+      if (tab === 'bold') {
+        handleBold();
+      } else if (tab === 'rewrite') {
+        handleRewrite();
+      } else {
+        setProposedText('');
+      }
     }
-  }, [isOpen, textData, contextType]);
+  }, [isOpen, textData, contextType, initialTab]);
 
-  const handleEnhance = async () => {
+  const handleBold = async () => {
     setIsGenerating(true);
     setError('');
     try {
       const result = await enhanceWithProxy(textData, contextType);
       setProposedText(result);
     } catch (err) {
-      setError(err.message || t('An error occurred during generation.'));
+      setError(err.message || t('An error occurred during bolding.'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRewrite = async () => {
+    setIsGenerating(true);
+    setError('');
+    try {
+      const result = await rewriteWithProxy(textData, contextType, language);
+      setProposedText(result);
+    } catch (err) {
+      setError(err.message || t('An error occurred during reformulation.'));
     } finally {
       setIsGenerating(false);
     }
@@ -59,11 +78,17 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, on
     { code: 'es', label: 'Español' }
   ];
 
+  const modalTitle = activeTab === 'bold'
+    ? `<b>B</b> ${t('Mise en gras IA')}`
+    : activeTab === 'rewrite'
+    ? `✨ ${t('Reformulation IA')}`
+    : `🌎 ${t('Traduire')}`;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`✨ ${t('AI Block Assistant')}`}
+      title={activeTab === 'bold' ? t('Mise en gras IA') : activeTab === 'rewrite' ? t('Reformulation IA') : t('AI Assistant')}
       actions={
         <>
           <button className="btn-secondary" onClick={onClose} disabled={isGenerating}>{t('Cancel')}</button>
@@ -84,14 +109,14 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, on
           <button
             type="button"
             onClick={() => {
-              setActiveTab('enhance');
-              handleEnhance();
+              setActiveTab('bold');
+              handleBold();
             }}
             style={{
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === 'enhance' ? '2px solid var(--color-accent)' : '2px solid transparent',
-              color: activeTab === 'enhance' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              borderBottom: activeTab === 'bold' ? '2px solid #2563eb' : '2px solid transparent',
+              color: activeTab === 'bold' ? '#2563eb' : 'var(--color-text-secondary)',
               padding: '8px 16px',
               fontSize: '13px',
               fontWeight: '600',
@@ -99,7 +124,27 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, on
               transition: 'all 0.2s'
             }}
           >
-            ✨ {t('Enhance')}
+            <b>B</b> {t('Mise en gras')}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('rewrite');
+              handleRewrite();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'rewrite' ? '2px solid var(--color-accent)' : '2px solid transparent',
+              color: activeTab === 'rewrite' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            ✨ {t('Reformuler')}
           </button>
           <button
             type="button"
@@ -175,14 +220,16 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, on
               <div className="ai-shimmer-loading" style={{ height: '60px', width: '100%', borderRadius: '6px', backgroundColor: 'var(--color-surface-alt)' }} />
             </div>
             <p style={{ textAlign: 'center', marginTop: '12px', fontSize: '13px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>
-              {activeTab === 'enhance' ? t('Optimizing text with Gemini...') : t('Translating...')}
+              {activeTab === 'bold' ? t('Applying intelligent bolding...') : activeTab === 'rewrite' ? t('Reformulating text...') : t('Translating...')}
             </p>
           </div>
         ) : error ? (
           <div style={{ color: 'var(--color-danger)', padding: '20px 0', textAlign: 'center' }}>
             <p>{error}</p>
-            {activeTab === 'enhance' ? (
-              <button className="btn-secondary" onClick={handleEnhance} style={{ marginTop: '8px' }}>Re-try</button>
+            {activeTab === 'bold' ? (
+              <button className="btn-secondary" onClick={handleBold} style={{ marginTop: '8px' }}>Re-try</button>
+            ) : activeTab === 'rewrite' ? (
+              <button className="btn-secondary" onClick={handleRewrite} style={{ marginTop: '8px' }}>Re-try</button>
             ) : (
               <button className="btn-secondary" onClick={handleTranslate} style={{ marginTop: '8px' }}>Re-try</button>
             )}

@@ -383,15 +383,23 @@ function CreativeTemplate({
   return (
     <div className="creative-resume" style={{ fontFamily: layout.fontFamily || "'Outfit', sans-serif", color: textColor, lineHeight: lineHeight }}>
       {/* Top Header Section */}
-      <div style={{
-        borderBottom: `4px solid ${primaryColor}`,
-        paddingBottom: '16px',
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '20px'
-      }}>
+      <div 
+        className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
+        style={{
+          borderBottom: `4px solid ${primaryColor}`,
+          paddingBottom: '16px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '20px',
+          cursor: onSectionClick && !printMode ? 'pointer' : 'default',
+          padding: onSectionClick && !printMode ? '4px 4px 16px 4px' : '0 0 16px 0',
+          margin: onSectionClick && !printMode ? '-4px -4px 20px -4px' : '0 0 20px 0',
+          borderRadius: '4px'
+        }}
+        onClick={onSectionClick && !printMode ? () => onSectionClick('personal') : undefined}
+      >
         <div style={{ flex: 1 }}>
           {p.name && (
             <h1 style={{ fontSize: '24pt', fontWeight: '800', color: textColor, margin: '0 0 2px 0', letterSpacing: '-0.5px' }}>

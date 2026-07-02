@@ -338,13 +338,19 @@ function ModernTemplate({
     <div className="modern-resume" style={{ fontSize: `${fontSize}pt`, fontFamily: layout.fontFamily || 'Inter' }}>
       {/* Left Sidebar */}
       <div className="modern-sidebar">
-        {p.showPhoto && p.photo && (
-          <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }} data-testid="profile-photo-container">
-            <img src={p.photo} alt={p.name || "Profile"} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color, #1B6B3A)` }} />
-          </div>
-        )}
-        {p.name && <div className="resume-name">{p.name}</div>}
-        {p.tagline && <div className="resume-tagline">{p.tagline}</div>}
+        <div
+          className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
+          style={onSectionClick && !printMode ? { cursor: 'pointer', padding: '4px', margin: '-4px', borderRadius: '4px' } : {}}
+          onClick={onSectionClick && !printMode ? () => onSectionClick('personal') : undefined}
+        >
+          {p.showPhoto && p.photo && (
+            <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }} data-testid="profile-photo-container">
+              <img src={p.photo} alt={p.name || "Profile"} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color, #1B6B3A)` }} />
+            </div>
+          )}
+          {p.name && <div className="resume-name">{p.name}</div>}
+          {p.tagline && <div className="resume-tagline">{p.tagline}</div>}
+        </div>
 
         {sidebarOrder.map((sectionId, idx) => {
           const rendered = renderSection(sectionId);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../../utils/TranslationContext';
 
 export function Field({ label, children, full }) {
   return (
@@ -22,7 +23,9 @@ export function TextInput({ value, onChange, placeholder, type = 'text', style, 
   );
 }
 
-export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist }) {
+export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, onAIBold, onAIRewrite }) {
+  const { t } = useTranslation();
+
   const handleKeyDown = (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
       e.preventDefault();
@@ -44,10 +47,10 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist })
     let newValue, newCursorPos;
     if (isBold) {
       newValue = value.substring(0, start - 2) + selectedText + value.substring(end + 2);
-      newCursorPos = start - 2 + selectedText.length;
+      newCursorPos = start + selectedText.length - 2;
     } else {
-      newValue = value.substring(0, start) + `**${selectedText}**` + value.substring(end);
-      newCursorPos = start + 2 + selectedText.length + 2;
+      newValue = value.substring(0, start) + '**' + selectedText + '**' + value.substring(end);
+      newCursorPos = start + selectedText.length + 2;
     }
     
     onChange(newValue);
@@ -76,6 +79,7 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist })
         right: '8px',
         display: 'flex',
         gap: '6px',
+        alignItems: 'center',
         backgroundColor: 'var(--color-surface)',
         padding: '4px',
         borderRadius: 'var(--radius-sm)',
@@ -86,7 +90,7 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist })
           type="button"
           onClick={(e) => applyBold(e.currentTarget.parentElement.previousSibling)}
           className="format-btn"
-          title="Bold (Cmd+B)"
+          title={t("Bold (Cmd+B)")}
           style={{
             background: 'none',
             border: 'none',
@@ -100,12 +104,35 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist })
         >
           B
         </button>
-        {onAIAssist && (
+        {onAIBold && (
           <button 
             type="button"
-            onClick={onAIAssist}
+            onClick={onAIBold}
             className="format-btn ai-btn"
-            title="AI Enhance"
+            title={t("AI Smart Bolding for this section")}
+            style={{
+              background: 'rgba(59, 130, 246, 0.12)',
+              border: 'none',
+              color: '#2563eb',
+              cursor: 'pointer',
+              padding: '2px 8px',
+              fontSize: '11px',
+              fontWeight: '600',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <b>B</b> {t("Gras IA")}
+          </button>
+        )}
+        {(onAIRewrite || onAIAssist) && (
+          <button 
+            type="button"
+            onClick={onAIRewrite || onAIAssist}
+            className="format-btn ai-btn"
+            title={t("AI Reformulation for this section")}
             style={{
               background: 'var(--color-accent-light)',
               border: 'none',
@@ -120,7 +147,7 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist })
               gap: '4px'
             }}
           >
-            ✨ AI
+            ✨ {t("Reformuler")}
           </button>
         )}
       </div>

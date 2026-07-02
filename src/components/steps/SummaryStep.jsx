@@ -1,7 +1,7 @@
 import { TextArea, TextInput } from '../ui/FormFields';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SummaryStep({ data, onChange, onAIAssist, headings, onHeadingsChange }) {
+export default function SummaryStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   return (
     <div className="card">
@@ -24,6 +24,8 @@ export default function SummaryStep({ data, onChange, onAIAssist, headings, onHe
         value={data}
         onChange={onChange}
         onAIAssist={() => onAIAssist?.(data)}
+        onAIBold={() => onAIBold?.(data)}
+        onAIRewrite={() => (onAIRewrite || onAIAssist)?.(data)}
         placeholder="Results-driven software engineer with 6+ years of experience building scalable web applications. Led a team of 8 engineers to ship a real-time analytics platform serving 2M+ daily users, reducing page load times by 45%. Passionate about clean architecture and developer experience."
         rows={5}
       />

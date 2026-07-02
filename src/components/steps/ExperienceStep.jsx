@@ -2,7 +2,7 @@ import { Field, TextInput, TextArea, Select } from '../ui/FormFields';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ExperienceStep({ data, onChange, onAIAssist, headings, onHeadingsChange }) {
+export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -173,6 +173,8 @@ export default function ExperienceStep({ data, onChange, onAIAssist, headings, o
                           value={bullet}
                           onChange={(v) => updateBullet(realIdx, bi, v)}
                           onAIAssist={() => onAIAssist?.(bullet, realIdx, bi)}
+                          onAIBold={() => onAIBold?.(bullet, realIdx, bi)}
+                          onAIRewrite={() => (onAIRewrite || onAIAssist)?.(bullet, realIdx, bi)}
                           placeholder="Led migration of monolithic API to microservices, reducing deploy times by 70% and improving uptime to 99.95%"
                           rows={2}
                         />
