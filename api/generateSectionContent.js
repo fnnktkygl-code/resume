@@ -168,30 +168,33 @@ TASK: Suggest relevant professional certifications for this candidate.
 
     case 'custom_atouts':
       return `${baseRules}
-
+ 
 TASK: Suggest professional strengths (Atouts / Key Strengths) for this candidate.
 - Infer strengths from their experience, skills, and career trajectory.
-- Each strength should have a title and a brief one-sentence context.
+- Each strength should have a title and an extremely brief description (max 4-6 words).
+- CRITICAL: NO long texts or details. Keep it ultra-concise.
 - If a Job Description is provided, align strengths with what the employer values.
-- Output a JSON object: { "items": [{ "title": "Strength Name", "description": "Brief context" }, ...] }
+- Output a JSON object: { "items": [{ "title": "Strength Name", "description": "Short label (4-6 words)" }, ...] }
 - Suggest 4-6 strengths.`;
-
+ 
     case 'custom_loisirs':
       return `${baseRules}
-
+ 
 TASK: Suggest hobbies and interests (Loisirs / Hobbies) for this candidate.
 - Suggest hobbies that are credible and professionally relevant for someone in their field.
 - Include a mix: one intellectual/creative, one physical/sport, one social/community.
 - Avoid clichés. Be specific (e.g., "Trail running" not just "Sports").
-- Output a JSON object: { "items": [{ "title": "Hobby Name", "description": "Brief context or detail" }, ...] }
+- CRITICAL: The description field MUST be empty or extremely short (max 3-5 words). NO long texts or details.
+- Output a JSON object: { "items": [{ "title": "Hobby Name", "description": "Optional short detail (3-5 words)" }, ...] }
 - Suggest 3-5 hobbies.`;
-
+ 
     case 'custom_langues':
       return `${baseRules}
-
+ 
 TASK: Suggest spoken languages for this candidate (for a custom Languages section).
 - Same logic as skills_languages but formatted as custom section items.
-- Output a JSON object: { "items": [{ "title": "Language Name", "subtitle": "Proficiency Level", "description": "Optional details" }, ...] }
+- Output a JSON object: { "items": [{ "title": "Language Name", "subtitle": "Proficiency Level", "description": "" }, ...] }
+- CRITICAL: The subtitle should only be the level (e.g. "Fluent", "Native", "Bilingual"). The description field MUST be empty. NO long texts or details.
 - Suggest 2-4 languages.`;
 
     case 'custom_generic':
