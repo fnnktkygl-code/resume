@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 
 import { getTranslation } from '../utils/translations';
+import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
 function ModernTemplate({ 
   data, 
@@ -23,14 +24,7 @@ function ModernTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
-    return val;
-  };
+  const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
@@ -83,13 +77,9 @@ function ModernTemplate({
     itemSpacing = 8,
   } = layout;
 
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
+  const formatDate = (m, y) => formatResumeDate(m, y, language);
 
-  const hasContact = p.email || p.phone || p.location || p.linkedin || p.github || p.website;
+  const hasContact = hasContactInfo(p);
 
   const renderSection = (sectionId) => {
     switch (sectionId) {

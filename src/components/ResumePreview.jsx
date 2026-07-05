@@ -5,6 +5,7 @@ import CreativeTemplate from './CreativeTemplate';
 import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
+import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
 function ResumePreview({ 
   data, 
@@ -25,14 +26,7 @@ function ResumePreview({
   onAddSectionSpacer
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
-    return val;
-  };
+  const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
@@ -55,7 +49,7 @@ function ResumePreview({
   };
 
   const p = data.personal;
-  const hasContact = p.name || p.email || p.phone;
+  const hasContact = hasContactInfo(p);
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
   const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
@@ -89,6 +83,7 @@ function ResumePreview({
   const contentRef = useRef(null);
   const [wrapperWidth, setWrapperWidth] = useState(compact ? 500 : 500);
   const [pagesCount, setPagesCount] = useState(1);
+  const [overflowRatio, setOverflowRatio] = useState(0);
   // Item drag & drop state (removed to prevent re-renders during drag)
 
   useEffect(() => {
@@ -129,6 +124,10 @@ function ResumePreview({
         const totalH = innerH + (paddingY * 2 * 96);
         const neededPages = Math.max(1, Math.ceil(totalH / 1056));
         setPagesCount(neededPages);
+        // Calculate how much of the last page is used (0-1)
+        const lastPageUsage = (totalH % 1056) / 1056;
+        // If content spills onto a new page but uses ≤20% of it, flag as overflow
+        setOverflowRatio(neededPages > 1 && lastPageUsage > 0 && lastPageUsage <= 0.2 ? lastPageUsage : 0);
       });
     });
     observer.observe(contentRef.current);
@@ -142,11 +141,7 @@ function ResumePreview({
   const pageHeight = 1056;
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
  
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
+  const formatDate = (m, y) => formatResumeDate(m, y, language);
 
   // Drag & Drop handlers for Sections
   const handleDragStart = useCallback((e, sectionId) => {
@@ -936,6 +931,34 @@ function ResumePreview({
             </div>
           )}
         </div>
+
+        {/* Overflow warning — content barely spills onto next page */}
+        {!printMode && overflowRatio > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: `${8 * scale}px`,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 20,
+              backgroundColor: 'rgba(245, 158, 11, 0.95)',
+              color: '#fff',
+              borderRadius: '8px',
+              padding: `${6 * scale}px ${12 * scale}px`,
+              fontSize: `${Math.max(10, 11 * scale)}px`,
+              fontWeight: '600',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: `${4 * scale}px`,
+              whiteSpace: 'nowrap',
+              pointerEvents: 'auto',
+              maxWidth: '90%',
+            }}
+          >
+            ⚠️ {t('Content overflows by just a few lines. Try Compact mode or shorten a section.')}
+          </div>
+        )}
 
         {/* Page break gutters */}
         {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {

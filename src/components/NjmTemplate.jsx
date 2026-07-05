@@ -1,11 +1,14 @@
 import { memo } from 'react';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
+import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
 const Icons = {
   Phone: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
   Email: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
   LinkedIn: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>,
+  Github: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7a3.37 3.37 0 0 0-.94 2.58V22"/></svg>,
+  Website: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   Location: () => <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
   Briefcase: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
   Building: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="12" y1="6" x2="12" y2="6"/></svg>,
@@ -68,7 +71,7 @@ function NjmTemplate({
 }) {
   const t = (key) => getTranslation(language, key);
   const p = data.personal;
-  const hasContact = p.name || p.email || p.phone;
+  const hasContact = hasContactInfo(p);
   const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
   const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
@@ -77,14 +80,7 @@ function NjmTemplate({
 
   const h = data.headings || {};
 
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
-    return val;
-  };
+  const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
   const renderSkills = (skillsString, defaultClass = 'skill-pill') => {
     if (!skillsString) return null;
@@ -165,11 +161,7 @@ function NjmTemplate({
 
   const { matchedIds, langSec, atoutsSec, loisirsSec } = getBottomColumnSections();
 
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
+  const formatDate = (m, y) => formatResumeDate(m, y, language);
 
   const primaryColor = layout.accentColor || '#0F3A8C';
   const textColor = 'var(--resume-text-color, #111)';
@@ -720,6 +712,8 @@ function NjmTemplate({
               {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Phone /> {p.phone}</a>}
               {p.email && <a href={`mailto:${p.email}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Email /> {p.email}</a>}
               {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.LinkedIn /> {p.linkedin}</a>}
+              {p.github && <a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Github /> {p.github}</a>}
+              {p.website && <a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500', textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}><Icons.Website /> {p.website}</a>}
               {p.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', fontWeight: '500' }}><Icons.Location /> {p.location}</span>}
             </div>
           )}

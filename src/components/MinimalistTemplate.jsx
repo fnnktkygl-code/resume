@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
+import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
 function MinimalistTemplate({ 
   data, 
@@ -22,14 +23,7 @@ function MinimalistTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
-    return val;
-  };
+  const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
@@ -89,16 +83,12 @@ function MinimalistTemplate({
 
   const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
+  const formatDate = (m, y) => formatResumeDate(m, y, language);
 
   const primaryColor = layout.accentColor || '#1B6B3A';
   const textColor = 'var(--resume-text-color, #222)';
 
-  const hasContact = p.name || p.email || p.phone;
+  const hasContact = hasContactInfo(p);
 
   const renderSection = (sectionId) => {
     const sectionTitleStyle = {
@@ -483,6 +473,8 @@ function MinimalistTemplate({
               {p.phone && <span>• &nbsp;<a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></span>}
               {p.location && <span>• &nbsp;{p.location}</span>}
               {p.linkedin && <span>• &nbsp;<a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></span>}
+              {p.github && <span>• &nbsp;<a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></span>}
+              {p.website && <span>• &nbsp;<a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
             </div>
           )}
         </div>

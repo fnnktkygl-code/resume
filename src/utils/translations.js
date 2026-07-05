@@ -307,6 +307,7 @@ export const TRANSLATIONS = {
     'Slate Gray': 'Slate Gray',
     'Minimalist Charcoal': 'Minimalist Charcoal',
     'Page': 'Page',
+    'Content overflows by just a few lines. Try Compact mode or shorten a section.': 'Content overflows by just a few lines. Try Compact mode or shorten a section.',
     'Please fill out your resume first': 'Please fill out your resume first',
     
     // Resume Template Headers
@@ -609,6 +610,7 @@ export const TRANSLATIONS = {
     'Slate Gray': 'Gris Ardoise',
     'Minimalist Charcoal': 'Charbon Minimaliste',
     'Page': 'Page',
+    'Content overflows by just a few lines. Try Compact mode or shorten a section.': 'Le contenu dépasse de quelques lignes. Essayez le mode Compact ou réduisez une section.',
     'Please fill out your resume first': "Veuillez d'abord remplir ou importer votre CV",
     'All data stays in your browser': 'Les données restent dans le navigateur',
     '1-Page Demo': 'Démo 1 Page',
@@ -1170,6 +1172,7 @@ export const TRANSLATIONS = {
     'Slate Gray': 'Gris pizarra',
     'Minimalist Charcoal': 'Carboncillo minimalista',
     'Page': 'Página',
+    'Content overflows by just a few lines. Try Compact mode or shorten a section.': 'El contenido se desborda por solo unas líneas. Prueba el modo Compacto o reduce una sección.',
     'Please fill out your resume first': 'Por favor, completa tu currículum primero',
     'All data stays in your browser': 'Todos los datos permanecen en tu navegador',
     '1-Page Demo': 'Demo de 1 página',

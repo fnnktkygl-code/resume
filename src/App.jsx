@@ -3,6 +3,7 @@ import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, creat
 import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR, DEMO_DATA_1_PAGE_ES, DEMO_DATA_2_PAGES_ES } from './utils/demoData';
 import AtsScore from './components/AtsScore';
 import ResumePreview from './components/ResumePreview';
+import FullscreenPreview from './components/FullscreenPreview';
 import { Document, Page, pdfjs } from 'react-pdf';
 import PDFWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
@@ -27,6 +28,7 @@ import Header from './components/Header';
 import useResumeHistory from './hooks/useResumeHistory';
 import useResumeDocuments from './hooks/useResumeDocuments';
 import resumeReducer from './reducers/resumeReducer';
+import { translateHeadings, translateCustomSectionLabels } from './utils/languageSwitcher';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
@@ -670,104 +672,23 @@ export default function App() {
     const isDemo1 = data.personal.name === 'Hoshi Fenneko';
     const isDemo2 = isDemo1 && data.experience.length > 2;
     
-    let nextData = data;
-    if (lang === 'fr') {
-      if (isDemo2) nextData = DEMO_DATA_2_PAGES_FR;
-      else if (isDemo1) nextData = DEMO_DATA_1_PAGE_FR;
+    // Pick the right demo dataset if we're on demo data
+    const demoMap = {
+      fr: isDemo2 ? DEMO_DATA_2_PAGES_FR : isDemo1 ? DEMO_DATA_1_PAGE_FR : null,
+      es: isDemo2 ? DEMO_DATA_2_PAGES_ES : isDemo1 ? DEMO_DATA_1_PAGE_ES : null,
+      en: isDemo2 ? DEMO_DATA_2_PAGES : isDemo1 ? DEMO_DATA_1_PAGE : null,
+    };
+    const nextData = demoMap[lang] || data;
 
-      const customSections = (nextData.customSections || []).map(s => {
-        if (s.id === 'custom_langues') return { ...s, label: 'Langues' };
-        if (s.id === 'custom_atouts') return { ...s, label: 'Atouts' };
-        if (s.id === 'custom_loisirs') return { ...s, label: 'Loisirs' };
-        return s;
-      });
-
-      dispatch({
-        type: 'SET_DATA',
-        payload: { 
-          ...nextData,
-          customSections,
-          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
-          headings: {
-            ...nextData.headings,
-            summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Resumen Profesional') ? 'Profil' : nextData.headings.summary,
-            experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Experiencia Profesional') ? 'Expériences Professionnelles' : nextData.headings.experience,
-            education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Educación') ? 'Formation' : nextData.headings.education,
-            skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Habilidades') ? 'Compétences' : nextData.headings.skills,
-            languages: (nextData.headings.languages === 'Languages' || nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Idiomas') ? 'Langues' : nextData.headings.languages,
-            technical: (nextData.headings.technical === 'Technical Skills' || nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Habilidades técnicas') ? 'Compétences Techniques' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Soft Skills' || nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Soft Skills') ? 'Soft Skills' : nextData.headings.interpersonal,
-            projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Proyectos') ? 'Projets' : nextData.headings.projects,
-            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
-            present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Presente') ? 'Présent' : nextData.headings.present
-          }
-        }
-      });
-    } else if (lang === 'es') {
-      if (isDemo2) nextData = DEMO_DATA_2_PAGES_ES;
-      else if (isDemo1) nextData = DEMO_DATA_1_PAGE_ES;
-
-      const customSections = (nextData.customSections || []).map(s => {
-        if (s.id === 'custom_langues') return { ...s, label: 'Idiomas' };
-        if (s.id === 'custom_atouts') return { ...s, label: 'Fortalezas' };
-        if (s.id === 'custom_loisirs') return { ...s, label: 'Aficiones' };
-        return s;
-      });
-
-      dispatch({
-        type: 'SET_DATA',
-        payload: { 
-          ...nextData,
-          customSections,
-          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
-          headings: {
-            ...nextData.headings,
-            summary: (nextData.headings.summary === 'Summary' || nextData.headings.summary === 'Profil') ? 'Resumen Profesional' : nextData.headings.summary,
-            experience: (nextData.headings.experience === 'Work Experience' || nextData.headings.experience === 'Expériences Professionnelles') ? 'Experiencia Profesional' : nextData.headings.experience,
-            education: (nextData.headings.education === 'Education' || nextData.headings.education === 'Formation') ? 'Educación' : nextData.headings.education,
-            skills: (nextData.headings.skills === 'Skills' || nextData.headings.skills === 'Compétences') ? 'Habilidades' : nextData.headings.skills,
-            languages: (nextData.headings.languages === 'Languages' || nextData.headings.languages === 'Languages:' || nextData.headings.languages === 'Langues') ? 'Idiomas' : nextData.headings.languages,
-            technical: (nextData.headings.technical === 'Technical Skills' || nextData.headings.technical === 'Technical:' || nextData.headings.technical === 'Compétences Techniques') ? 'Habilidades Técnicas' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Soft Skills' || nextData.headings.interpersonal === 'Interpersonal:' || nextData.headings.interpersonal === 'Soft Skills') ? 'Soft Skills' : nextData.headings.interpersonal,
-            projects: (nextData.headings.projects === 'Projects' || nextData.headings.projects === 'Projets') ? 'Proyectos' : nextData.headings.projects,
-            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certifications') ? 'Certificaciones' : nextData.headings.certifications,
-            present: (nextData.headings.present === 'Present' || nextData.headings.present === 'Présent') ? 'Presente' : nextData.headings.present
-          }
-        }
-      });
-    } else {
-      if (isDemo2) nextData = DEMO_DATA_2_PAGES;
-      else if (isDemo1) nextData = DEMO_DATA_1_PAGE;
-
-      const customSections = (nextData.customSections || []).map(s => {
-        if (s.id === 'custom_langues') return { ...s, label: 'Languages' };
-        if (s.id === 'custom_atouts') return { ...s, label: 'Strengths' };
-        if (s.id === 'custom_loisirs') return { ...s, label: 'Hobbies' };
-        return s;
-      });
-
-      dispatch({
-        type: 'SET_DATA',
-        payload: { 
-          ...nextData,
-          customSections,
-          sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
-          headings: {
-            ...nextData.headings,
-            summary: (nextData.headings.summary === 'Profil' || nextData.headings.summary === 'Resumen Profesional') ? 'Summary' : nextData.headings.summary,
-            experience: (nextData.headings.experience === 'Expériences Professionnelles' || nextData.headings.experience === 'Experiencia Profesional') ? 'Work Experience' : nextData.headings.experience,
-            education: (nextData.headings.education === 'Formation' || nextData.headings.education === 'Educación') ? 'Education' : nextData.headings.education,
-            skills: (nextData.headings.skills === 'Compétences' || nextData.headings.skills === 'Habilidades') ? 'Skills' : nextData.headings.skills,
-            languages: (nextData.headings.languages === 'Langues' || nextData.headings.languages === 'Idiomas') ? 'Languages:' : nextData.headings.languages,
-            technical: (nextData.headings.technical === 'Compétences Techniques' || nextData.headings.technical === 'Habilidades Técnicas') ? 'Technical:' : nextData.headings.technical,
-            interpersonal: (nextData.headings.interpersonal === 'Soft Skills' || nextData.headings.interpersonal === 'Soft Skills') ? 'Interpersonal:' : nextData.headings.interpersonal,
-            projects: (nextData.headings.projects === 'Projets' || nextData.headings.projects === 'Proyectos') ? 'Projects' : nextData.headings.projects,
-            certifications: (nextData.headings.certifications === 'Certifications' || nextData.headings.certifications === 'Certificaciones') ? 'Certifications' : nextData.headings.certifications,
-            present: (nextData.headings.present === 'Présent' || nextData.headings.present === 'Presente') ? 'Present' : nextData.headings.present
-          }
-        }
-      });
-    }
+    dispatch({
+      type: 'SET_DATA',
+      payload: {
+        ...nextData,
+        customSections: translateCustomSectionLabels(nextData.customSections, lang),
+        sectionOrder: data.sectionOrder || DEFAULT_SECTION_ORDER,
+        headings: translateHeadings(nextData.headings || {}, lang),
+      }
+    });
   };
 
   // Check which steps have data for completion indicators
@@ -1876,121 +1797,21 @@ export default function App() {
         </div>
 
         {/* Fullscreen Preview overlay */}
-        {isFullscreenPreview && (() => {
-          const scale = calculatedFullscreenScale;
-          const displayScale = scale * fullscreenZoom;
-          return (
-            <div className="fullscreen-preview-overlay" role="dialog" aria-modal="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="fullscreen-preview-toolbar">
-                <div className="fullscreen-toolbar-title" style={{ flex: '1 1 0' }}>
-                  <span>⛶</span> {t('Fullscreen Preview')}
-                </div>
-                
-                {editorPagesCount > 1 && (
-                  <div className="fullscreen-toolbar-pagination" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '0 0 auto' }}>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setFullscreenPageIndex(p => Math.max(0, p - 1))}
-                      disabled={fullscreenPageIndex === 0}
-                      style={{ opacity: fullscreenPageIndex === 0 ? 0.4 : 1, cursor: fullscreenPageIndex === 0 ? 'not-allowed' : 'pointer' }}
-                    >
-                      <i className="fi fi-rr-angle-left"></i>
-                    </button>
-                    <span style={{ color: '#fff', fontSize: '14px', fontWeight: '600', minWidth: '80px', textAlign: 'center' }}>
-                      {fullscreenPageIndex + 1} / {editorPagesCount}
-                    </span>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setFullscreenPageIndex(p => Math.min(editorPagesCount - 1, p + 1))}
-                      disabled={fullscreenPageIndex === editorPagesCount - 1}
-                      style={{ opacity: fullscreenPageIndex === editorPagesCount - 1 ? 0.4 : 1, cursor: fullscreenPageIndex === editorPagesCount - 1 ? 'not-allowed' : 'pointer' }}
-                    >
-                      <i className="fi fi-rr-angle-right"></i>
-                    </button>
-                  </div>
-                )}
-
-                <div className="fullscreen-toolbar-actions" style={{ flex: '1 1 0', justifyContent: 'flex-end' }}>
-                  <div className="control-group" style={{ gap: '4px', background: 'rgba(255,255,255,0.1)', padding: '2px', borderRadius: '6px', marginRight: '16px' }}>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setFullscreenZoom(z => Math.max(0.5, z - 0.1))}
-                      disabled={fullscreenZoom <= 0.5}
-                      style={{ border: 'none', background: 'transparent', color: '#fff' }}
-                      title={t('Zoom Out')}
-                    >
-                      -
-                    </button>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setFullscreenZoom(1.0)}
-                      style={{ border: 'none', background: 'transparent', color: '#fff', minWidth: '55px', fontSize: '11px', fontWeight: '700' }}
-                      title={t('Reset Zoom')}
-                    >
-                      {Math.round(fullscreenZoom * 100)}%
-                    </button>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setFullscreenZoom(z => Math.min(2.0, z + 0.1))}
-                      disabled={fullscreenZoom >= 2.0}
-                      style={{ border: 'none', background: 'transparent', color: '#fff' }}
-                      title={t('Zoom In')}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => setTimeout(() => window.print(), 100)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <i className="fi fi-rr-print"></i> {t('Export PDF')}
-                  </button>
-                  <button 
-                    className="btn-secondary" 
-                    onClick={() => setIsFullscreenPreview(false)}
-                    style={{ minWidth: 'auto', padding: '8px 16px' }}
-                  >
-                    {t('Close')}
-                  </button>
-                </div>
-              </div>
-              
-              <div 
-                className="fullscreen-preview-content" 
-                style={{ 
-                  width: `${816 * displayScale}px`, 
-                  height: `${1056 * displayScale}px`, 
-                  overflow: 'hidden', 
-                  position: 'relative' 
-                }}
-              >
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '816px',
-                  height: `${editorPagesCount * 1056}px`,
-                  transform: `scale(${displayScale})`,
-                  transformOrigin: 'top left'
-                }}>
-                  <div style={{
-                    transform: `translateY(${-fullscreenPageIndex * 1056}px)`,
-                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}>
-                    <ResumePreview 
-                      data={data} 
-                      layout={layout} 
-                      language={language} 
-                      template={template}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
+        {isFullscreenPreview && (
+          <FullscreenPreview
+            data={data}
+            layout={layout}
+            language={language}
+            template={template}
+            editorPagesCount={editorPagesCount}
+            calculatedFullscreenScale={calculatedFullscreenScale}
+            fullscreenZoom={fullscreenZoom}
+            setFullscreenZoom={setFullscreenZoom}
+            fullscreenPageIndex={fullscreenPageIndex}
+            setFullscreenPageIndex={setFullscreenPageIndex}
+            onClose={() => setIsFullscreenPreview(false)}
+          />
+        )}
 
         {/* Before/After Comparison overlay */}
         {showBeforeAfter && importSnapshot && (

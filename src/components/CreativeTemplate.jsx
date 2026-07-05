@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
+import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
 const Icons = {
   Briefcase: () => <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
@@ -29,14 +30,7 @@ function CreativeTemplate({
   printMode = false
 }) {
   const t = (key) => getTranslation(language, key);
-  const displayHeading = (key, defaultEn, tKey) => {
-    if (!h[key]) return t(tKey);
-    const val = h[key].trim();
-    if (!val) return t(tKey);
-    const vLower = val.toLowerCase();
-    if (vLower === defaultEn.toLowerCase() || vLower === key.toLowerCase() || vLower === 'technical:' || vLower === 'interpersonal:' || vLower === 'languages:') return t(tKey);
-    return val;
-  };
+  const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
@@ -90,15 +84,11 @@ function CreativeTemplate({
     lineHeight = 1.35
   } = layout;
 
-  const formatDate = (m, y) => {
-    if (!m && !y) return '';
-    if (m && y) return `${t(m)} ${y}`;
-    return y || t(m) || '';
-  };
+  const formatDate = (m, y) => formatResumeDate(m, y, language);
 
   const primaryColor = layout.accentColor || '#1B6B3A';
   const textColor = 'var(--resume-text-color, #222)';
-  const hasContact = p.name || p.email || p.phone;
+  const hasContact = hasContactInfo(p);
 
   const sectionHeaderStyle = {
     color: primaryColor,
@@ -417,6 +407,8 @@ function CreativeTemplate({
               {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
               {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
               {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
+              {p.github && <a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.github}</a>}
+              {p.website && <a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.website}</a>}
             </div>
           )}
         </div>
