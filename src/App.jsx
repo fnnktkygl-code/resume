@@ -57,6 +57,7 @@ const DEFAULT_LAYOUT = {
   itemSpacing: 8,
   accentColor: '#1B6B3A',
   fontFamily: 'Inter',
+  splitLinks: true,
 };
 
 const DEFAULT_SECTION_ORDER = ['contact', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];

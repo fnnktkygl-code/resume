@@ -402,14 +402,33 @@ function CreativeTemplate({
             </div>
           )}
           {hasContact && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #555)' }}>
-              {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>✉ {p.email}</a>}
-              {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
-              {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
-              {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
-              {p.github && <a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.github}</a>}
-              {p.website && <a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.website}</a>}
-            </div>
+            layout.splitLinks !== false ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #555)' }}>
+                {(p.email || p.phone || p.location) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px' }}>
+                    {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>✉ {p.email}</a>}
+                    {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
+                    {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
+                  </div>
+                )}
+                {(p.linkedin || p.github || p.website) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px' }}>
+                    {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
+                    {p.github && <a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.github}</a>}
+                    {p.website && <a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.website}</a>}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', fontSize: '8.5pt', color: 'var(--resume-text-secondary, #555)' }}>
+                {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>✉ {p.email}</a>}
+                {p.phone && <a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>☎ {p.phone}</a>}
+                {p.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>📍 {p.location}</span>}
+                {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.linkedin}</a>}
+                {p.github && <a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.github}</a>}
+                {p.website && <a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>🔗 {p.website}</a>}
+              </div>
+            )
           )}
         </div>
 

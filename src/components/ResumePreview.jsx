@@ -905,14 +905,33 @@ function ResumePreview({
                 {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
                 {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
                 {hasContact && (
-                  <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
-                    {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
-                    {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
-                    {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
-                    {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
-                    {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
-                    {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
-                  </div>
+                  layout.splitLinks !== false ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                      {(p.email || p.phone || p.location) && (
+                        <div className="resume-contact" style={{ margin: 0 }}>
+                          {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>{(p.phone || p.location) && <span className="resume-contact-sep">•</span>}</span>}
+                          {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a>{p.location && <span className="resume-contact-sep">•</span>}</span>}
+                          {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span></span>}
+                        </div>
+                      )}
+                      {(p.linkedin || p.github || p.website) && (
+                        <div className="resume-contact" style={{ margin: 0 }}>
+                          {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                          {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
+                          {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                      {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
+                      {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
+                      {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                      {p.linkedin && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>{(p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
+                      {p.github && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a>{p.website && <span className="resume-contact-sep">•</span>}</span>}
+                      {p.website && <span style={{ display: 'flex', alignItems: 'center' }}><a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+                    </div>
+                  )
                 )}
               </div>
 

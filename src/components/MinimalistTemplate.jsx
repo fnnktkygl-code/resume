@@ -461,21 +461,47 @@ function MinimalistTemplate({
             </div>
           )}
           {hasContact && (
-            <div style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: '10px', 
-              fontSize: '8.5pt', 
-              color: 'var(--resume-text-secondary, #666)', 
-              marginTop: '8px'
-            }}>
-              {p.email && <a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>}
-              {p.phone && <span>• &nbsp;<a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></span>}
-              {p.location && <span>• &nbsp;{p.location}</span>}
-              {p.linkedin && <span>• &nbsp;<a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></span>}
-              {p.github && <span>• &nbsp;<a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></span>}
-              {p.website && <span>• &nbsp;<a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
-            </div>
+            layout.splitLinks !== false ? (
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '4px', 
+                fontSize: '8.5pt', 
+                color: 'var(--resume-text-secondary, #666)', 
+                marginTop: '8px'
+              }}>
+                {(p.email || p.phone || p.location) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {p.email && <a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>}
+                    {p.phone && <span>{p.email ? '• \u00a0' : ''}<a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></span>}
+                    {p.location && <span>{(p.email || p.phone) ? '• \u00a0' : ''}{p.location}</span>}
+                  </div>
+                )}
+                {(p.linkedin || p.github || p.website) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {p.linkedin && <a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a>}
+                    {p.github && <span>{p.linkedin ? '• \u00a0' : ''}<a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></span>}
+                    {p.website && <span>{(p.linkedin || p.github) ? '• \u00a0' : ''}<a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '10px', 
+                fontSize: '8.5pt', 
+                color: 'var(--resume-text-secondary, #666)', 
+                marginTop: '8px'
+              }}>
+                {p.email && <a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>}
+                {p.phone && <span>• &nbsp;<a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a></span>}
+                {p.location && <span>• &nbsp;{p.location}</span>}
+                {p.linkedin && <span>• &nbsp;<a href={formatUrl(p.linkedin)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.linkedin}</a></span>}
+                {p.github && <span>• &nbsp;<a href={formatUrl(p.github)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.github}</a></span>}
+                {p.website && <span>• &nbsp;<a href={formatUrl(p.website)} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.website}</a></span>}
+              </div>
+            )
           )}
         </div>
         {p.showPhoto && p.photo && (

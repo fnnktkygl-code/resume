@@ -104,3 +104,29 @@ Ce fichier trace chaque correctif issu de l'audit produit/code.
 
 ---
 
+## 8. Ligne dédiée pour les liens professionnels (LinkedIn, GitHub, Site Web)
+
+**Problème :** Par défaut, tous les contacts et liens professionnels s'affichaient sur une seule ligne. Si l'utilisateur possédait un lien long (ex: GitHub ou LinkedIn avec nom complet), cela devenait très encombré et limitait l'espace d'en-tête, rendant la lecture difficile et moins optimisée pour les ATS.
+
+**Changement :** 
+1. Ajout d'une option `splitLinks: true` par défaut dans le schéma `DEFAULT_LAYOUT`.
+2. Ajout d'un contrôle dans `LayoutControls.jsx` pour permettre à l'utilisateur de choisir entre :
+   - "Sur une seule ligne" (`splitLinks = false`)
+   - "Ligne séparée pour les liens" (`splitLinks = true`)
+3. Mise à jour de tous les templates adaptables (`ResumePreview.jsx`, `NjmTemplate.jsx`, `CreativeTemplate.jsx`, `MinimalistTemplate.jsx`) pour diviser le bloc de contact en deux lignes intelligentes (contacts directs sur la ligne 1, liens de profils professionnels sur la ligne 2) si `splitLinks` est activé, avec des points séparateurs bien formatés pour chaque groupe. (Le template `Modern` reste vertical).
+4. Ajout des traductions en anglais, français et espagnol.
+
+**Fichiers modifiés :**
+- `src/App.jsx` (Default layout)
+- `src/components/LayoutControls.jsx` (Reset + Dropdown UI selector)
+- `src/components/ResumePreview.jsx` (Render conditional formatting)
+- `src/components/NjmTemplate.jsx` (Render conditional formatting)
+- `src/components/CreativeTemplate.jsx` (Render conditional formatting)
+- `src/components/MinimalistTemplate.jsx` (Render conditional formatting)
+- `src/utils/translations.js` (Translations EN/FR/ES)
+
+**Vérification :** `vite build` OK, les tests passent. La mise en page bascule correctement entre les deux modes en temps réel.
+
+---
+
+
