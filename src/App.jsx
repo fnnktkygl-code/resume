@@ -1108,6 +1108,7 @@ export default function App() {
                     </button>
                   ) : (
                     <div className="preview-controls">
+
                       <div className="control-group" style={{ gap: '4px' }}>
                         <button 
                           className="control-btn" 
