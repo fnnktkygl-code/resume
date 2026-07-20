@@ -164,7 +164,6 @@ export default function App() {
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [isCoverLetterModalOpen, setIsCoverLetterModalOpen] = useState(false);
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
-  const [isFullScreenPreview, setIsFullScreenPreview] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [draggedStepId, setDraggedStepId] = useState(null);
   const [dragOverStepId, setDragOverStepId] = useState(null);
@@ -175,7 +174,6 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeAITipCallback, setActiveAITipCallback] = useState(null);
 
-  const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [originalImportInput, setOriginalImportInput] = useState(null);
   const [aiBulletConfig, setAiBulletConfig] = useState(null);
   const [aiSectionFillConfig, setAiSectionFillConfig] = useState(null);
@@ -1087,14 +1085,7 @@ export default function App() {
                       <i className={`fi fi-rr-angle-double-${isEditorCollapsed ? 'right' : 'left'}`}></i>
                     </button>
                     <span className="preview-label" style={{ marginBottom: 0 }}>{t('Live Preview')}</span>
-                    <button 
-                      className="control-btn"
-                      onClick={() => setIsFullScreenPreview(true)}
-                      title={t('Full Screen')}
-                      style={{ padding: '4px 6px', marginLeft: '4px' }}
-                    >
-                      <i className="fi fi-rr-expand"></i>
-                    </button>
+
                   </div>
                   {isPreviewHeaderCollapsed ? (
                     <button 
@@ -1219,17 +1210,7 @@ export default function App() {
                         >
                           <i className="fi fi-rr-settings"></i>
                         </button>
-                        <button 
-                          className="control-btn"
-                          onClick={() => {
-                            setFullscreenPageIndex(0);
-                            setFullscreenZoom(1.0);
-                            setIsFullscreenPreview(true);
-                          }}
-                          title={t('Fullscreen Preview')}
-                        >
-                          ⛶
-                        </button>
+
                       </div>
 
 
@@ -1673,39 +1654,7 @@ export default function App() {
           </div>
         )}
 
-        {isFullScreenPreview && (
-          <div className="fullscreen-overlay">
-            <div className="fullscreen-header">
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{t('Full Screen Preview')}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--color-bg)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--color-border)' }}>
-                  <button className="control-btn" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title={t('Zoom Out')} style={{ padding: '2px 6px' }}>−</button>
-                  <span style={{ fontSize: '12px', fontWeight: '600', minWidth: '40px', textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
-                  <button className="control-btn" onClick={() => setZoom(z => Math.min(2, z + 0.1))} title={t('Zoom In')} style={{ padding: '2px 6px' }}>+</button>
-                  <button className="control-btn" onClick={() => setZoom(1)} title={t('Reset Zoom')} style={{ padding: '2px 6px', marginLeft: '4px' }}><i className="fi fi-rr-refresh"></i></button>
-                </div>
-              </div>
-              <button className="btn-secondary" onClick={() => setIsFullScreenPreview(false)} style={{ padding: '8px 16px' }}>
-                <i className="fi fi-rr-cross"></i> {t('Close')}
-              </button>
-            </div>
-            <div className="fullscreen-content">
-              <div 
-                className="resume-container" 
-                style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s ease-out' }}
-              >
-                <div className="resume-wrapper" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}>
-                  <ResumePreview
-                    data={data}
-                    template={template}
-                    layout={layout}
-                    language={language}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         <Modal
           isOpen={!!sectionToDelete}
@@ -1766,23 +1715,6 @@ export default function App() {
         <div id="resume-print" style={{ display: 'none' }}>
           <ResumePreview data={data} layout={layout} language={language} template={template} printMode />
         </div>
-
-        {/* Fullscreen Preview overlay */}
-        {isFullscreenPreview && (
-          <FullscreenPreview
-            data={data}
-            layout={layout}
-            language={language}
-            template={template}
-            editorPagesCount={editorPagesCount}
-            calculatedFullscreenScale={calculatedFullscreenScale}
-            fullscreenZoom={fullscreenZoom}
-            setFullscreenZoom={setFullscreenZoom}
-            fullscreenPageIndex={fullscreenPageIndex}
-            setFullscreenPageIndex={setFullscreenPageIndex}
-            onClose={() => setIsFullscreenPreview(false)}
-          />
-        )}
 
       </div>
     </TranslationContext.Provider>
