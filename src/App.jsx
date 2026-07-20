@@ -613,11 +613,11 @@ export default function App() {
   }, [dispatch]);
 
   const clearData = () => {
-    dispatch({ type: 'SET_DATA', payload: { ...structuredClone(DEFAULT_DATA), sectionOrder: [...DEFAULT_SECTION_ORDER] } });
-    setImportSnapshot(null);
-    setOriginalImportInput(null);
-    setStep(0);
-    setShowClearConfirm(false);
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('resume-builder-cv-list');
+    localStorage.removeItem('resume-builder-active-cv-id');
+    localStorage.removeItem('resume-builder-onboarded');
+    window.location.reload();
   };
 
   const loadDemoData = useCallback((pages) => {
