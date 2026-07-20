@@ -93,50 +93,6 @@ export default function LayoutControls({ layout, onChange }) {
           </select>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="skill-style-select">{t('Skill Style')}</label>
-          <select
-            id="skill-style-select"
-            value={layout.skillStyle || 'pill'}
-            onChange={(e) => handleUpdate('skillStyle', e.target.value)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text)',
-              fontSize: '13px',
-              fontFamily: 'inherit',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="pill">{t('Rounded Circles')}</option>
-            <option value="square">{t('Squares')}</option>
-            <option value="text">{t('Simple Text')}</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="colored-skills-select">{t('Color Technical Skills')}</label>
-          <select
-            id="colored-skills-select"
-            value={layout.coloredSkills === undefined ? true : layout.coloredSkills}
-            onChange={(e) => handleUpdate('coloredSkills', e.target.value === 'true')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text)',
-              fontSize: '13px',
-              fontFamily: 'inherit',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="true">{t('Yes, use theme color')}</option>
-            <option value="false">{t('No, use neutral color')}</option>
-          </select>
-        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="contact-layout-select">{t('Contact Layout')}</label>

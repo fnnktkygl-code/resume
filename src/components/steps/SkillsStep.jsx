@@ -5,7 +5,7 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
   const { t } = useTranslation();
   const update = (field, val) => onChange({ ...data, [field]: val });
   const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
-  const updateStyle = (val) => onLayoutChange && onLayoutChange({ ...layout, skillStyle: val });
+  const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
 
   const AISuggestButton = ({ sectionType }) => (
     <button
@@ -42,25 +42,47 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <Field label={t('Skill Style')} full>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <select
-              value={layout?.skillStyle || 'pill'}
-              onChange={(e) => updateStyle(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                flex: 1
-              }}
-            >
-              <option value="pill">{t('Rounded Circles')}</option>
-              <option value="square">{t('Squares')}</option>
-              <option value="text">{t('Simple Text')}</option>
-            </select>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <select
+                value={layout?.skillStyle || 'pill'}
+                onChange={(e) => updateLayout('skillStyle', e.target.value)}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                <option value="pill">{t('Rounded Circles')}</option>
+                <option value="square">{t('Squares')}</option>
+                <option value="text">{t('Simple Text')}</option>
+              </select>
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <select
+                value={layout?.coloredSkills === undefined ? true : layout.coloredSkills}
+                onChange={(e) => updateLayout('coloredSkills', e.target.value === 'true')}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                <option value="true">{t('Color Technical Skills')}</option>
+                <option value="false">{t('Neutral Technical Skills')}</option>
+              </select>
+            </div>
           </div>
         </Field>
         <Field label={t('Skills Header')} full>
