@@ -38,15 +38,15 @@ Your task is to tailor the provided JSON resume to match the provided Job Descri
 Target Language for the content: ${targetLang}.
 
 Rules:
-1. Emphasize skills and experiences that align with the job description.
+1. Emphasize skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
 2. Rewrite bullet points using strong action verbs to highlight aspects of the candidate's past work that are relevant to the new job requirements.
-3. CRITICAL - INTELLIGENT TAILORING: You must intelligently adapt the resume by highlighting relevant transferable skills and using similar vocabulary from the Job Description, BUT YOU MUST NEVER INVENT OR HALLUCINATE tools, software, skills, or experiences the candidate did not explicitly mention having. (For example, do NOT add a specific software to their skills if it wasn't in their original resume, even if the JD asks for it).
-4. NEVER change the core context or industry of the candidate's past jobs. If they worked in the Energy sector, keep the Energy sector context. Rephrase their bullet points to emphasize relevant aspects (e.g., data analysis, project management) WITHOUT lying or fundamentally changing what they did.
+3. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having. Do NOT add a specific software or skill to their profile just because the Job Description asks for it. If they don't have it, focus on analogous skills they DO have.
+4. CRITICAL - ANTI-GENERICIZATION (DOMAIN PRESERVATION): NEVER scrub, generalize, or remove domain-specific terminology (e.g., wind turbines, medical devices, specific technical constraints) from the original bullet points. The candidate's unique industry context MUST remain highly visible. Do not replace their specific achievements with generic buzzwords (like "operational performance" or "business dashboards").
 5. Maintain a highly professional tone.
 6. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.
-7. STRICT PAGE BUDGET & OVERFLOW PREVENTION: The tailored content must fit cleanly on either exactly 1 page or exactly 2 pages. Avoid creating length that overflows by just a few lines onto a new page (e.g. 1.1 pages or 2.1 pages).
+7. STRICT PAGE BUDGET & OVERFLOW PREVENTION: The tailored content must fit cleanly on either exactly 1 page or exactly 2 pages. Avoid creating length that overflows by just a few lines onto a new page.
    - If the input resume is short, keep bullet points short and limit them to 2-3 per experience to guarantee it fits on exactly 1 page.
-   - If the input resume is longer, keep bullet points short and limit them to 3-4 per experience to guarantee it fits on exactly 2 pages, and never overflows to page 3.
+   - If the input resume is longer, keep bullet points short and limit them to 3-4 per experience to guarantee it fits on exactly 2 pages.
    - Every bullet point must be concise, direct, and under 2 lines.`;
 
   const promptText = `

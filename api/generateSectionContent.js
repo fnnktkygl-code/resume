@@ -80,6 +80,17 @@ export default async function handler(req, res) {
     }
 
     const suggestions = JSON.parse(generatedText);
+
+    // POST-PROCESSING: Forcefully strip descriptions for specific sections
+    if (['custom_atouts', 'custom_loisirs', 'custom_langues'].includes(sectionType)) {
+      if (suggestions.items && Array.isArray(suggestions.items)) {
+        suggestions.items = suggestions.items.map(item => ({
+          ...item,
+          description: ""
+        }));
+      }
+    }
+
     return res.status(200).json({ suggestions });
   } catch (error) {
     console.error('API /generateSectionContent Error:', error);
@@ -170,9 +181,9 @@ TASK: Suggest relevant professional certifications for this candidate.
       return `${baseRules}
  
 TASK: Suggest professional strengths (Atouts / Key Strengths) for this candidate.
-- Infer strengths from their entire profile, specifically focusing on WORK EXPERIENCE and EDUCATION, not just the tagline.
+- Infer strengths from their ENTIRE profile, specifically focusing on WORK EXPERIENCE and EDUCATION, not just the tagline.
 - Each strength should have a title.
-- CRITICAL: The description field MUST be absolutely empty. Do not generate long text or sentences. (e.g. title: "Esprit d'analyse", description: "").
+- CRITICAL: The description field MUST be absolutely empty string "". Do not generate any text, not even a single word for the description.
 - If a Job Description is provided, align strengths with what the employer values.
 - Output a JSON object: { "items": [{ "title": "Strength Name", "description": "" }, ...] }
 - Suggest 4-6 strengths.`;
@@ -184,7 +195,7 @@ TASK: Suggest hobbies and interests (Loisirs / Hobbies) for this candidate.
 - Suggest hobbies that are credible and professionally relevant for someone in their field.
 - Include a mix: one intellectual/creative, one physical/sport, one social/community.
 - Avoid clichés. Be specific (e.g., "Trail running" not just "Sports").
-- CRITICAL: The description field MUST be absolutely empty. NO long texts or details. (e.g. title: "Trail running", description: "").
+- CRITICAL: The description field MUST be absolutely empty string "". Do not generate any text, not even a single word for the description.
 - Output a JSON object: { "items": [{ "title": "Hobby Name", "description": "" }, ...] }
 - Suggest 3-5 hobbies.`;
  
@@ -194,7 +205,8 @@ TASK: Suggest hobbies and interests (Loisirs / Hobbies) for this candidate.
 TASK: Suggest spoken languages for this candidate (for a custom Languages section).
 - Infer languages from: candidate name origin, location, education locations, company locations.
 - Output a JSON object: { "items": [{ "title": "Language Name", "subtitle": "Proficiency Level", "description": "" }, ...] }
-- CRITICAL: The subtitle should ONLY be the proficiency level (e.g. "Fluent", "Native", "Bilingual"). The description field MUST be absolutely empty. NO long texts or sentences.
+- CRITICAL: The subtitle should ONLY be the proficiency level (e.g. "Fluent", "Native", "Bilingual"). 
+- CRITICAL: The description field MUST be absolutely empty string "". Do not generate any text, not even a single word for the description.
 - Suggest 2-4 languages.`;
 
     case 'custom_generic':

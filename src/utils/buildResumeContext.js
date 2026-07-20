@@ -64,7 +64,7 @@ export function buildResumeContext(data) {
         title: e.title || '',
         company: e.company || '',
         technologies: e.technologies || '',
-        bullets: (e.bullets || []).filter((b) => b.trim()).slice(0, 3),
+        bullets: (e.bullets || []).filter((b) => b.trim()).slice(0, 6),
       }));
   }
 
