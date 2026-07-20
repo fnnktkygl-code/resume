@@ -71,6 +71,12 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
   const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
+    if (isOpen && data?.targetJobDescription) {
+      setJobDescription(data.targetJobDescription);
+    }
+  }, [isOpen, data?.targetJobDescription]);
+
+  useEffect(() => {
     if (!isOpen) {
       // Don't reset job description to empty, keep the global state
       setError('');

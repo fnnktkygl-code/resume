@@ -31,6 +31,12 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
 
   useEffect(() => {
+    if (isOpen && data?.targetJobDescription) {
+      setJobDescription(data.targetJobDescription);
+    }
+  }, [isOpen, data?.targetJobDescription]);
+
+  useEffect(() => {
     if (isOpen) {
       document.body.classList.add('print-cover-letter');
     } else {

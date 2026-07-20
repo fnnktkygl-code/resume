@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateSectionContentWithProxy } from '../../services/geminiService';
@@ -31,6 +31,13 @@ export default function AISectionFillModal({
   const [error, setError] = useState(null);
   const [localJobDescription, setLocalJobDescription] = useState(targetJobDescription || '');
   const [showJdInput, setShowJdInput] = useState(!targetJobDescription?.trim());
+
+  useEffect(() => {
+    if (isOpen && targetJobDescription) {
+      setLocalJobDescription(targetJobDescription);
+      setShowJdInput(false);
+    }
+  }, [isOpen, targetJobDescription]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
