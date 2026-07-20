@@ -197,19 +197,19 @@ function MinimalistTemplate({
               {data.skills.technical && (
                 <div>
                   <strong style={{ color: textColor }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')} : </strong>
-                  <span>{formatSkills(data.skills.technical).split(',').join(', ')}</span>
+                  <span>{parseMarkdown(formatSkills(data.skills.technical).split(',').join(', '))}</span>
                 </div>
               )}
               {data.skills.soft && (
                 <div>
                   <strong style={{ color: textColor }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')} : </strong>
-                  <span>{formatSkills(data.skills.soft).split(',').join(', ')}</span>
+                  <span>{parseMarkdown(formatSkills(data.skills.soft).split(',').join(', '))}</span>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div>
                   <strong style={{ color: textColor }}>{displayHeading('languages', 'Languages', 'Languages')} : </strong>
-                  <span>{formatSkills(data.skills.languages).split(',').join(', ')}</span>
+                  <span>{parseMarkdown(formatSkills(data.skills.languages).split(',').join(', '))}</span>
                 </div>
               )}
             </div>
@@ -380,7 +380,7 @@ function MinimalistTemplate({
               </div>
             )}
             {p.tagline && (
-              <div style={{ fontSize: '12pt', color: primaryColor, marginTop: '2px' }}>
+              <div style={{ fontSize: '12pt', color: textColor, marginTop: '2px' }}>
                 {p.tagline}
               </div>
             )}
