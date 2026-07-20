@@ -165,10 +165,12 @@ export default function App() {
   const [isCoverLetterModalOpen, setIsCoverLetterModalOpen] = useState(false);
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const [isAIToolsDropdownOpen, setIsAIToolsDropdownOpen] = useState(false);
   const [draggedStepId, setDraggedStepId] = useState(null);
   const [dragOverStepId, setDragOverStepId] = useState(null);
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const templateDropdownRef = useRef(null);
+  const aiToolsDropdownRef = useRef(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -292,15 +294,18 @@ export default function App() {
 
   // Close template dropdown on outside click
   useEffect(() => {
-    if (!isTemplateDropdownOpen) return;
+    if (!isTemplateDropdownOpen && !isAIToolsDropdownOpen) return;
     function handleOutside(e) {
       if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target)) {
         setIsTemplateDropdownOpen(false);
       }
+      if (aiToolsDropdownRef.current && !aiToolsDropdownRef.current.contains(e.target)) {
+        setIsAIToolsDropdownOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, [isTemplateDropdownOpen]);
+  }, [isTemplateDropdownOpen, isAIToolsDropdownOpen]);
 
   const [sectionToDelete, setSectionToDelete] = useState(null);
   const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '', onUpdate: null });
@@ -1212,37 +1217,69 @@ export default function App() {
 
 
 
-                      {/* A2: snapshot saved before tailor opens */}
-                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI rewrites your resume to match a specific job description')}>
-                        <button className="control-btn" onClick={() => { setIsTailorOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                          ✨ {t('Tailor to Job')}
-                        </button>
-                      </div>
-
-                      {/* A2: snapshot saved before translation opens */}
-                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI translates your entire resume to the other language')}>
-                        <button className="control-btn" onClick={() => { setIsAIOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                          <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
-                        </button>
-                      </div>
-
-                      {/* S2: Smart Bolding whole CV */}
-                      <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI Smart Bolding')}>
-                        <button className="control-btn" onClick={() => { setIsBoldifyOpen(true); }} disabled={!hasContent} style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}>
-                          <b>B</b> {t('AI Smart Bolding')}
-                        </button>
-                      </div>
-
-                      {/* A2: Undo AI changes button — appears only when snapshot is available */}
-                      {aiSnapshot && (
+                      {/* AI Tools Dropdown */}
+                      <div className="tpl-dropdown-wrap" ref={aiToolsDropdownRef}>
                         <button
-                          className="control-btn ai-undo-btn"
-                          onClick={restoreSnapshot}
-                          title={t('Undo AI changes and restore previous version')}
+                          className="tpl-dropdown-trigger"
+                          onClick={() => setIsAIToolsDropdownOpen(o => !o)}
+                          aria-haspopup="menu"
+                          aria-expanded={isAIToolsDropdownOpen}
+                          title={t('AI Tools')}
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(var(--color-accent-rgb, 99, 102, 241), 0.1), rgba(var(--color-primary-rgb, 14, 165, 233), 0.1))',
+                            border: '1px solid rgba(var(--color-accent-rgb, 99, 102, 241), 0.2)',
+                            color: 'var(--color-accent)'
+                          }}
                         >
-                          ↩ {t('Undo AI')}
+                          <span className="tpl-trigger-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            ✨ {t('AI Tools')}
+                          </span>
+                          <i className={`fi ${isAIToolsDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'} tpl-trigger-chevron`}></i>
                         </button>
-                      )}
+                        
+                        {isAIToolsDropdownOpen && (
+                          <div className="tpl-dropdown-menu" role="menu" style={{ minWidth: '220px', right: 0, left: 'auto' }}>
+                            <button 
+                              className="dropdown-item" 
+                              onClick={() => { setIsTailorOpen(true); setIsAIToolsDropdownOpen(false); }} 
+                              disabled={!hasContent} 
+                              style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
+                            >
+                              ✨ {t('Tailor to Job')}
+                            </button>
+                            <button 
+                              className="dropdown-item" 
+                              onClick={() => { setIsAIOpen(true); setIsAIToolsDropdownOpen(false); }} 
+                              disabled={!hasContent} 
+                              style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
+                            >
+                              <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
+                            </button>
+                            <button 
+                              className="dropdown-item" 
+                              onClick={() => { setIsBoldifyOpen(true); setIsAIToolsDropdownOpen(false); }} 
+                              disabled={!hasContent} 
+                              style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
+                            >
+                              <b>B</b> {t('AI Smart Bolding')}
+                            </button>
+                            
+                            {aiSnapshot && (
+                              <>
+                                <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }}></div>
+                                <button
+                                  className="dropdown-item"
+                                  onClick={() => { restoreSnapshot(); setIsAIToolsDropdownOpen(false); }}
+                                  title={t('Undo AI changes and restore previous version')}
+                                  style={{ color: 'var(--color-danger, #ef4444)' }}
+                                >
+                                  ↩ {t('Undo AI')}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
                       <div className="control-divider" aria-hidden="true" />
                       
