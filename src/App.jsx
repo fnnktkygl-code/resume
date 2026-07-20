@@ -1108,24 +1108,6 @@ export default function App() {
                     </button>
                   ) : (
                     <div className="preview-controls">
-                      <div className="control-group">
-                        <button 
-                          className={`control-btn ${language === 'en' ? 'active' : ''}`}
-                          onClick={() => handleLanguageChange('en')}
-                          aria-label="Switch to English"
-                        >EN</button>
-                        <button 
-                          className={`control-btn ${language === 'fr' ? 'active' : ''}`}
-                          onClick={() => handleLanguageChange('fr')}
-                          aria-label="Switch to French"
-                        >FR</button>
-                        <button 
-                          className={`control-btn ${language === 'es' ? 'active' : ''}`}
-                          onClick={() => handleLanguageChange('es')}
-                          aria-label="Switch to Spanish"
-                        >ES</button>
-                      </div>
-
                       <div className="control-group" style={{ gap: '4px' }}>
                         <button 
                           className="control-btn" 

@@ -14,6 +14,7 @@ export default function Header({
   setShowClearConfirm
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   return (
     <header className="header">
@@ -130,6 +131,43 @@ export default function Header({
               >ES</button>
             </div>
           </div>
+          </div>
+        </div>
+
+        <div className="header-language-menu" style={{ position: 'relative' }}>
+          <button 
+            className="theme-toggle" 
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            aria-label={t('Change language')}
+            title={t('Change language')}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 8px', width: 'auto' }}
+          >
+            <i className="fi fi-rr-globe"></i>
+            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{language.toUpperCase()}</span>
+          </button>
+          
+          {langMenuOpen && (
+            <div className="mobile-menu-dropdown open" style={{ right: 0, left: 'auto', minWidth: '120px', top: '100%', marginTop: '8px' }}>
+              <button 
+                className={`dropdown-item ${language === 'en' ? 'active' : ''}`}
+                onClick={() => { handleLanguageChange('en'); setLangMenuOpen(false); }}
+              >
+                English
+              </button>
+              <button 
+                className={`dropdown-item ${language === 'fr' ? 'active' : ''}`}
+                onClick={() => { handleLanguageChange('fr'); setLangMenuOpen(false); }}
+              >
+                Français
+              </button>
+              <button 
+                className={`dropdown-item ${language === 'es' ? 'active' : ''}`}
+                onClick={() => { handleLanguageChange('es'); setLangMenuOpen(false); }}
+              >
+                Español
+              </button>
+            </div>
+          )}
         </div>
 
         <button className="theme-toggle" onClick={toggleTheme} aria-label={t('Toggle theme')}>
