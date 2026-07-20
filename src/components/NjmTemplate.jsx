@@ -362,10 +362,10 @@ function NjmTemplate({
         if (!hasSkills) return null;
         const skillsList = [];
         if (data.skills.technical) {
-          skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical });
+          skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical, className: 'skill-pill-accent' });
         }
         if (data.skills.soft) {
-          skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft });
+          skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft, className: 'skill-pill' });
         }
         return (
           <Wrapper {...getWrapProps('skills')}>
@@ -396,7 +396,7 @@ function NjmTemplate({
                       fontWeight: '500',
                       color: textColor
                     }}>
-                      {renderSkills(skill.value, 'skill-pill')}
+                      {renderSkills(skill.value, skill.className)}
                     </td>
                   </tr>
                 ))}

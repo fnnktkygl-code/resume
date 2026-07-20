@@ -197,7 +197,7 @@ function MinimalistTemplate({
               {data.skills.technical && (
                 <div>
                   <strong style={{ color: textColor }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')} : </strong>
-                  <span>{parseMarkdown(formatSkills(data.skills.technical).split(',').join(', '))}</span>
+                  <span style={{ color: primaryColor, fontWeight: 500 }}>{parseMarkdown(formatSkills(data.skills.technical).split(',').join(', '))}</span>
                 </div>
               )}
               {data.skills.soft && (
