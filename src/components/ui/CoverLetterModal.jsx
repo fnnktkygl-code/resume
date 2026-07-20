@@ -39,13 +39,30 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('print-cover-letter');
-    } else {
-      document.body.classList.remove('print-cover-letter');
+      document.body.style.overflow = 'hidden';
+
+      const stateId = Math.random().toString(36).substring(2, 9);
+      window.history.pushState({ modalId: stateId }, '');
+
+      const handlePopState = (e) => {
+        if (!e.state || e.state.modalId !== stateId) {
+          onClose();
+        }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        document.body.classList.remove('print-cover-letter');
+        document.body.style.overflow = '';
+        window.removeEventListener('popstate', handlePopState);
+        
+        if (window.history.state && window.history.state.modalId === stateId) {
+          window.history.back();
+        }
+      };
     }
-    return () => {
-      document.body.classList.remove('print-cover-letter');
-    };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
