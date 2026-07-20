@@ -176,7 +176,6 @@ export default function App() {
   const [activeAITipCallback, setActiveAITipCallback] = useState(null);
 
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
-  const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [originalImportInput, setOriginalImportInput] = useState(null);
   const [aiBulletConfig, setAiBulletConfig] = useState(null);
   const [aiSectionFillConfig, setAiSectionFillConfig] = useState(null);
@@ -1250,23 +1249,7 @@ export default function App() {
                         </button>
                       </div>
 
-                      {importSnapshot && (
-                        <>
-                          <div className="control-divider" aria-hidden="true" />
-                          <div className="control-group">
-                            <button 
-                              className="control-btn"
-                              onClick={() => setShowBeforeAfter(true)}
-                              title={t('Compare Before/After')}
-                              style={{ color: 'var(--color-accent)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
-                            >
-                              <span>⚖️</span> {t('Before / After')}
-                            </button>
-                          </div>
-                        </>
-                      )}
 
-                      <div className="control-divider" aria-hidden="true" />
 
                       {/* A2: snapshot saved before tailor opens */}
                       <div className="ai-btn-wrapper" title={!hasContent ? t('Please fill out your resume first') : t('AI rewrites your resume to match a specific job description')}>
@@ -1818,112 +1801,6 @@ export default function App() {
           />
         )}
 
-        {/* Before/After Comparison overlay */}
-        {showBeforeAfter && importSnapshot && (
-          <div className="before-after-overlay" role="dialog" aria-modal="true">
-            <div className="fullscreen-preview-toolbar">
-              <div className="fullscreen-toolbar-title">
-                <span>⚖️</span> {t('Compare Before/After')}
-              </div>
-              <div className="fullscreen-toolbar-actions">
-                <button 
-                  className="btn-primary" 
-                  onClick={() => setShowBeforeAfter(false)}
-                  style={{ minWidth: 'auto', padding: '8px 16px' }}
-                >
-                  {t('Close')}
-                </button>
-              </div>
-            </div>
-            <div className="before-after-wrapper">
-              <div className="before-after-column">
-                <div className="before-after-label">
-                  <span>{t('Original (Imported)')}</span>
-                </div>
-                <div className="before-after-preview-container" style={{ background: '#f9fafb', display: 'flex', flexDirection: 'column' }}>
-                  {originalImportInput?.type === 'pdf' ? (
-                     <div style={{ width: '100%', height: '100%', overflowY: 'auto', display: 'flex', justifyContent: 'center', background: '#e5e7eb', padding: '20px 0' }}>
-                        <Document 
-                          file={originalImportInput.url}
-                          loading={<div style={{ padding: '20px' }}>Chargement du PDF...</div>}
-                          error={<div style={{ padding: '20px', textAlign: 'center' }}><p>Impossible de lire le PDF.</p><a href={originalImportInput.url} download="original_resume.pdf" className="btn-primary">Télécharger</a></div>}
-                        >
-                          <Page pageNumber={1} width={500} renderTextLayer={false} renderAnnotationLayer={false} />
-                        </Document>
-                     </div>
-                  ) : (
-                    <div style={{ whiteSpace: 'pre-wrap', padding: '30px', fontSize: '13px', height: '100%', overflowY: 'auto', color: '#374151', textAlign: 'left', lineHeight: '1.6', fontFamily: 'monospace' }}>
-                      {(() => {
-                      if (originalImportInput?.type === 'text' && originalImportInput.text) {
-                        return originalImportInput.text;
-                      }
-                      if (importSnapshot?.originalText) {
-                        return importSnapshot.originalText;
-                      }
-                      // Reconstruct plain text from importSnapshot
-                      const snap = importSnapshot;
-                      if (!snap) return '';
-                      let lines = [];
-                      if (snap.personal) {
-                        if (snap.personal.name) lines.push(snap.personal.name.toUpperCase());
-                        if (snap.personal.tagline) lines.push(snap.personal.tagline);
-                        const c = [snap.personal.email, snap.personal.phone, snap.personal.location].filter(Boolean);
-                        if (c.length) lines.push(c.join(' | '));
-                        lines.push('');
-                      }
-                      if (snap.summary) {
-                        lines.push('--- ' + (t('Summary') || 'Summary').toUpperCase() + ' ---');
-                        lines.push(snap.summary);
-                        lines.push('');
-                      }
-                      if (snap.experience?.length) {
-                        lines.push('--- ' + (t('Experience') || 'Experience').toUpperCase() + ' ---');
-                        snap.experience.forEach(exp => {
-                          lines.push(`${exp.title || ''} - ${exp.company || ''}`);
-                          if (exp.startMonth || exp.startYear) {
-                            lines.push(`${exp.startMonth || ''} ${exp.startYear || ''} to ${exp.current ? 'Present' : (exp.endMonth || '') + ' ' + (exp.endYear || '')}`);
-                          }
-                          if (exp.bullets) exp.bullets.forEach(b => lines.push(`• ${b}`));
-                          lines.push('');
-                        });
-                      }
-                      if (snap.education?.length) {
-                        lines.push('--- ' + (t('Education') || 'Education').toUpperCase() + ' ---');
-                        snap.education.forEach(ed => {
-                          lines.push(`${ed.degree || ''} in ${ed.field || ''}`);
-                          lines.push(`${ed.institution || ''} (${ed.startYear || ''} - ${ed.endYear || ''})`);
-                          lines.push('');
-                        });
-                      }
-                      if (snap.skills?.technical || snap.skills?.soft) {
-                        lines.push('--- ' + (t('Skills') || 'Skills').toUpperCase() + ' ---');
-                        if (snap.skills.technical) lines.push(`Technical: ${snap.skills.technical}`);
-                        if (snap.skills.soft) lines.push(`Soft: ${snap.skills.soft}`);
-                        lines.push('');
-                      }
-                      return lines.join('\n');
-                    })()}
-                  </div>
-                  )}
-                </div>
-              </div>
-              <div className="before-after-column">
-                <div className="before-after-label">
-                  <span>{t('Current')}</span>
-                </div>
-                <div className="before-after-preview-container">
-                  <ResumePreview 
-                    data={data} 
-                    layout={layout} 
-                    language={language} 
-                    template={template}
-                    compact
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </TranslationContext.Provider>
   );
