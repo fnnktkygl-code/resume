@@ -195,21 +195,21 @@ function MinimalistTemplate({
             <div style={sectionTitleStyle}>{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: `${fontSize}pt`, color: textColor }}>
               {data.skills.technical && (
-                <div>
+                <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')} : </strong>
                   <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.technical).split(',').join(', '))}</span>
                 </div>
               )}
               {data.skills.soft && (
-                <div>
+                <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')} : </strong>
-                  <span>{parseMarkdown(formatSkills(data.skills.soft).split(',').join(', '))}</span>
+                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.soft).split(',').join(', '))}</span>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
-                <div>
+                <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('languages', 'Languages', 'Languages')} : </strong>
-                  <span>{parseMarkdown(formatSkills(data.skills.languages).split(',').join(', '))}</span>
+                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.languages).split(',').join(', '))}</span>
                 </div>
               )}
             </div>

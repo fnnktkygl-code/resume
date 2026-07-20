@@ -113,7 +113,7 @@ function ModernTemplate({
               <div className="modern-sidebar-item">
                 <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                 <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {renderSkills(data.skills.soft, 'skill-pill')}
+                  {renderSkills(data.skills.soft, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill')}
                 </div>
               </div>
             )}
@@ -121,7 +121,7 @@ function ModernTemplate({
               <div className="modern-sidebar-item">
                 <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                 <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {renderSkills(data.skills.languages, 'skill-pill-outline')}
+                  {renderSkills(data.skills.languages, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill-outline')}
                 </div>
               </div>
             )}

@@ -79,8 +79,8 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
                   width: '100%'
                 }}
               >
-                <option value="true">{t('Color Technical Skills')}</option>
-                <option value="false">{t('Neutral Technical Skills')}</option>
+                <option value="true">{t('Color All Skills')}</option>
+                <option value="false">{t('Neutral Skills')}</option>
               </select>
             </div>
           </div>

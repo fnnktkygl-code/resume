@@ -253,7 +253,7 @@ function NjmTemplate({
                 ) : (
                   <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center', textTransform: 'uppercase' }}>
                         {renderExperienceIcon(exp.icon)} {exp.title}
                       </span>
                       <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
@@ -365,7 +365,7 @@ function NjmTemplate({
           skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical, className: layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill' });
         }
         if (data.skills.soft) {
-          skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft, className: 'skill-pill' });
+          skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft, className: layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill' });
         }
         return (
           <Wrapper {...getWrapProps('skills')}>
@@ -427,7 +427,7 @@ function NjmTemplate({
                 ) : (
                   <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
+                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, textTransform: 'uppercase' }}>
                         {pr.name}
                       </span>
                       {pr.link && <span style={{ fontSize: '0.85em', color: primaryColor }}>{pr.link}</span>}
