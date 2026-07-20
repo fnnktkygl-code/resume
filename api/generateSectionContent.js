@@ -170,11 +170,11 @@ TASK: Suggest relevant professional certifications for this candidate.
       return `${baseRules}
  
 TASK: Suggest professional strengths (Atouts / Key Strengths) for this candidate.
-- Infer strengths from their experience, skills, and career trajectory.
-- Each strength should have a title and an extremely brief description (max 4-6 words).
-- CRITICAL: NO long texts or details. Keep it ultra-concise.
+- Infer strengths from their entire profile, specifically focusing on WORK EXPERIENCE and EDUCATION, not just the tagline.
+- Each strength should have a title.
+- CRITICAL: The description field MUST be absolutely empty. Do not generate long text or sentences. (e.g. title: "Esprit d'analyse", description: "").
 - If a Job Description is provided, align strengths with what the employer values.
-- Output a JSON object: { "items": [{ "title": "Strength Name", "description": "Short label (4-6 words)" }, ...] }
+- Output a JSON object: { "items": [{ "title": "Strength Name", "description": "" }, ...] }
 - Suggest 4-6 strengths.`;
  
     case 'custom_loisirs':
@@ -184,17 +184,17 @@ TASK: Suggest hobbies and interests (Loisirs / Hobbies) for this candidate.
 - Suggest hobbies that are credible and professionally relevant for someone in their field.
 - Include a mix: one intellectual/creative, one physical/sport, one social/community.
 - Avoid clichés. Be specific (e.g., "Trail running" not just "Sports").
-- CRITICAL: The description field MUST be empty or extremely short (max 3-5 words). NO long texts or details.
-- Output a JSON object: { "items": [{ "title": "Hobby Name", "description": "Optional short detail (3-5 words)" }, ...] }
+- CRITICAL: The description field MUST be absolutely empty. NO long texts or details. (e.g. title: "Trail running", description: "").
+- Output a JSON object: { "items": [{ "title": "Hobby Name", "description": "" }, ...] }
 - Suggest 3-5 hobbies.`;
  
     case 'custom_langues':
       return `${baseRules}
  
 TASK: Suggest spoken languages for this candidate (for a custom Languages section).
-- Same logic as skills_languages but formatted as custom section items.
+- Infer languages from: candidate name origin, location, education locations, company locations.
 - Output a JSON object: { "items": [{ "title": "Language Name", "subtitle": "Proficiency Level", "description": "" }, ...] }
-- CRITICAL: The subtitle should only be the level (e.g. "Fluent", "Native", "Bilingual"). The description field MUST be empty. NO long texts or details.
+- CRITICAL: The subtitle should ONLY be the proficiency level (e.g. "Fluent", "Native", "Bilingual"). The description field MUST be absolutely empty. NO long texts or sentences.
 - Suggest 2-4 languages.`;
 
     case 'custom_generic':
