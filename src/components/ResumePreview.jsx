@@ -606,7 +606,7 @@ function ResumePreview({
                 <div>
                   <strong>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {renderSkills(data.skills.technical, 'skill-pill-accent')}
+                    {renderSkills(data.skills.technical, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill')}
                   </div>
                 </div>
               )}

@@ -362,7 +362,7 @@ function NjmTemplate({
         if (!hasSkills) return null;
         const skillsList = [];
         if (data.skills.technical) {
-          skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical, className: 'skill-pill-accent' });
+          skillsList.push({ label: displayHeading('technical', 'Technical Skills', 'Technical Skills'), value: data.skills.technical, className: layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill' });
         }
         if (data.skills.soft) {
           skillsList.push({ label: displayHeading('interpersonal', 'Soft Skills', 'Soft Skills'), value: data.skills.soft, className: 'skill-pill' });

@@ -117,6 +117,28 @@ export default function LayoutControls({ layout, onChange }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="colored-skills-select">{t('Color Technical Skills')}</label>
+          <select
+            id="colored-skills-select"
+            value={layout.coloredSkills === undefined ? true : layout.coloredSkills}
+            onChange={(e) => handleUpdate('coloredSkills', e.target.value === 'true')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="true">{t('Yes, use theme color')}</option>
+            <option value="false">{t('No, use neutral color')}</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="contact-layout-select">{t('Contact Layout')}</label>
           <select
             id="contact-layout-select"
