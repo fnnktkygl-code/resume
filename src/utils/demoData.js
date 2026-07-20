@@ -14,14 +14,14 @@ const HEADINGS_DEMO = {
 export const DEMO_DATA_1_PAGE = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Hoshi Fenneko',
+    name: 'John Doe',
     tagline: 'Senior Software Engineer',
-    email: 'hoshi.fenneko@email.com',
+    email: 'john.doe@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Results-driven full-stack engineer with 7+ years of experience building scalable web applications and distributed systems. Led the architecture of a real-time analytics platform serving 3M+ daily active users, reducing infrastructure costs by 40%.',
   experience: [
@@ -75,7 +75,7 @@ export const DEMO_DATA_1_PAGE = {
       name: 'OpenTrace',
       description: 'Open-source distributed tracing library for Node.js microservices.',
       techStack: 'TypeScript, Node.js',
-      link: 'github.com/hoshifenneko/opentrace',
+      link: 'github.com/example/opentrace',
       highlights: [
         'Achieved 2.4K GitHub stars within 8 months of launch',
       ],
@@ -87,14 +87,14 @@ export const DEMO_DATA_1_PAGE = {
 export const DEMO_DATA_1_PAGE_FR = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Hoshi Fenneko',
+    name: 'Jean Dupont',
     tagline: 'Développeur Full-Stack Senior',
-    email: 'hoshi.fenneko@email.fr',
+    email: 'jean.dupont@email.fr',
     phone: '+33 6 12 34 56 78',
     location: 'Paris, Île-de-France',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Développeur full-stack passionné avec plus de 7 ans d\'expérience dans la conception d\'architectures web scalables. Expert en JavaScript/TypeScript (React, Node.js) et architectures Cloud. Fortement axé sur la performance, l\'accessibilité et la qualité du code (Clean Code, TDD).',
   experience: [
@@ -148,7 +148,7 @@ export const DEMO_DATA_1_PAGE_FR = {
       name: 'ParisTransit',
       description: 'Application open-source de visualisation en temps réel du trafic RATP.',
       techStack: 'React, Leaflet, Node.js',
-      link: 'github.com/hoshifenneko/paristransit',
+      link: 'github.com/example/paristransit',
       highlights: [
         'Adopté par plus de 500 utilisateurs quotidiens à Paris.',
       ],
@@ -160,14 +160,14 @@ export const DEMO_DATA_1_PAGE_FR = {
 export const DEMO_DATA_2_PAGES = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Hoshi Fenneko',
+    name: 'Jane Smith',
     tagline: 'Staff Software Engineer & Technical Leader',
-    email: 'hoshi.fenneko@email.com',
+    email: 'jane.smith@email.com',
     phone: '+1 (415) 555-0142',
     location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Results-driven full-stack engineer with 7+ years of experience building scalable web applications and distributed systems. Led the architecture of a real-time analytics platform serving 3M+ daily active users, reducing infrastructure costs by 40%. Passionate about clean code, developer experience, and mentoring junior engineers. Proven track record of scaling consumer-facing platforms to handle massive load while maintaining 99.99% uptime. Recognized for translating complex business requirements into robust, cloud-native technical solutions.',
   experience: [
@@ -276,7 +276,7 @@ export const DEMO_DATA_2_PAGES = {
       name: 'OpenTrace',
       description: 'Open-source distributed tracing library for Node.js microservices with automatic instrumentation and Jaeger/Zipkin integration.',
       techStack: 'TypeScript, Node.js, OpenTelemetry, gRPC',
-      link: 'github.com/hoshifenneko/opentrace',
+      link: 'github.com/example/opentrace',
       highlights: [
         'Achieved 2.4K GitHub stars and 180+ contributors within 8 months of launch',
         'Reduced mean time to debug production issues by 65% across 3 adopting companies',
@@ -315,14 +315,14 @@ export const DEMO_DATA_2_PAGES = {
 export const DEMO_DATA_2_PAGES_FR = {
   headings: HEADINGS_DEMO,
   personal: {
-    name: 'Hoshi Fenneko',
+    name: 'Marie Dubois',
     tagline: 'Staff Engineer & Architecte Solutions Cloud',
-    email: 'hoshi.fenneko@email.fr',
+    email: 'marie.dubois@email.fr',
     phone: '+33 6 12 34 56 78',
     location: 'Paris, Île-de-France',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Architecte et développeur senior avec plus de 10 ans d\'expérience dans l\'écosystème tech français. Expertise pointue dans le passage à l\'échelle de startups (SaaS, FinTech) et la modernisation d\'architectures legacy. Convaincu par l\'excellence opérationnelle et le mentorat, j\'aime résoudre des problèmes complexes avec des solutions simples et maintenables. Co-fondateur du meetup "React Paris" et contributeur actif à plusieurs projets open-source majeurs.',
   experience: [
@@ -413,7 +413,7 @@ export const DEMO_DATA_2_PAGES_FR = {
       name: 'EcoCloud',
       description: 'Outil de monitoring d\'empreinte carbone pour infrastructures AWS/GCP.',
       techStack: 'Go, React, Prometheus',
-      link: 'github.com/hoshifenneko/ecocloud',
+      link: 'github.com/example/ecocloud',
       highlights: [
         'Utilisé par 50+ entreprises pour atteindre leurs objectifs RSE.',
         'Lauréat du hackathon "Tech for Good" Paris 2022.',
@@ -444,9 +444,9 @@ export const DEMO_DATA_1_PAGE_ES = {
     email: 'hoshi.fenneko@email.es',
     phone: '+34 612 34 56 78',
     location: 'Madrid, España',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Desarrollador full-stack apasionado con más de 7 años de experiencia en el diseño de arquitecturas web escalables. Experto en JavaScript/TypeScript (React, Node.js) y arquitecturas Cloud. Enfocado en el rendimiento, la accesibilidad y la calidad del código (Clean Code, TDD).',
   experience: [
@@ -500,7 +500,7 @@ export const DEMO_DATA_1_PAGE_ES = {
       name: 'MadridTransit',
       description: 'Aplicación de código abierto para la visualización en tiempo real del transporte público.',
       techStack: 'React, Leaflet, Node.js',
-      link: 'github.com/hoshifenneko/madridtransit',
+      link: 'github.com/example/madridtransit',
       highlights: [
         'Alcanzó 2.4k estrellas en GitHub a los 8 meses de su lanzamiento',
       ],
@@ -517,9 +517,9 @@ export const DEMO_DATA_2_PAGES_ES = {
     email: 'hoshi.fenneko@email.es',
     phone: '+34 612 34 56 78',
     location: 'Madrid, España',
-    linkedin: 'linkedin.com/in/hoshifenneko',
-    github: 'github.com/hoshifenneko',
-    website: 'hoshifenneko.dev',
+    linkedin: 'linkedin.com/in/example',
+    github: 'github.com/example',
+    website: 'example.dev',
   },
   summary: 'Arquitecto y desarrollador senior con más de 10 años de experiencia en el ecosistema tecnológico. Especialista en escalabilidad de startups (SaaS, FinTech) y modernización de arquitecturas heredadas. Apasionado por la excelencia operativa y el desarrollo de equipos. Co-organizador de meetups de tecnología y colaborador activo en proyectos de código abierto.',
   experience: [
@@ -588,7 +588,7 @@ export const DEMO_DATA_2_PAGES_ES = {
       name: 'MadridTransit',
       description: 'Aplicación de código abierto para la visualización en tiempo real del transporte público.',
       techStack: 'React, Leaflet, Node.js',
-      link: 'github.com/hoshifenneko/madridtransit',
+      link: 'github.com/example/madridtransit',
       highlights: [
         'Alcanzó 2.4k estrellas en GitHub a los 8 meses de su lanzamiento',
       ],
