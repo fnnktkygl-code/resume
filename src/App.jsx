@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useMemo, useRef } from 'react';
 import { STEPS, DEFAULT_DATA, createEmptyExperience, createEmptyEducation, createEmptyProject, createEmptyCertification, createEmptyCustomSection, createEmptySpacer } from './utils/constants';
 import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_PAGES_FR, DEMO_DATA_1_PAGE_ES, DEMO_DATA_2_PAGES_ES } from './utils/demoData';
-import AtsScore from './components/AtsScore';
+import AtsScoreModal from './components/ui/AtsScoreModal';
 import ResumePreview from './components/ResumePreview';
 import FullscreenPreview from './components/FullscreenPreview';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -163,6 +163,7 @@ export default function App() {
   const [isBoldifyOpen, setIsBoldifyOpen] = useState(false);
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [isCoverLetterModalOpen, setIsCoverLetterModalOpen] = useState(false);
+  const [isAtsScoreModalOpen, setIsAtsScoreModalOpen] = useState(false);
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [isAIToolsDropdownOpen, setIsAIToolsDropdownOpen] = useState(false);
@@ -1241,6 +1242,14 @@ export default function App() {
                           <div className="tpl-dropdown-menu" role="menu" style={{ minWidth: '220px', right: 0, left: 'auto' }}>
                             <button 
                               className="dropdown-item" 
+                              onClick={() => { setIsAtsScoreModalOpen(true); setIsAIToolsDropdownOpen(false); }} 
+                              disabled={!hasContent} 
+                              style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
+                            >
+                              🎯 {t('ATS Score & Matcher')}
+                            </button>
+                            <button 
+                              className="dropdown-item" 
                               onClick={() => { setIsTailorOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
@@ -1360,10 +1369,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* ATS Score in right panel */}
-              <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-                <AtsScore data={data} dispatch={dispatch} onTriggerAction={handleAITriggerAction} />
-              </div>
+              {/* Removed ATS Score from here, now in modal */}
 
               <ResumePreview 
                 data={data} 
@@ -1657,6 +1663,15 @@ export default function App() {
               data={data}
               dispatch={dispatch}
               onLanguageChange={handleLanguageChange}
+            />
+          )}
+          {isAtsScoreModalOpen && (
+            <AtsScoreModal
+              isOpen={isAtsScoreModalOpen}
+              onClose={() => setIsAtsScoreModalOpen(false)}
+              data={data}
+              dispatch={dispatch}
+              onTriggerAction={handleAITriggerAction}
             />
           )}
           {aiSectionFillConfig?.isOpen && (
