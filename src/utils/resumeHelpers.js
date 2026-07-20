@@ -3,7 +3,7 @@
  * Extracted from 5 template files to eliminate duplication (Audit §4.2).
  * 
  * These functions encapsulate the logic that was previously copy-pasted
- * across ResumePreview, ModernTemplate, CreativeTemplate, MinimalistTemplate, and NjmTemplate.
+ * across ResumePreview, ModernTemplate, MinimalistTemplate, and NjmTemplate.
  */
 
 import { getTranslation } from './translations';

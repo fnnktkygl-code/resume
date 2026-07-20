@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
 import NjmTemplate from './NjmTemplate';
-import CreativeTemplate from './CreativeTemplate';
+import ModernTemplate from './ModernTemplate';
 import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
@@ -835,25 +835,6 @@ function ResumePreview({
           ) : template === 'njm' ? (
             <div ref={contentRef}>
               <NjmTemplate 
-                data={data} 
-                layout={layout} 
-                language={language} 
-                onSectionClick={!printMode ? onSectionClick : undefined} 
-                SectionWrapper={SectionWrapper}
-                ItemWrapper={ItemWrapper}
-                NestedSpacer={NestedSpacer}
-                InsertSpacerButton={InsertSpacerButton}
-                onItemReorder={onItemReorder}
-                onItemDelete={onItemDelete}
-                onItemUpdate={onItemUpdate}
-                onAddSpacer={onAddSpacer}
-                onAddSectionSpacer={onAddSectionSpacer}
-                printMode={printMode}
-              />
-            </div>
-          ) : template === 'creative' ? (
-            <div ref={contentRef}>
-              <CreativeTemplate 
                 data={data} 
                 layout={layout} 
                 language={language} 

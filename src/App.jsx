@@ -1155,7 +1155,6 @@ export default function App() {
                            { id: 'standard',  name: 'Classic',    badgeType: 'ats',      badgeText: t('ATS-Friendly') },
                            { id: 'modern',    name: 'Modern',     badgeType: 'ats',      badgeText: t('ATS-Friendly') },
                            { id: 'njm',       name: 'NJM',        badgeType: 'flagship', badgeText: t("Creator's Favorite") },
-                           { id: 'creative',  name: 'Creative',   badgeType: 'design',   badgeText: t('Visual Design') },
                            { id: 'minimalist',name: 'Minimalist', badgeType: 'ats',      badgeText: t('ATS-Friendly') },
                          ];
                          const activeTpl = TEMPLATES.find(t => t.id === template) || TEMPLATES[0];
@@ -1420,13 +1419,11 @@ export default function App() {
               <span className="preview-label">{t('Live Preview')}</span>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 {/* Template picker */}
-                {/* Template picker */}
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface-alt)', borderRadius: 'var(--radius-md)', padding: '4px', flexWrap: 'wrap' }}>
                   {[
                     { id: 'standard', name: 'Classic', isAts: true },
                     { id: 'modern', name: 'Modern', isAts: true },
                     { id: 'njm', name: 'NJM', isFlagship: true },
-                    { id: 'creative', name: 'Creative', isDesign: true },
                     { id: 'minimalist', name: 'Minimalist', isAts: true }
                   ].map(tpl => {
                     const isActive = template === tpl.id;
