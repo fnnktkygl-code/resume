@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
 import NjmTemplate from './NjmTemplate';
-import ModernTemplate from './ModernTemplate';
 import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
