@@ -257,10 +257,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onboarded = localStorage.getItem('resume-builder-onboarded');
-    if (!onboarded) {
-      setShowOnboarding(true);
-    }
+    // Onboarding modal has been removed based on user feedback
   }, []);
 
   // Dynamic theme accent color sync
