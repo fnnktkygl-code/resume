@@ -115,11 +115,11 @@ export default function Header({
 
         <div className="header-language-menu" style={{ position: 'relative' }}>
           <button 
-            className="theme-toggle" 
+            className="btn-demo" 
             onClick={() => setLangMenuOpen(!langMenuOpen)}
             aria-label={t('Change language')}
             title={t('Change language')}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 8px', width: 'auto' }}
+            style={{ padding: '5px 10px' }}
           >
             <i className="fi fi-rr-globe"></i>
             <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{language.toUpperCase()}</span>
