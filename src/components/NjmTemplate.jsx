@@ -555,13 +555,18 @@ function NjmTemplate({
     let langItems = [];
     let langTitle = displayHeading('languages', 'Languages', 'Languages');
     let langSectionId = 'skills';
+    if (langSec && langSec.items?.length > 0) {
+      const parsedItems = langSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+      if (parsedItems.length > 0) {
+        langTitle = langSec.label;
+        langItems = parsedItems;
+        langSectionId = langSec.id;
+      }
+    }
     
-    if (langSec) {
-      langTitle = langSec.label;
-      langItems = langSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
-      langSectionId = langSec.id;
-    } else if (data.skills.languages) {
+    if (langItems.length === 0 && data.skills?.languages) {
       langItems = data.skills.languages.split(',').map(l => l.trim()).filter(Boolean);
+      langSectionId = 'skills';
     }
     
     const isLangEmpty = langItems.length === 0;
