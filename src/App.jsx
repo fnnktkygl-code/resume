@@ -1150,10 +1150,10 @@ export default function App() {
                       <div className="control-divider" aria-hidden="true" />
 
                        {/* Template picker — compact dropdown */}
-                       {(() => {
+                        {(() => {
                          const TEMPLATES = [
-                           { id: 'standard',  name: 'Classic',    badgeType: 'ats',      badgeText: t('ATS-Friendly') },
-                           { id: 'modern',    name: 'Modern',     badgeType: 'ats',      badgeText: t('ATS-Friendly') },
+                           { id: 'standard',  name: 'Classic' },
+                           { id: 'modern',    name: 'Modern' },
                            { id: 'njm',       name: 'NJM',        badgeType: 'flagship', badgeText: t("Creator's Favorite") },
                            { id: 'minimalist',name: 'Minimalist', badgeType: 'ats',      badgeText: t('ATS-Friendly') },
                          ];
@@ -1175,9 +1175,11 @@ export default function App() {
                                title={t('Choose Template')}
                              >
                                <span className="tpl-trigger-name">{activeTpl.name}</span>
-                               <span className="tpl-trigger-badge" style={{ background: activeBadge.bg, color: activeBadge.color, border: `1px solid ${activeBadge.border}` }}>
-                                 {activeTpl.badgeText}
-                               </span>
+                               {activeTpl.badgeText && (
+                                 <span className="tpl-trigger-badge" style={{ background: activeBadge.bg, color: activeBadge.color, border: `1px solid ${activeBadge.border}` }}>
+                                   {activeTpl.badgeText}
+                                 </span>
+                               )}
                                <i className={`fi ${isTemplateDropdownOpen ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'} tpl-trigger-chevron`}></i>
                              </button>
                              {isTemplateDropdownOpen && (
@@ -1192,9 +1194,11 @@ export default function App() {
                                          onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
                                        >
                                          <span className="tpl-option-name">{tpl.name}</span>
-                                         <span className="tpl-option-badge" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
-                                           {tpl.badgeText}
-                                         </span>
+                                         {tpl.badgeText && (
+                                           <span className="tpl-option-badge" style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                             {tpl.badgeText}
+                                           </span>
+                                         )}
                                        </button>
                                      </li>
                                    );
@@ -1421,13 +1425,14 @@ export default function App() {
                 {/* Template picker */}
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface-alt)', borderRadius: 'var(--radius-md)', padding: '4px', flexWrap: 'wrap' }}>
                   {[
-                    { id: 'standard', name: 'Classic', isAts: true },
-                    { id: 'modern', name: 'Modern', isAts: true },
+                    { id: 'standard', name: 'Classic' },
+                    { id: 'modern', name: 'Modern' },
                     { id: 'njm', name: 'NJM', isFlagship: true },
                     { id: 'minimalist', name: 'Minimalist', isAts: true }
                   ].map(tpl => {
                     const isActive = template === tpl.id;
-                    let dotColor = 'rgb(16, 185, 129)'; // default ATS
+                    let dotColor = 'var(--color-text-secondary)'; // default neutral
+                    if (tpl.isAts) dotColor = 'rgb(16, 185, 129)';
                     if (tpl.isFlagship) dotColor = 'var(--color-accent)';
                     if (tpl.isDesign) dotColor = 'rgb(245, 158, 11)';
 
@@ -1451,13 +1456,15 @@ export default function App() {
                           transition: 'all 0.15s ease'
                         }}
                       >
-                        <span style={{ 
-                          width: '6px', 
-                          height: '6px', 
-                          borderRadius: '50%', 
-                          background: isActive ? '#fff' : dotColor,
-                          display: 'inline-block' 
-                        }} />
+                        {dotColor !== 'var(--color-text-secondary)' && (
+                          <span style={{ 
+                            width: '6px', 
+                            height: '6px', 
+                            borderRadius: '50%', 
+                            background: isActive ? '#fff' : dotColor,
+                            display: 'inline-block' 
+                          }} />
+                        )}
                         {tpl.name}
                       </button>
                     );
