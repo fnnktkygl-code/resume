@@ -807,9 +807,6 @@ export default function App() {
               </button>
             </nav>
 
-            {/* ATS Score */}
-            <AtsScore data={data} dispatch={dispatch} onTriggerAction={handleAITriggerAction} />
-
             {/* Step Content */}
             <div className="animate-fade-in" key={currentId}>
               {!data.sectionOrder.includes(currentId) && currentId !== 'personal' && currentId !== 'summary' && (
@@ -1325,6 +1322,12 @@ export default function App() {
                   </div>
                 )}
               </div>
+
+              {/* ATS Score in right panel */}
+              <div style={{ padding: '0 16px', marginBottom: '16px' }}>
+                <AtsScore data={data} dispatch={dispatch} onTriggerAction={handleAITriggerAction} />
+              </div>
+
               <ResumePreview 
                 data={data} 
                 layout={layout} 

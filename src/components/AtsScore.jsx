@@ -81,56 +81,7 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
         <div className="ats-info" style={{ flex: 1 }}>
           <h3>{isMatchScore ? t('Target Job Match') : t('ATS Readiness')}</h3>
           <p style={{ marginBottom: '8px' }}>{statusText}</p>
-          <button 
-            onClick={handleAnalyze} 
-            disabled={isAnalyzing}
-            title={t('Get targeted AI recommendations')}
-            style={{
-              padding: '5px 12px',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              backgroundColor: 'var(--color-accent-light)',
-              color: 'var(--color-accent)',
-              border: '1px solid var(--color-accent)',
-              borderRadius: '6px',
-              cursor: isAnalyzing ? 'wait' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s',
-              opacity: isAnalyzing ? 0.7 : 1
-            }}
-            onMouseOver={(e) => {
-              if(!isAnalyzing) {
-                e.currentTarget.style.opacity = '0.85';
-              }
-            }}
-            onMouseOut={(e) => {
-              if(!isAnalyzing) {
-                e.currentTarget.style.opacity = '1';
-              }
-            }}
-          >
-            {isAnalyzing ? (
-              <>
-                <svg style={{ animation: 'spin 1s linear infinite' }} viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.657-6.343l1.414-1.414M4.929 19.071l1.414-1.414m0-11.314L4.93 4.93m14.142 14.142l-1.414-1.414" />
-                </svg>
-                {t('Analyzing...')}
-                <style>{`
-                  @keyframes spin { 100% { transform: rotate(360deg); } }
-                `}</style>
-              </>
-            ) : (
-              <>
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                {t('AI Analysis')}
-              </>
-            )}
-          </button>
-          
+
           <button 
             onClick={() => setIsKeywordsModalOpen(true)} 
             title={t('Compare resume with job description keywords')}
