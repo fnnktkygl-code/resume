@@ -21,6 +21,17 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
   useEffect(() => {
     const items = [];
 
+    // Tagline Diff
+    if (original.personal?.tagline !== modified.personal?.tagline && modified.personal?.tagline) {
+      items.push({
+        id: 'tagline',
+        section: t('Professional Title / Tagline'),
+        type: 'text',
+        original: original.personal?.tagline,
+        modified: modified.personal?.tagline
+      });
+    }
+
     // Summary Diff
     if (original.summary !== modified.summary && modified.summary) {
       items.push({

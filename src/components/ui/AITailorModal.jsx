@@ -7,6 +7,11 @@ import VisualDiff from './VisualDiff';
 function mergeSelected(original, modified, selectedIds) {
   const merged = structuredClone(original);
 
+  if (selectedIds.has('tagline') && modified.personal?.tagline !== original.personal?.tagline) {
+    merged.personal = merged.personal || {};
+    merged.personal.tagline = modified.personal.tagline;
+  }
+
   if (selectedIds.has('summary') && modified.summary !== original.summary) {
     merged.summary = modified.summary;
   }
@@ -102,6 +107,7 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
   const handleApply = () => {
     if (tailoredResult) {
       const merged = mergeSelected(data, tailoredResult, selectedIds);
+      merged.targetJobDescription = jobDescription;
       onTailorSuccess(merged);
       onClose();
     }

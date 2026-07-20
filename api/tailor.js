@@ -39,8 +39,9 @@ Target Language for the content: ${targetLang}.
 
 Rules:
 1. Emphasize skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
-2. Rewrite bullet points using strong action verbs to highlight aspects of the candidate's past work that are relevant to the new job requirements.
-3. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having. Do NOT add a specific software or skill to their profile just because the Job Description asks for it. If they don't have it, focus on analogous skills they DO have.
+2. You MUST rewrite the "tagline" (Professional Title) and "summary" (Executive Summary) to closely align with the core requirements of the job description, positioning the candidate perfectly for the role.
+3. Rewrite bullet points using strong action verbs to highlight aspects of the candidate's past work that are relevant to the new job requirements.
+4. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having. Do NOT add a specific software or skill to their profile just because the Job Description asks for it. If they don't have it, focus on analogous skills they DO have.
 4. CRITICAL - ANTI-GENERICIZATION (DOMAIN PRESERVATION): NEVER scrub, generalize, or remove domain-specific terminology (e.g., wind turbines, medical devices, specific technical constraints) from the original bullet points. The candidate's unique industry context MUST remain highly visible. Do not replace their specific achievements with generic buzzwords (like "operational performance" or "business dashboards").
 5. Maintain a highly professional tone.
 6. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.
