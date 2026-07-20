@@ -837,6 +837,8 @@ export default function App() {
                   headings={data.headings}
                   onChange={(v) => dispatch({ type: 'UPDATE_PERSONAL', payload: v })} 
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  layout={layout}
+                  onLayoutChange={setLayout}
                   onAISectionFill={() => {
                     const readiness = checkResumeReadiness(data);
                     if (readiness.isEmpty) {

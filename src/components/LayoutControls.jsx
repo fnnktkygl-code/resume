@@ -94,27 +94,7 @@ export default function LayoutControls({ layout, onChange }) {
         </div>
 
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }} htmlFor="contact-layout-select">{t('Contact Layout')}</label>
-          <select
-            id="contact-layout-select"
-            value={layout.splitLinks === undefined ? true : layout.splitLinks}
-            onChange={(e) => handleUpdate('splitLinks', e.target.value === 'true')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text)',
-              fontSize: '13px',
-              fontFamily: 'inherit',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="false">{t('Single line')}</option>
-            <option value="true">{t('Separate line for links')}</option>
-          </select>
-        </div>
+
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>

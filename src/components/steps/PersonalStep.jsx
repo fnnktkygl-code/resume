@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Field, TextInput } from '../ui/FormFields';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function PersonalStep({ data, headings, onChange, onHeadingsChange, onAISectionFill }) {
+export default function PersonalStep({ data, headings, onChange, onHeadingsChange, onAISectionFill, layout, onLayoutChange }) {
   const { t } = useTranslation();
   const update = (field, val) => onChange({ ...data, [field]: val });
   const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
+  const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -82,6 +83,31 @@ export default function PersonalStep({ data, headings, onChange, onHeadingsChang
             ℹ️ {t('photo_warning_text')}
           </div>
         </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+        <Field label={t('Contact Layout')} full>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <select
+              value={layout?.splitLinks === undefined ? true : layout.splitLinks}
+              onChange={(e) => updateLayout('splitLinks', e.target.value === 'true')}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                flex: 1
+              }}
+            >
+              <option value="false">{t('Single line')}</option>
+              <option value="true">{t('Separate line for links')}</option>
+            </select>
+          </div>
+        </Field>
       </div>
 
       <div className="field-grid">
