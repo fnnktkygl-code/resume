@@ -12,6 +12,22 @@ import { parseMarkdown } from '../../utils/formatText';
  * - onSelectionChange(selectedIds): callback with Set of selected change IDs
  *     If not provided, all changes are accepted (legacy mode).
  */
+const cleanText = (str) => {
+  if (!str) return '';
+  return str
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+};
+
+const isSubstantiallyDifferent = (orig, mod) => {
+  if (!orig && !mod) return false;
+  if (!orig || !mod) return true;
+  return cleanText(orig) !== cleanText(mod);
+};
+
 export default function VisualDiff({ original, modified, onSelectionChange }) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(new Set());
@@ -22,7 +38,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     const items = [];
 
     // Tagline Diff
-    if (original.personal?.tagline !== modified.personal?.tagline && modified.personal?.tagline) {
+    if (isSubstantiallyDifferent(original.personal?.tagline, modified.personal?.tagline) && modified.personal?.tagline) {
       items.push({
         id: 'tagline',
         section: t('Professional Title / Tagline'),
@@ -33,7 +49,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     }
 
     // Summary Diff
-    if (original.summary !== modified.summary && modified.summary) {
+    if (isSubstantiallyDifferent(original.summary, modified.summary) && modified.summary) {
       items.push({
         id: 'summary',
         section: t('Professional Summary'),
@@ -44,7 +60,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     }
 
     // Skills Diff
-    if (original.skills?.technical !== modified.skills?.technical) {
+    if (isSubstantiallyDifferent(original.skills?.technical, modified.skills?.technical)) {
       items.push({
         id: 'skills.technical',
         section: t('Technical Skills'),
@@ -53,7 +69,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         modified: modified.skills?.technical
       });
     }
-    if (original.skills?.soft !== modified.skills?.soft) {
+    if (isSubstantiallyDifferent(original.skills?.soft, modified.skills?.soft)) {
       items.push({
         id: 'skills.soft',
         section: t('Soft Skills'),
@@ -62,7 +78,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         modified: modified.skills?.soft
       });
     }
-    if (original.skills?.languages !== modified.skills?.languages && modified.skills?.languages) {
+    if (isSubstantiallyDifferent(original.skills?.languages, modified.skills?.languages) && modified.skills?.languages) {
       items.push({
         id: 'skills.languages',
         section: t('Languages'),
@@ -81,7 +97,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       const expId = exp.id || idx;
 
       // Title change
-      if (exp.title !== modExp.title && modExp.title) {
+      if (isSubstantiallyDifferent(exp.title, modExp.title) && modExp.title) {
         items.push({
           id: `exp.${expId}.title`,
           section: `${t('Experience')} : ${exp.company || ''}`,
@@ -92,7 +108,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       }
 
       // Technologies / Tags change
-      if (exp.technologies !== modExp.technologies && modExp.technologies) {
+      if (isSubstantiallyDifferent(exp.technologies, modExp.technologies) && modExp.technologies) {
         items.push({
           id: `exp.${expId}.tech`,
           section: `${exp.company || ''} — ${t('Tags / Technologies')}`,
@@ -105,7 +121,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       // Bullet diffs
       exp.bullets?.forEach((bullet, bIdx) => {
         const modBullet = modExp.bullets?.[bIdx];
-        if (bullet !== modBullet && modBullet) {
+        if (isSubstantiallyDifferent(bullet, modBullet) && modBullet) {
           items.push({
             id: `exp.${expId}.bullet.${bIdx}`,
             section: `${exp.company || ''} — ${exp.title || ''}`,
@@ -124,7 +140,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       if (!modEdu) return;
 
       const eduId = edu.id || idx;
-      if (edu.degree !== modEdu.degree && modEdu.degree) {
+      if (isSubstantiallyDifferent(edu.degree, modEdu.degree) && modEdu.degree) {
         items.push({
           id: `edu.${eduId}.degree`,
           section: `${t('Education')} : ${edu.institution || ''}`,
@@ -133,7 +149,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
           modified: modEdu.degree
         });
       }
-      if (edu.fieldOfStudy !== modEdu.fieldOfStudy && modEdu.fieldOfStudy) {
+      if (isSubstantiallyDifferent(edu.fieldOfStudy, modEdu.fieldOfStudy) && modEdu.fieldOfStudy) {
         items.push({
           id: `edu.${eduId}.field`,
           section: `${t('Education')} : ${edu.institution || ''}`,
@@ -152,7 +168,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
 
       const projId = proj.id || idx;
 
-      if (proj.description !== modProj.description && modProj.description) {
+      if (isSubstantiallyDifferent(proj.description, modProj.description) && modProj.description) {
         items.push({
           id: `proj.${projId}.desc`,
           section: `${t('Project')}: ${proj.name || ''}`,
@@ -162,7 +178,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         });
       }
 
-      if (proj.techStack !== modProj.techStack && modProj.techStack) {
+      if (isSubstantiallyDifferent(proj.techStack, modProj.techStack) && modProj.techStack) {
         items.push({
           id: `proj.${projId}.tech`,
           section: `${t('Project')}: ${proj.name || ''} — ${t('Tags / Tech Stack')}`,
@@ -174,7 +190,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
 
       proj.highlights?.forEach((bullet, bIdx) => {
         const modBullet = modProj.highlights?.[bIdx];
-        if (bullet !== modBullet && modBullet) {
+        if (isSubstantiallyDifferent(bullet, modBullet) && modBullet) {
           items.push({
             id: `proj.${projId}.highlight.${bIdx}`,
             section: `${t('Project')}: ${proj.name || ''}`,
@@ -193,7 +209,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       if (!modCert) return;
 
       const certId = cert.id || idx;
-      if (cert.name !== modCert.name && modCert.name) {
+      if (isSubstantiallyDifferent(cert.name, modCert.name) && modCert.name) {
         items.push({
           id: `cert.${certId}.name`,
           section: `${t('Certification')}: ${cert.name || ''}`,
@@ -215,7 +231,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         if (!modItem) return;
 
         const itemId = item.id || iIdx;
-        if (item.title !== modItem.title && modItem.title) {
+        if (isSubstantiallyDifferent(item.title, modItem.title) && modItem.title) {
           items.push({
             id: `custom.${sec.id}.${itemId}.title`,
             section: `${sec.label || 'Custom'}: ${item.title || ''}`,
@@ -224,7 +240,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
             modified: modItem.title
           });
         }
-        if (item.subtitle !== modItem.subtitle && modItem.subtitle) {
+        if (isSubstantiallyDifferent(item.subtitle, modItem.subtitle) && modItem.subtitle) {
           items.push({
             id: `custom.${sec.id}.${itemId}.subtitle`,
             section: `${sec.label || 'Custom'}: ${item.title || ''}`,
