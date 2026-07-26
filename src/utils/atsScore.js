@@ -78,9 +78,9 @@ export function computeAtsScore(data) {
   const validCert = data.certifications.filter(c => c.name && c.issuer);
   if (validCert.length > 0) score += 2;
 
-  // --- Live ATS Match Score (Feature 1) ---
+  // --- Live ATS Match Score (AI-Driven) ---
   if (data.targetJobDescription && data.targetJobDescription.trim().length > 20) {
-    // Priority 1: Use AI-calculated targetJobAnalysis if available
+    // Only use AI-calculated semantic analysis for match score
     if (data.targetJobAnalysis && typeof data.targetJobAnalysis.matchScore === 'number') {
       const aiScore = data.targetJobAnalysis.matchScore;
       const baseScore = Math.min(score, 100);
@@ -94,69 +94,6 @@ export function computeAtsScore(data) {
         });
       }
 
-      return { score: blendedScore, tips: [...matchTips, ...tips].slice(0, 5), isMatchScore: true };
-    }
-
-    // Priority 2: Local heuristic fallback with heavy noise filtering
-    const stopWords = new Set([
-      // English stop words & corporate boilerplate
-      'the', 'and', 'for', 'with', 'that', 'this', 'you', 'are', 'your', 'from', 'will', 'have',
-      'experience', 'work', 'working', 'team', 'skills', 'can', 'not', 'our', 'all', 'any', 'but',
-      'about', 'company', 'role', 'looking', 'candidate', 'must', 'should', 'ability', 'strong',
-      'years', 'year', 'preferred', 'required', 'responsibilities', 'qualifications', 'description',
-      'job', 'join', 'help', 'make', 'more', 'other', 'their', 'them', 'they', 'which', 'what',
-      
-      // French stop words & corporate boilerplate
-      'propos', 'offre', 'emploi', 'ensemble', 'construisons', 'chez', 'nous', 'présents', 'notre',
-      'votre', 'entreprise', 'postuler', 'mission', 'profil', 'recherche', 'bureau', 'pays', 'équipe',
-      'compétence', 'compétences', 'opportunité', 'opportunités', 'candidat', 'rôle', 'role',
-      'plus', 'pour', 'dans', 'cœur', 'futur', 'ancrage', 'local', 'transformé', 'défis', 'aujourd',
-      'durables', 'grâce', 'vers', 'sans', 'tous', 'toutes', 'fait', 'faire', 'ainsi', 'afin',
-      'comme', 'aussi', 'avec', 'cette', 'sont', 'être', 'avoir', 'des', 'les', 'une', 'un',
-      'qui', 'que', 'pas', 'par', 'est', 'sur', 'dans', 'aux', 'du', 'au', 'en', 'le', 'la',
-      'bénéficiez', 'rejoindre', 'poste', 'niveau', 'également', 'ainsi', 'afin', 'dans', 'grâce',
-      'situé', 'contexte', 'cadre', 'proposer', 'assurer', 'partie', 'auprès', 'selon', 'souhaité',
-      'avenir', 'durable', 'durables', 'reden', 'plaçons', 'électricité', 'responsable', 'structure',
-      'agile', 'croissance', 'ambition', 'territoires', 'bâtir', 'culture', 'environnement',
-      'multiculturel', 'collaboratif', 'valorisation', 'fondations', 'impact', 'accélérer', 'véritable',
-      'force', 'respect', 'inclusion', 'diversité', 'talents', 'animée', 'positif', 'tournée',
-      'accompagnant', 'recherchons', 'basé', 'sein', 'pôle', 'opération', 'rattaché', 'contribuez',
-      'groupe', 'analysant', 'identifiant', 'tendances', 'anomalies', 'titre', 'missions', 'suivi',
-      'activités', 'indicateurs', 'causes', 'pannes', 'durée', 'équipements', 'définir', 'piloter',
-      'plans', 'actions', 'visant', 'assets', 'participer', 'définition', 'reporting', 'technique',
-      'outils', 'adaptés', 'existantes', 'processus', 'prioriser', 'préventives', 'nécessaires',
-      'titulaire', 'minimum', 'spécialisation', 'systèmes', 'première', 'disposez', 'notions', 'atout',
-      'obligatoire', 'au-delà', 'technologie', 'solides', 'principes', 'fonctionnement', 'capables',
-      'interpréter', 'prévoir'
-    ]);
-    const jdWords = data.targetJobDescription.toLowerCase().match(/[a-zÀ-ÿ]{4,}/g) || [];
-    const keywords = [...new Set(jdWords.filter(w => !stopWords.has(w)))];
-
-    if (keywords.length > 0) {
-      let matchCount = 0;
-      const missingKeywords = [];
-      keywords.forEach(kw => {
-        if (profileSignals.includes(kw)) {
-          matchCount++;
-        } else {
-          missingKeywords.push(kw);
-        }
-      });
-
-      const matchPercentage = Math.round((matchCount / keywords.length) * 100);
-      
-      // Blend structure (30%) with local keyword match (70%)
-      const baseScore = Math.min(score, 100);
-      const blendedScore = Math.round((baseScore * 0.3) + (matchPercentage * 0.7));
-
-      const matchTips = [];
-      if (missingKeywords.length > 0) {
-        matchTips.push({
-          type: 'missing_keywords',
-          keywords: missingKeywords.slice(0, 5)
-        });
-      }
-      
       return { score: blendedScore, tips: [...matchTips, ...tips].slice(0, 5), isMatchScore: true };
     }
   }
