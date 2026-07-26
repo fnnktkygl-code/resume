@@ -62,6 +62,15 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         modified: modified.skills?.soft
       });
     }
+    if (original.skills?.languages !== modified.skills?.languages && modified.skills?.languages) {
+      items.push({
+        id: 'skills.languages',
+        section: t('Languages'),
+        type: 'text',
+        original: original.skills?.languages,
+        modified: modified.skills?.languages
+      });
+    }
 
     // Experience Diff
     original.experience?.forEach((exp, idx) => {
@@ -97,6 +106,33 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     });
 
+    // Education Diff
+    original.education?.forEach((edu, idx) => {
+      if (edu.isSpacer) return;
+      const modEdu = modified.education?.find(e => e.id === edu.id) || modified.education?.[idx];
+      if (!modEdu) return;
+
+      const eduId = edu.id || idx;
+      if (edu.degree !== modEdu.degree && modEdu.degree) {
+        items.push({
+          id: `edu.${eduId}.degree`,
+          section: `${t('Education')} : ${edu.institution || ''}`,
+          type: 'text',
+          original: edu.degree,
+          modified: modEdu.degree
+        });
+      }
+      if (edu.fieldOfStudy !== modEdu.fieldOfStudy && modEdu.fieldOfStudy) {
+        items.push({
+          id: `edu.${eduId}.field`,
+          section: `${t('Education')} : ${edu.institution || ''}`,
+          type: 'text',
+          original: edu.fieldOfStudy,
+          modified: modEdu.fieldOfStudy
+        });
+      }
+    });
+
     // Projects Diff
     original.projects?.forEach((proj, idx) => {
       if (proj.isSpacer) return;
@@ -124,6 +160,65 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
             type: 'text',
             original: bullet,
             modified: modBullet
+          });
+        }
+      });
+    });
+
+    // Certifications Diff
+    original.certifications?.forEach((cert, idx) => {
+      if (cert.isSpacer) return;
+      const modCert = modified.certifications?.find(c => c.id === cert.id) || modified.certifications?.[idx];
+      if (!modCert) return;
+
+      const certId = cert.id || idx;
+      if (cert.name !== modCert.name && modCert.name) {
+        items.push({
+          id: `cert.${certId}.name`,
+          section: `${t('Certification')}: ${cert.name || ''}`,
+          type: 'text',
+          original: cert.name,
+          modified: modCert.name
+        });
+      }
+    });
+
+    // Custom Sections Diff (langues, atouts, loisirs, user-created sections)
+    original.customSections?.forEach((sec) => {
+      const modSec = modified.customSections?.find(s => s.id === sec.id);
+      if (!modSec) return;
+
+      sec.items?.forEach((item, iIdx) => {
+        if (item.isSpacer) return;
+        const modItem = modSec.items?.find(i => i.id === item.id) || modSec.items?.[iIdx];
+        if (!modItem) return;
+
+        const itemId = item.id || iIdx;
+        if (item.title !== modItem.title && modItem.title) {
+          items.push({
+            id: `custom.${sec.id}.${itemId}.title`,
+            section: `${sec.label || 'Custom'}: ${item.title || ''}`,
+            type: 'text',
+            original: item.title,
+            modified: modItem.title
+          });
+        }
+        if (item.subtitle !== modItem.subtitle && modItem.subtitle) {
+          items.push({
+            id: `custom.${sec.id}.${itemId}.subtitle`,
+            section: `${sec.label || 'Custom'}: ${item.title || ''}`,
+            type: 'text',
+            original: item.subtitle,
+            modified: modItem.subtitle
+          });
+        }
+        if (item.description !== modItem.description && modItem.description) {
+          items.push({
+            id: `custom.${sec.id}.${itemId}.desc`,
+            section: `${sec.label || 'Custom'}: ${item.title || ''}`,
+            type: 'text',
+            original: item.description,
+            modified: modItem.description
           });
         }
       });
