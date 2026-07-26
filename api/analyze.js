@@ -46,29 +46,32 @@ export default async function handler(req, res) {
 STEP 1 — PROFILE & JOB IDENTIFICATION:
 Silently analyze the candidate's background and target job description (if provided).
 
-STEP 2 — GENERATE 3 TAILORED, HIGH-IMPACT RECOMMENDATIONS:
-Provide exactly 3 short, highly specific, actionable recommendations to improve this resume's ATS score and recruiter impact.
+STEP 2 — GENERATE 3 DISTINCT, TAILORED RECOMMENDATIONS:
+Generate exactly 3 DIFFERENT recommendations covering distinct areas of the resume:
+1. One recommendation for Work Experience (Bullet Point with REALISTIC QUANTIFIED METRICS).
+2. One recommendation for Executive Summary / Title Alignment.
+3. One recommendation for Technical Skills & Hard Tools.
 
-STEP 3 — CONCRETE PROPOSED TEXT SNIPPET FOR EACH RECOMMENDATION:
-For EACH tip, you MUST generate a concrete, ready-to-use proposed text snippet ("suggestedText") tailored specifically to the candidate's actual experience and the target job requirements.
-Examples of concrete suggestions:
-- If recommending metrics: provide the exact rewritten bullet point with realistic metrics (e.g. "Developpement de 8+ tableaux de bord Power BI pour le suivi de 50MW d'actifs (+15% de mobilite).")
-- If recommending summary optimization: provide the exact 2-3 sentence tailored summary phrase.
-- If recommending skills: provide the exact list of technical skills to add.
+STEP 3 — CONCRETE, ACTIONABLE SUGGESTED TEXT:
+For EACH recommendation, you MUST provide an exact, ready-to-use proposed text snippet ("suggestedText"):
+- IF THE TIP IS ABOUT QUANTIFYING IMPACT OR METRICS: "targetSection" MUST BE "experience". "suggestedText" MUST be a single, high-impact bullet point CONTAINING NUMERICAL METRICS & PERCENTAGES (e.g., "Analyse des données SCADA et GMAO pour 50+ MW d'actifs photovoltaïques, réduisant le temps d'arrêt non planifié de 18% et améliorant la productivité globale de 12%.").
+- IF THE TIP IS ABOUT SUMMARY: "targetSection" MUST BE "summary". "suggestedText" MUST be a 2-3 sentence summary tailored to the position.
+- IF THE TIP IS ABOUT SKILLS: "targetSection" MUST BE "skills". "suggestedText" MUST be a comma-separated list of missing technical tools/skills (e.g., "SCADA, GMAO, SQL, Power BI, Python, Maintenance prédictive").
 
-ABSOLUTE RULES:
-1. Every tip MUST be relevant to this specific person's profession.
-2. "suggestedText" MUST be ready to insert directly into the resume without needing placeholders.
-3. Tips and suggestedText MUST be written entirely in ${targetLang}.
+CRITICAL RULES:
+1. NEVER output placeholders like [X%] or [N]. Always generate realistic, credible domain numbers based on the candidate's background (e.g., 15%, 50MW, 8+ tableaux de bord).
+2. NEVER repeat the exact same suggestedText across different tips. Each tip MUST have unique, distinct proposed text.
+3. If recommending metrics or quantification, NEVER return a summary paragraph. Always return a quantified work experience bullet point!
+4. All text MUST be written entirely in ${targetLang}.
 
-OUTPUT FORMAT — Return ONLY this JSON structure:
+OUTPUT FORMAT — Return ONLY a valid JSON object matching this schema:
 {
   "tips": [
     {
-      "title": "Short title of the recommendation",
-      "description": "Explanation of why this improves the ATS match.",
-      "suggestedText": "Exact concrete text snippet ready to insert into the resume.",
-      "targetSection": "summary" | "experience" | "skills" | "projects",
+      "title": "Short title of recommendation",
+      "description": "Why this improves ATS match",
+      "suggestedText": "Exact concrete text snippet ready to insert",
+      "targetSection": "experience" | "summary" | "skills" | "projects",
       "targetIndex": 0,
       "action": "APPLY_SUGGESTION"
     }
