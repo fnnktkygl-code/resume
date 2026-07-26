@@ -244,6 +244,9 @@ export const TRANSLATIONS = {
     // ATS Score
     'ATS Score & Analysis': 'ATS Score & Analysis',
     'Missing keywords:': 'Missing keywords:',
+    'Suggested Text (Editable):': 'Suggested Text (Editable):',
+    'Accept & Apply to CV': 'Accept & Apply to CV',
+    '✨ Generate Concrete AI Example': '✨ Generate Concrete AI Example',
     'ATS Readiness': 'ATS Readiness',
     'Excellent — ready to apply': 'Excellent — ready to apply',
     'Good — a few improvements left': 'Good — a few improvements left',
@@ -834,6 +837,9 @@ export const TRANSLATIONS = {
     // ATS Score
     'ATS Score & Analysis': 'Score & Analyse ATS',
     'Missing keywords:': 'Mots-clés manquants :',
+    'Suggested Text (Editable):': 'Proposition de texte (Éditable) :',
+    'Accept & Apply to CV': '✅ Appliquer au CV',
+    '✨ Generate Concrete AI Example': '✨ Générer un exemple concrét (IA)',
     'ATS Readiness': 'Score ATS',
     'Excellent — ready to apply': 'Excellent — prêt à postuler',
     'Good — a few improvements left': 'Bien — quelques améliorations restantes',

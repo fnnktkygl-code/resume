@@ -206,33 +206,59 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
             <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text)' }}>
               {t('Recommendations')} ({displayTips.length})
             </span>
-            {totalTipPages > 1 && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button 
-                  onClick={() => setCurrentTipPage(prev => Math.max(0, prev - 1))}
-                  disabled={currentTipPage === 0}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {!aiTips && (
+                <button
+                  type="button"
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
                   style={{
-                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === 0 ? 'not-allowed' : 'pointer', opacity: currentTipPage === 0 ? 0.5 : 1
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: 'var(--color-accent-contrast, #fff)',
+                    backgroundColor: 'var(--color-accent, #1B6B3A)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    opacity: isAnalyzing ? 0.7 : 1
                   }}
                 >
-                  <i className="fi fi-rr-angle-left" style={{ fontSize: '10px' }}></i>
+                  <i className="fi fi-rr-magic-wand"></i>
+                  {isAnalyzing ? t('Generating...') : t('✨ Exemples IA')}
                 </button>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                  {currentTipPage + 1} / {totalTipPages}
-                </span>
-                <button 
-                  onClick={() => setCurrentTipPage(prev => Math.min(totalTipPages - 1, prev + 1))}
-                  disabled={currentTipPage === totalTipPages - 1}
-                  style={{
-                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === totalTipPages - 1 ? 'not-allowed' : 'pointer', opacity: currentTipPage === totalTipPages - 1 ? 0.5 : 1
-                  }}
-                >
-                  <i className="fi fi-rr-angle-right" style={{ fontSize: '10px' }}></i>
-                </button>
-              </div>
-            )}
+              )}
+              {totalTipPages > 1 && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => setCurrentTipPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentTipPage === 0}
+                    style={{
+                      background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === 0 ? 'not-allowed' : 'pointer', opacity: currentTipPage === 0 ? 0.5 : 1
+                    }}
+                  >
+                    <i className="fi fi-rr-angle-left" style={{ fontSize: '10px' }}></i>
+                  </button>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                    {currentTipPage + 1} / {totalTipPages}
+                  </span>
+                  <button 
+                    onClick={() => setCurrentTipPage(prev => Math.min(totalTipPages - 1, prev + 1))}
+                    disabled={currentTipPage === totalTipPages - 1}
+                    style={{
+                      background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === totalTipPages - 1 ? 'not-allowed' : 'pointer', opacity: currentTipPage === totalTipPages - 1 ? 0.5 : 1
+                    }}
+                  >
+                    <i className="fi fi-rr-angle-right" style={{ fontSize: '10px' }}></i>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')} style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '180px' }}>
+          <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')} style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '140px' }}>
             {currentTips.map((tip, i) => {
               if (aiTips) {
                 return (
@@ -251,14 +277,31 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
                 // Standard tips are strings or structured objects
                 if (typeof tip === 'object' && tip?.type === 'missing_keywords') {
                   return (
-                    <div key={i} className="ats-tip-item animate-fade-in" role="listitem">
-                      <strong>{t('Missing keywords:')}</strong> {tip.keywords.join(', ')}
+                    <div key={i} className="ats-tip-item animate-fade-in" role="listitem" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text)' }}>
+                        <strong>{t('Missing keywords:')}</strong> {tip.keywords.join(', ')}
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setIsKeywordsModalOpen(true)}
+                        style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: '11px', fontWeight: '600', color: 'var(--color-accent-contrast, #fff)', backgroundColor: 'var(--color-accent, #1B6B3A)', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <i className="fi fi-rr-search-alt"></i> {t('Add missing keywords')}
+                      </button>
                     </div>
                   );
                 }
                 return (
-                  <div key={i} className="ats-tip-item animate-fade-in" role="listitem">
-                    {t(tip)}
+                  <div key={i} className="ats-tip-item animate-fade-in" role="listitem" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{t(tip)}</div>
+                    <button 
+                      type="button"
+                      onClick={handleAnalyze}
+                      disabled={isAnalyzing}
+                      style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: '11px', fontWeight: '600', color: 'var(--color-accent-contrast, #fff)', backgroundColor: 'var(--color-accent, #1B6B3A)', border: 'none', borderRadius: '6px', cursor: isAnalyzing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: isAnalyzing ? 0.7 : 1 }}
+                    >
+                      <i className="fi fi-rr-magic-wand"></i> {isAnalyzing ? t('Generating...') : t('✨ Generate Concrete AI Example')}
+                    </button>
                   </div>
                 );
               }
