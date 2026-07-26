@@ -200,19 +200,23 @@ function NjmTemplate({
     if (!tags.length) return null;
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-        {tags.map((tag, idx) => (
-          <span key={idx} style={{
-            fontSize: '0.75em',
-            border: '1px solid var(--resume-border-color, #ccc)',
-            borderRadius: '4px',
-            padding: '1px 6px',
-            color: 'var(--resume-text-color, #333)',
-            textTransform: 'uppercase',
-            backgroundColor: 'var(--color-surface-alt, #fafafa)'
-          }}>
-            {tag}
-          </span>
-        ))}
+        {tags.map((tag, idx) => {
+          const isBold = tag.includes('**');
+          return (
+            <span key={idx} style={{
+              fontSize: '0.75em',
+              border: isBold ? '1px solid var(--color-accent, #1B6B3A)' : '1px solid var(--resume-border-color, #ccc)',
+              borderRadius: '4px',
+              padding: '1px 6px',
+              color: isBold ? 'var(--color-accent, #1B6B3A)' : 'var(--resume-text-color, #333)',
+              fontWeight: isBold ? '700' : '500',
+              textTransform: 'uppercase',
+              backgroundColor: isBold ? 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.1)' : 'var(--color-surface-alt, #fafafa)'
+            }}>
+              {parseMarkdown(tag)}
+            </span>
+          );
+        })}
       </div>
     );
   };

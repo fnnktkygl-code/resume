@@ -129,7 +129,7 @@ function MinimalistTemplate({
                     </div>
                     {exp.technologies && (
                       <div style={{ fontSize: `${fontSize - 1.5}pt`, color: 'var(--resume-text-secondary, #555)', fontStyle: 'italic', marginTop: '2px' }}>
-                        {exp.technologies}
+                        {parseMarkdown(exp.technologies)}
                       </div>
                     )}
                   </div>
