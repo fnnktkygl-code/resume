@@ -270,8 +270,14 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
 
   if (diffItems.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-secondary)' }}>
-        {t('No major changes detected.')}
+      <div style={{ textAlign: 'center', padding: '30px 20px', background: 'var(--color-success-light, rgba(34, 197, 94, 0.1))', borderRadius: '12px', border: '1px solid var(--color-success, #22c55e)' }}>
+        <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🎉</div>
+        <h3 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: '700', color: 'var(--color-text)' }}>
+          {t('Your resume is already perfectly tailored!')}
+        </h3>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+          {t('All skills and experiences match the job description. No further edits are needed.')}
+        </p>
       </div>
     );
   }

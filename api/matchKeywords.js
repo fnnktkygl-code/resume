@@ -97,10 +97,14 @@ CRITICAL KEYWORD EXTRACTION & MATCHING RULES:
    - Calculate "matchScore" (0-100) based strictly on the ratio of required technical skills/qualifications matched.
    - Provide a concise, 1-2 sentence recommendation in the requested language focusing on the most critical missing technical skills to add.
 
+5. STABILITY & PERFECT MATCH RECOGNITION:
+   - If the candidate's resume ALREADY contains all key technical tools, certifications, and hard skills mentioned in the Job Description, set "missingKeywords": [] (empty array) and "matchScore": 98-100.
+   - Do NOT invent missing keywords if the candidate's profile is already fully qualified and aligned.
+
 Output a strictly valid JSON object with the following schema:
 {
   "matchScore": <number between 0 and 100>,
-  "missingKeywords": <array of strings, only critical missing technical/hard skills or tools>,
+  "missingKeywords": <array of strings, empty array [] if resume is already well-aligned>,
   "foundKeywords": <array of strings, matched technical/hard skills or tools>,
   "recommendation": <string, short actionable advice in the target language>
 }

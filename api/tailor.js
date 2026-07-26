@@ -37,18 +37,19 @@ export default async function handler(req, res) {
 Your task is to tailor the provided JSON resume to match the provided Job Description.
 Target Language for the content: ${targetLang}.
 
+CRITICAL RULE — NO UNNECESSARY REWRITES (PRESERVE ALIGNED SECTIONS):
+- Compare each section of the candidate's resume against the job description.
+- IF a tagline, summary, skill list, or bullet point is ALREADY well-aligned with the target job requirements, DO NOT REWRITE IT. Keep the original text 100% IDENTICAL to the original.
+- ONLY propose modifications for sections that genuinely lack key hard skills, relevant domain terminology, or impact metrics required by the job offer.
+- Do NOT make cosmetic or arbitrary changes to already well-written sentences.
+
 Rules:
-1. Emphasize skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
-2. You MUST rewrite the "tagline" (Professional Title) and "summary" (Executive Summary) to closely align with the core requirements of the job description, positioning the candidate perfectly for the role.
-3. Rewrite bullet points using strong action verbs to highlight aspects of the candidate's past work that are relevant to the new job requirements.
-4. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having. Do NOT add a specific software or skill to their profile just because the Job Description asks for it. If they don't have it, focus on analogous skills they DO have.
-4. CRITICAL - ANTI-GENERICIZATION (DOMAIN PRESERVATION): NEVER scrub, generalize, or remove domain-specific terminology (e.g., wind turbines, medical devices, specific technical constraints) from the original bullet points. The candidate's unique industry context MUST remain highly visible. Do not replace their specific achievements with generic buzzwords (like "operational performance" or "business dashboards").
-5. Maintain a highly professional tone.
-6. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.
-7. STRICT PAGE BUDGET & OVERFLOW PREVENTION: The tailored content must fit cleanly on either exactly 1 page or exactly 2 pages. Avoid creating length that overflows by just a few lines onto a new page.
-   - If the input resume is short, keep bullet points short and limit them to 2-3 per experience to guarantee it fits on exactly 1 page.
-   - If the input resume is longer, keep bullet points short and limit them to 3-4 per experience to guarantee it fits on exactly 2 pages.
-   - Every bullet point must be concise, direct, and under 2 lines.`;
+1. Emphasize hard skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
+2. Update the "tagline" or "summary" ONLY if they lack core alignment with the job description. If already aligned, keep them identical.
+3. Rewrite bullet points ONLY when necessary to highlight relevant hard skills or missing metrics.
+4. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having.
+5. CRITICAL - DOMAIN PRESERVATION: NEVER scrub or generalize domain-specific terminology (e.g. wind turbines, solar assets, specific technical constraints).
+6. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
 
   const promptText = `
 ### JOB DESCRIPTION
