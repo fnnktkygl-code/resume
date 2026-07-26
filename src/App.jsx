@@ -40,6 +40,7 @@ const CVManagerModal = lazy(() => import('./components/ui/CVManagerModal'));
 const ReorderSectionsModal = lazy(() => import('./components/ui/ReorderSectionsModal'));
 const CoverLetterModal = lazy(() => import('./components/ui/CoverLetterModal'));
 const AISectionFillModal = lazy(() => import('./components/ui/AISectionFillModal'));
+const ATSKeywordsModal = lazy(() => import('./components/ui/ATSKeywordsModal'));
 import ImportModal from './components/ui/ImportModal';
 import { buildResumeContext, checkResumeReadiness } from './utils/buildResumeContext';
 
@@ -165,6 +166,7 @@ export default function App() {
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [isCoverLetterModalOpen, setIsCoverLetterModalOpen] = useState(false);
   const [isAtsScoreModalOpen, setIsAtsScoreModalOpen] = useState(false);
+  const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState(false);
   const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [isAIToolsDropdownOpen, setIsAIToolsDropdownOpen] = useState(false);
@@ -735,6 +737,8 @@ export default function App() {
       }
     } else if (action === 'OPEN_TAILOR_MODAL') {
       setIsTailorOpen(true);
+    } else if (action === 'OPEN_KEYWORD_MATCHER') {
+      setIsKeywordsModalOpen(true);
     }
   };
 
@@ -1704,6 +1708,14 @@ export default function App() {
               data={data}
               dispatch={dispatch}
               onTriggerAction={handleAITriggerAction}
+            />
+          )}
+          {isKeywordsModalOpen && (
+            <ATSKeywordsModal
+              isOpen={isKeywordsModalOpen}
+              onClose={() => setIsKeywordsModalOpen(false)}
+              data={data}
+              dispatch={dispatch}
             />
           )}
           {aiSectionFillConfig?.isOpen && (

@@ -83,7 +83,7 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
           <p style={{ marginBottom: '8px' }}>{statusText}</p>
 
           <button 
-            onClick={() => setIsKeywordsModalOpen(true)} 
+            onClick={() => onTriggerAction ? onTriggerAction('OPEN_KEYWORD_MATCHER') : setIsKeywordsModalOpen(true)} 
             title={t('Compare resume with job description keywords')}
             style={{
               marginTop: '6px',
