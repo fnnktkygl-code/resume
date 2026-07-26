@@ -267,7 +267,9 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
                 }
                 return (
                   <div key={i} className="ats-tip-item animate-fade-in" role="listitem" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{t(tip)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
+                      {typeof tip === 'string' ? t(tip) : (tip?.title || tip?.description || '')}
+                    </div>
                     <button 
                       type="button"
                       onClick={handleAnalyze}
