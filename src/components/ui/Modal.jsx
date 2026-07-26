@@ -42,24 +42,7 @@ export default function Modal({ isOpen, onClose, title, children, actions, ariaL
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
 
-      // Manage browser history to allow back button to close the modal
-      const stateId = Math.random().toString(36).substring(2, 9);
-      window.history.pushState({ modalId: stateId }, '');
-
-      const handlePopState = (e) => {
-        if (!e.state || e.state.modalId !== stateId) {
-          onClose();
-        }
-      };
-
-      window.addEventListener('popstate', handlePopState);
-
       return () => {
-        window.removeEventListener('popstate', handlePopState);
-        
-        if (window.history.state && window.history.state.modalId === stateId) {
-          window.history.back();
-        }
         document.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = '';
         if (previousFocusRef.current) {
