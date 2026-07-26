@@ -309,6 +309,7 @@ body {
   border: none !important;
   color: var(--color-text) !important;
   cursor: pointer;
+  white-space: nowrap !important;
   transition: all var(--transition-fast);
 }
 

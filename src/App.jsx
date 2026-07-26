@@ -1271,7 +1271,7 @@ export default function App() {
                         </button>
                         
                         {isAIToolsDropdownOpen && (
-                          <div className="tpl-dropdown-menu" role="menu" style={{ minWidth: '220px', right: 0, left: 'auto' }}>
+                          <div className="tpl-dropdown-menu" role="menu" style={{ minWidth: 'max-content', width: 'max-content', whiteSpace: 'nowrap', right: 0, left: 'auto' }}>
                             <button 
                               className="dropdown-item" 
                               onClick={() => { setIsAtsScoreModalOpen(true); setIsAIToolsDropdownOpen(false); }} 
