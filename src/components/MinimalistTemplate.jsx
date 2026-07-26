@@ -108,7 +108,7 @@ function MinimalistTemplate({
                 ) : (
                   <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <strong style={{ fontSize: `${fontSize}pt`, color: textColor }}>{exp.title}</strong>
+                      <strong style={{ fontSize: `${fontSize}pt`, color: textColor }}>{parseMarkdown(exp.title)}</strong>
                       <span style={{ fontSize: `${fontSize - 0.5}pt`, color: 'var(--resume-text-secondary, #555)', whiteSpace: 'nowrap' }}>
                         {formatDate(exp.startMonth, exp.startYear)}
                         {(exp.startMonth || exp.startYear) && ' – '}
@@ -418,7 +418,7 @@ function MinimalistTemplate({
             )}
             {p.tagline && (
               <div style={{ fontSize: '12pt', color: textColor, marginTop: '2px' }}>
-                {p.tagline}
+                {parseMarkdown(p.tagline)}
               </div>
             )}
             {hasContact && (

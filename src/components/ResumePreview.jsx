@@ -533,7 +533,7 @@ function ResumePreview({
                         {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                       </span>
                     </div>
-                    <div className="resume-title">{exp.title}</div>
+                    <div className="resume-title">{parseMarkdown(exp.title)}</div>
                     <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
@@ -582,7 +582,7 @@ function ResumePreview({
                       </span>
                     </div>
                     <div className="resume-title">
-                      {[edu.degree, edu.field].filter(Boolean).join(', ')}
+                      {parseMarkdown([edu.degree, edu.field].filter(Boolean).join(', '))}
                     </div>
                   </div>
                 );
@@ -790,10 +790,10 @@ function ResumePreview({
                   ) : (
                     <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                       <div className="resume-exp-header">
-                        {item.title && <span className="resume-company">{item.title}</span>}
+                        {item.title && <span className="resume-company">{parseMarkdown(item.title)}</span>}
                         {item.date && <span className="resume-dates">{item.date}</span>}
                       </div>
-                      {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
+                      {item.subtitle && <div className="resume-title">{parseMarkdown(item.subtitle)}</div>}
                       {item.description && <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, whiteSpace: 'pre-line' }}>
                         {parseMarkdown(item.description)}
                       </div>}
@@ -931,7 +931,7 @@ function ResumePreview({
                   </div>
                 )}
                 {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
-                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(itemSpacing/2)}px` }}>{p.tagline}</div>}
+                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(itemSpacing/2)}px` }}>{parseMarkdown(p.tagline)}</div>}
                 {hasContact && (
                   layout.splitLinks !== false ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(itemSpacing/2)}px` }}>

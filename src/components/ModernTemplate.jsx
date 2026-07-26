@@ -185,7 +185,7 @@ function ModernTemplate({
                         {exp.current ? t('PRESENT') : formatDate(exp.endMonth, exp.endYear)}
                       </span>
                     </div>
-                    <div className="resume-title">{exp.title}</div>
+                    <div className="resume-title">{parseMarkdown(exp.title)}</div>
                     <div style={{ marginTop: `${Math.round(itemSpacing/2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>)}
                     </div>
@@ -218,7 +218,7 @@ function ModernTemplate({
                       <span className="resume-company">{edu.institution}</span>
                       <span className="resume-dates">{edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}</span>
                     </div>
-                    <div className="resume-title">{[edu.degree, edu.field].filter(Boolean).join(', ')}</div>
+                    <div className="resume-title">{parseMarkdown([edu.degree, edu.field].filter(Boolean).join(', '))}</div>
                   </div>
                 );
                 return (
@@ -379,7 +379,7 @@ function ModernTemplate({
             </div>
           )}
           {p.name && <div className="resume-name">{p.name}</div>}
-          {p.tagline && <div className="resume-tagline">{p.tagline}</div>}
+          {p.tagline && <div className="resume-tagline">{parseMarkdown(p.tagline)}</div>}
         </div>
 
         {sidebarOrder.map((sectionId, idx) => {

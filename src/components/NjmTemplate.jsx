@@ -255,7 +255,7 @@ function NjmTemplate({
                   <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                       <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center', textTransform: 'uppercase' }}>
-                        {renderExperienceIcon(exp.icon)} {exp.title}
+                        {renderExperienceIcon(exp.icon)} {parseMarkdown(exp.title)}
                       </span>
                       <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                         {formatDate(exp.startMonth, exp.startYear)}
@@ -700,7 +700,7 @@ function NjmTemplate({
           )}
           {p.tagline && (
             <div style={{ fontSize: '1.1em', fontWeight: '500', color: textColor, marginTop: '2px' }}>
-              {p.tagline}
+              {parseMarkdown(p.tagline)}
             </div>
           )}
           
