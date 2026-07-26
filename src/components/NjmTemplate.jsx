@@ -258,9 +258,12 @@ function NjmTemplate({
                 ) : (
                   <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, display: 'flex', alignItems: 'center', textTransform: 'uppercase' }}>
-                        {renderExperienceIcon(exp.icon)} {parseMarkdown(exp.title)}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {renderExperienceIcon(exp.icon)}
+                        <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor, textTransform: 'uppercase' }}>
+                          {parseMarkdown(exp.title)}
+                        </span>
+                      </div>
                       <span style={{ fontSize: '0.85em', color: grayColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                         {formatDate(exp.startMonth, exp.startYear)}
                         {(exp.startMonth || exp.startYear) && ' — '}
@@ -338,7 +341,7 @@ function NjmTemplate({
                     </div>
                     <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
                       <div style={{ fontSize: '1.05em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {[edu.degree, edu.field].filter(Boolean).join(' EN ')}
+                        {parseMarkdown([edu.degree, edu.field].filter(Boolean).join(' EN '))}
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.95em', color: grayColor, marginTop: '2px' }}>
                         <span style={{ color: grayColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
@@ -495,7 +498,7 @@ function NjmTemplate({
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         {item.title && (
                           <span style={{ fontSize: '1.05em', fontWeight: 'bold', color: textColor }}>
-                            {item.title}
+                            {parseMarkdown(item.title)}
                           </span>
                         )}
                         {item.date && (
@@ -506,7 +509,7 @@ function NjmTemplate({
                       </div>
                       {item.subtitle && (
                         <div style={{ color: primaryColor, fontWeight: 'bold', fontSize: '0.95em', margin: '2px 0 4px' }}>
-                          {item.subtitle}
+                          {parseMarkdown(item.subtitle)}
                         </div>
                       )}
                       {item.description && (
