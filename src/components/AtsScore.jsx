@@ -288,6 +288,7 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
 }
 
 function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywordsModalOpen, t }) {
+  const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(tip.suggestedText || '');
 
   const handleApply = () => {
@@ -318,7 +319,6 @@ function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywords
         dispatch({ type: 'UPDATE_PROJECTS', payload: updatedProj });
       }
     } else {
-      // Fallback to skills
       const currentSkills = data?.skills?.technical || '';
       const newSkills = currentSkills ? `${currentSkills}, ${textToInsert}` : textToInsert;
       dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, technical: newSkills } });
@@ -327,55 +327,98 @@ function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywords
   };
 
   return (
-    <div className="ats-tip-item animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-      <div style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '13px' }}>{tip.title}</div>
+    <div className="ats-tip-item animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--color-surface)', padding: '14px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+      <div style={{ fontWeight: '700', color: 'var(--color-text)', fontSize: '13px' }}>{tip.title}</div>
       <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', lineHeight: '1.4' }}>{tip.description}</div>
       
       {tip.suggestedText && (
-        <div style={{ marginTop: '4px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-accent)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <i className="fi fi-rr-magic-wand"></i> {t('Suggested Text (Editable):')}
           </div>
-          <textarea
-            value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: '55px',
-              padding: '6px 8px',
-              fontSize: '12px',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontFamily: 'inherit',
-              resize: 'vertical'
-            }}
-          />
+
+          {isEditing ? (
+            <textarea
+              value={editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+              style={{
+                width: '100%',
+                minHeight: '80px',
+                padding: '8px 10px',
+                fontSize: '12.5px',
+                borderRadius: '6px',
+                border: '1px solid var(--color-accent)',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-text)',
+                fontFamily: 'inherit',
+                lineHeight: '1.5',
+                resize: 'vertical'
+              }}
+            />
+          ) : (
+            <div 
+              onClick={() => setIsEditing(true)}
+              style={{
+                padding: '8px 12px',
+                backgroundColor: 'var(--color-success-light, rgba(34, 197, 94, 0.1))',
+                borderLeft: '4px solid var(--color-success, #22c55e)',
+                borderRadius: '4px',
+                fontSize: '12.5px',
+                color: 'var(--color-text)',
+                lineHeight: '1.5',
+                cursor: 'pointer',
+                wordBreak: 'break-word'
+              }}
+              title={t('Click to edit')}
+            >
+              {parseMarkdown(editedText)}
+            </div>
+          )}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap' }}>
         {tip.suggestedText ? (
-          <button
-            type="button"
-            onClick={handleApply}
-            style={{
-              padding: '6px 12px',
-              fontSize: '11px',
-              fontWeight: '600',
-              color: 'var(--color-accent-contrast, #fff)',
-              backgroundColor: 'var(--color-accent, #1B6B3A)',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <i className="fi fi-rr-check"></i> {t('Accept & Apply to CV')}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleApply}
+              style={{
+                padding: '6px 14px',
+                fontSize: '11.5px',
+                fontWeight: '600',
+                color: 'var(--color-accent-contrast, #fff)',
+                backgroundColor: 'var(--color-accent, #1B6B3A)',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <i className="fi fi-rr-check"></i> {t('Accept & Apply to CV')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEditing(!isEditing)}
+              style={{
+                padding: '6px 12px',
+                fontSize: '11.5px',
+                fontWeight: '500',
+                color: 'var(--color-text-secondary)',
+                backgroundColor: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <i className="fi fi-rr-edit"></i> {isEditing ? t('Preview') : t('Edit')}
+            </button>
+          </>
         ) : tip.action ? (
           <button 
             type="button"
@@ -387,8 +430,8 @@ function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywords
               }
             }}
             style={{
-              padding: '6px 12px',
-              fontSize: '11px',
+              padding: '6px 14px',
+              fontSize: '11.5px',
               fontWeight: '600',
               color: 'var(--color-accent-contrast)',
               backgroundColor: 'var(--color-accent)',
@@ -407,7 +450,6 @@ function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywords
         <button
           type="button"
           onClick={onRemove}
-          title={t('Skip')}
           style={{
             padding: '6px 12px',
             background: 'transparent',
@@ -415,7 +457,7 @@ function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywords
             borderRadius: '6px',
             color: 'var(--color-text-secondary)',
             cursor: 'pointer',
-            fontSize: '11px'
+            fontSize: '11.5px'
           }}
         >
           {t('Skip')}
