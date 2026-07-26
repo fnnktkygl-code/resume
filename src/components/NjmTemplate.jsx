@@ -107,12 +107,19 @@ function NjmTemplate({
   };
 
   const getWrapProps = (id) => {
+    const sectionStyle = { marginBottom: `${sectionSpacing}px` };
     if (SectionWrapper) {
-      return { key: id, sectionId: id };
+      return { key: id, sectionId: id, style: sectionStyle };
     }
     return {
       key: id,
       className: onSectionClick ? "preview-interactive-section" : "",
+      style: {
+        ...sectionStyle,
+        cursor: onSectionClick ? 'pointer' : 'default',
+        padding: onSectionClick ? '4px' : '0',
+        borderRadius: '4px'
+      },
       onClick: onSectionClick ? () => onSectionClick(id) : undefined
     };
   };
@@ -181,13 +188,7 @@ function NjmTemplate({
     letterSpacing: '0.5px'
   };
 
-  const wrapperStyle = (sectionId) => ({
-    marginBottom: `${sectionSpacing}px`,
-    cursor: onSectionClick ? 'pointer' : 'default',
-    padding: onSectionClick ? '4px' : '0',
-    margin: onSectionClick ? '-4px' : `0 0 ${sectionSpacing}px 0`,
-    borderRadius: '4px'
-  });
+  // wrapperStyle is no longer needed — style is passed via getWrapProps
 
   const handleSectionClick = (id) => {
     if (onSectionClick) onSectionClick(id);
@@ -761,7 +762,7 @@ function NjmTemplate({
       </div>
 
       {/* Main Sections */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
         {sectionOrder
           .filter(s => s !== 'skills')
           .map((sectionId, sectionIdx) => {

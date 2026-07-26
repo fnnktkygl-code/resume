@@ -529,7 +529,7 @@ function ResumePreview({
                       </span>
                     </div>
                     <div className="resume-title">{exp.title}</div>
-                    <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
+                    <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
                       ))}
@@ -601,7 +601,7 @@ function ResumePreview({
         return (
           <SectionWrapper key="skills" sectionId="skills">
             <div className="resume-section-header">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/1.5)}px` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
               {data.skills.technical && (
                 <div>
                   <strong>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
@@ -679,7 +679,7 @@ function ResumePreview({
         return (
           <SectionWrapper key="certifications" sectionId="certifications">
             <div className="resume-section-header">{displayHeading('certifications', 'Certifications', 'CERTIFICATIONS_RESUME')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(sectionSpacing/3)}px` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
               {validCert.map((c, i) => {
                 const itemContent = c.isSpacer ? (
                   printMode ? (
@@ -746,7 +746,7 @@ function ResumePreview({
                         {item.date && <span className="resume-dates">{item.date}</span>}
                       </div>
                       {item.subtitle && <div className="resume-title">{item.subtitle}</div>}
-                      {item.description && <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                      {item.description && <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, whiteSpace: 'pre-line' }}>
                         {parseMarkdown(item.description)}
                       </div>}
                     </div>
@@ -878,15 +878,15 @@ function ResumePreview({
                 title={onSectionClick && !printMode ? t('Click to edit personal info') : undefined}
               >
                 {p.showPhoto && p.photo && (
-                  <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(sectionSpacing / 2)}px` }} data-testid="profile-photo-container">
+                  <div className="resume-photo-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: `${Math.round(itemSpacing / 2)}px` }} data-testid="profile-photo-container">
                     <img src={p.photo} alt={p.name || "Profile"} style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: `2px solid var(--resume-accent-color)` }} />
                   </div>
                 )}
                 {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
-                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(sectionSpacing/2)}px` }}>{p.tagline}</div>}
+                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(itemSpacing/2)}px` }}>{p.tagline}</div>}
                 {hasContact && (
                   layout.splitLinks !== false ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(itemSpacing/2)}px` }}>
                       {(p.email || p.phone || p.location) && (
                         <div className="resume-contact" style={{ margin: 0 }}>
                           {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>{(p.phone || p.location) && <span className="resume-contact-sep">•</span>}</span>}
@@ -903,7 +903,7 @@ function ResumePreview({
                       )}
                     </div>
                   ) : (
-                    <div className="resume-contact" style={{ marginBottom: `${Math.round(sectionSpacing/2)}px` }}>
+                    <div className="resume-contact" style={{ marginBottom: `${Math.round(itemSpacing/2)}px` }}>
                       {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
                       {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
                       {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}

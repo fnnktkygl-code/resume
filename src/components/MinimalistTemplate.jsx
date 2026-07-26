@@ -411,7 +411,7 @@ function MinimalistTemplate({
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {sectionOrder.map((sectionId) => {
           const rendered = renderSection(sectionId);
           if (!rendered) return null;

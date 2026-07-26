@@ -186,7 +186,7 @@ function ModernTemplate({
                       </span>
                     </div>
                     <div className="resume-title">{exp.title}</div>
-                    <div style={{ marginTop: `${Math.round(sectionSpacing/2)}px` }}>
+                    <div style={{ marginTop: `${Math.round(itemSpacing/2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>)}
                     </div>
                   </div>
@@ -327,7 +327,7 @@ function ModernTemplate({
   return (
     <div className="modern-resume" style={{ fontSize: `${fontSize}pt`, fontFamily: layout.fontFamily || 'Inter' }}>
       {/* Left Sidebar */}
-      <div className="modern-sidebar">
+      <div className="modern-sidebar" style={{ gap: `${sectionSpacing}px` }}>
         <div
           className={onSectionClick && !printMode ? 'preview-interactive-section' : ''}
           style={onSectionClick && !printMode ? { cursor: 'pointer', padding: '4px', margin: '-4px', borderRadius: '4px' } : {}}

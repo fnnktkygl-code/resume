@@ -22,8 +22,8 @@ export default function LayoutControls({ layout, onChange }) {
       paddingX: 0.75,
       paddingY: 0.75,
       lineHeight: 1.45,
-      sectionSpacing: 10,
-      itemSpacing: 8,
+      sectionSpacing: 8,
+      itemSpacing: 12,
       accentColor: '#1B6B3A',
       fontFamily: 'Inter',
       splitLinks: true
