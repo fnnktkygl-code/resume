@@ -75,17 +75,34 @@ export default async function handler(req, res) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
     const prompt = `
-You are an expert ATS (Applicant Tracking System) Analyzer.
-I will provide you with a Job Description and the parsed text of a candidate's Resume.
+You are an advanced, domain-agnostic ATS (Applicant Tracking System) Analyzer and Technical Recruiter.
+Your objective is to analyze a Job Description against a Candidate's Resume to evaluate technical and domain fit.
 
-Your task is to analyze how well the Resume matches the Job Description based on keywords, skills, and qualifications.
+CRITICAL KEYWORD EXTRACTION & MATCHING RULES:
+1. FOCUS EXCLUSIVELY ON HARD SKILLS, TECHNICAL TOOLS, METHODOLOGIES & SPECIFIC QUALIFICATIONS:
+   - Specific software, programming languages, platforms, & tools (e.g., Python, Power BI, SQL, SCADA, GMAO, Jira, Excel, Salesforce, AutoCAD, Figma, AWS, SAP, etc.)
+   - Domain-specific expertise, frameworks, & techniques (e.g., Machine Learning, Maintenance prédictive, Data Analytics, Performance énergétique, Stockage d'énergie, Génie industriel, Audit financier, Design System, etc.)
+   - Specific degrees, certifications, or mandatory qualifications (e.g., Bac +5, Master, PMP, CFA, Anglais professionnel, etc.)
+
+2. STRICTLY IGNORE AND EXCLUDE GENERAL BOILERPLATE & MARKETING NOISE:
+   - DO NOT extract company values, mission statements, culture/marketing fluff, or intro text (e.g., "avenir durable", "construisons", "transition", "esprit d'équipe", "entreprise dynamique", "cadre agréable", "passionné", "opportunité", "rejoindre", "présents dans N pays").
+   - DO NOT extract generic action verbs or common nouns (e.g., "développer", "contribuer", "assurer", "missions", "poste", "candidat", "activités").
+
+3. FAIR MATCHING & DEDUPLICATION:
+   - Check ALL sections of the Resume (Summary, Title, Experience bullets, Skills, Education, Projects, Custom Sections).
+   - If a technical skill or tool appears ANYWHERE in the Resume (even if phrased slightly differently, e.g. "Excel" vs "Excel avancé", "Power BI" vs "PowerBI", "Master" vs "Bac +5"), classify it as FOUND.
+   - "missingKeywords" must ONLY include crucial technical/domain skills or tools present in the Job Description that are ACTUALLY MISSING from the Resume.
+
+4. ACCURATE SCORING & ACTIONABLE RECOMMENDATION:
+   - Calculate "matchScore" (0-100) based strictly on the ratio of required technical skills/qualifications matched.
+   - Provide a concise, 1-2 sentence recommendation in the requested language focusing on the most critical missing technical skills to add.
 
 Output a strictly valid JSON object with the following schema:
 {
-  "matchScore": <number between 0 and 100 representing the ATS match percentage>,
-  "missingKeywords": <array of strings, listing exactly the important keywords/skills present in the Job Description but missing from the Resume>,
-  "foundKeywords": <array of strings, listing the important keywords/skills that successfully matched>,
-  "recommendation": <string, a short and actionable recommendation on how to improve the match score>
+  "matchScore": <number between 0 and 100>,
+  "missingKeywords": <array of strings, only critical missing technical/hard skills or tools>,
+  "foundKeywords": <array of strings, matched technical/hard skills or tools>,
+  "recommendation": <string, short actionable advice in the target language>
 }
 
 ${langInstruction}
