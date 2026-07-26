@@ -91,6 +91,17 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         });
       }
 
+      // Technologies / Tags change
+      if (exp.technologies !== modExp.technologies && modExp.technologies) {
+        items.push({
+          id: `exp.${expId}.tech`,
+          section: `${exp.company || ''} — ${t('Tags / Technologies')}`,
+          type: 'text',
+          original: exp.technologies,
+          modified: modExp.technologies
+        });
+      }
+
       // Bullet diffs
       exp.bullets?.forEach((bullet, bIdx) => {
         const modBullet = modExp.bullets?.[bIdx];
@@ -148,6 +159,16 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
           type: 'text',
           original: proj.description,
           modified: modProj.description
+        });
+      }
+
+      if (proj.techStack !== modProj.techStack && modProj.techStack) {
+        items.push({
+          id: `proj.${projId}.tech`,
+          section: `${t('Project')}: ${proj.name || ''} — ${t('Tags / Tech Stack')}`,
+          type: 'text',
+          original: proj.techStack,
+          modified: modProj.techStack
         });
       }
 

@@ -42,6 +42,9 @@ export function mergeSelected(original, modified, selectedIds) {
     if (selectedIds.has(`exp.${expId}.title`) && modExp.title !== exp.title) {
       merged.experience[idx].title = modExp.title;
     }
+    if (selectedIds.has(`exp.${expId}.tech`) && modExp.technologies !== exp.technologies) {
+      merged.experience[idx].technologies = modExp.technologies;
+    }
     exp.bullets?.forEach((bullet, bIdx) => {
       if (selectedIds.has(`exp.${expId}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
         merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
@@ -73,6 +76,9 @@ export function mergeSelected(original, modified, selectedIds) {
     const projId = proj.id || idx;
     if (selectedIds.has(`proj.${projId}.desc`) && modProj.description !== proj.description) {
       merged.projects[idx].description = modProj.description;
+    }
+    if (selectedIds.has(`proj.${projId}.tech`) && modProj.techStack !== proj.techStack) {
+      merged.projects[idx].techStack = modProj.techStack;
     }
     proj.highlights?.forEach((h, bIdx) => {
       if (selectedIds.has(`proj.${projId}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {

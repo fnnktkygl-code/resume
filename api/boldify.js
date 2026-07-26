@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 Your task is to apply AI Smart Bolding to the text values inside the provided JSON resume.
 
 CRITICAL RULES:
-1. ONLY add markdown bold (**bold text**) around the most important keywords, strong action verbs, and quantifiable metrics.
+1. ONLY add markdown bold (**bold text**) around the most important keywords, strong action verbs, quantifiable metrics, and key technologies/tags (including inside "technologies", "techStack", "skills", "bullets", "title", "summary", etc.).
 2. DO NOT change, rewrite, or translate any words. The spelling, grammar, phrasing, and punctuation of the original text must remain 100% identical. Only inject ** characters around existing words.
 3. BE EXTREMELY MINIMALIST. Only bold 1-3 key terms per sentence or bullet point. Do not bold long phrases. Avoid bolding too many things.
 4. DO NOT modify the JSON keys (e.g. keep "company", "title", "bullets", "summary", etc. exactly as they are).
