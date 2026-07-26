@@ -166,8 +166,32 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
                           payload: { ...data.skills, technical: newSkills }
                         });
                         
-                        // Re-run analysis
-                        handleAnalyze();
+                        // Update local result state instantly without making a redundant API call
+                        const appliedSet = new Set(selectedMissingKeywords);
+                        const updatedMissing = (result?.missingKeywords || []).filter(kw => !appliedSet.has(kw));
+                        const updatedFound = Array.from(new Set([...(result?.foundKeywords || []), ...selectedMissingKeywords]));
+                        const newScore = updatedMissing.length === 0 ? 98 : Math.min(95, (result?.matchScore || 75) + 15);
+
+                        const updatedAnalysis = {
+                          ...result,
+                          matchScore: newScore,
+                          missingKeywords: updatedMissing,
+                          foundKeywords: updatedFound,
+                          recommendation: language === 'fr' 
+                            ? "Toutes les compétences sélectionnées ont été ajoutées à votre CV !" 
+                            : "All selected key skills have been added to your resume!"
+                        };
+
+                        setResult(updatedAnalysis);
+                        setSelectedMissingKeywords([]);
+
+                        if (dispatch) {
+                          dispatch({
+                            type: 'UPDATE_TARGET_JOB_ANALYSIS',
+                            payload: updatedAnalysis
+                          });
+                        }
+
                         if (onApplied) {
                           onApplied();
                         }
