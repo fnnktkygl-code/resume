@@ -26,6 +26,12 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
       if (analysis?.missingKeywords) {
         setSelectedMissingKeywords([...analysis.missingKeywords]);
       }
+      if (dispatch && analysis) {
+        dispatch({
+          type: 'UPDATE_TARGET_JOB_ANALYSIS',
+          payload: analysis
+        });
+      }
     } catch (err) {
       setError(err.message || t('An error occurred during analysis.'));
     } finally {

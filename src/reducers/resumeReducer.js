@@ -24,9 +24,16 @@ export default function resumeReducer(state, action) {
       };
 
     case 'UPDATE_TARGET_JOB':
+    case 'UPDATE_TARGET_JOB_DESCRIPTION':
       return {
         ...state,
-        targetJobDescription: action.payload
+        targetJobDescription: typeof action.payload === 'object' ? action.payload.description : action.payload
+      };
+
+    case 'UPDATE_TARGET_JOB_ANALYSIS':
+      return {
+        ...state,
+        targetJobAnalysis: action.payload
       };
 
     case 'UPDATE_SKILLS':
