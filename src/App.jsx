@@ -20,6 +20,7 @@ import CustomStep from './components/steps/CustomStep';
 import SpacerStep from './components/steps/SpacerStep';
 import { exportMarkdown, exportJson, importJson, exportDocx } from './utils/exporters';
 import { sanitizeResumeData } from './utils/sanitize';
+import { computeAtsScore } from './utils/atsScore';
 import { TranslationContext } from './utils/TranslationContext';
 import { getTranslation } from './utils/translations';
 import LayoutControls from './components/LayoutControls';
@@ -326,6 +327,11 @@ export default function App() {
     const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
     return Boolean(hasContact || data.summary || validExp.length || validEdu.length || hasSkills || validProj.length || validCert.length);
   }, [data]);
+
+  const atsScore = useMemo(() => {
+    if (!hasContent) return null;
+    try { return computeAtsScore(data); } catch { return null; }
+  }, [data, hasContent]);
 
   const calculatedFullscreenScale = useMemo(() => {
     return Math.min((viewportSize.width - 48) / 816, (viewportSize.height - 110) / 1056);
@@ -1125,6 +1131,32 @@ export default function App() {
                           ↪
                         </button>
                       </div>
+
+                      {/* Mini ATS Score Badge */}
+                      {atsScore && (
+                        <button
+                          className="control-btn"
+                          onClick={() => setIsAtsScoreModalOpen(true)}
+                          title={`${t('ATS Score')}: ${atsScore.score}/100 — ${t('Click for details')}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 8px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            borderRadius: '12px',
+                            color: atsScore.score >= 70 ? '#059669' : atsScore.score >= 40 ? '#d97706' : '#dc2626',
+                            background: atsScore.score >= 70 ? 'rgba(5,150,105,0.1)' : atsScore.score >= 40 ? 'rgba(217,119,6,0.1)' : 'rgba(220,38,38,0.1)',
+                            border: `1px solid ${atsScore.score >= 70 ? 'rgba(5,150,105,0.25)' : atsScore.score >= 40 ? 'rgba(217,119,6,0.25)' : 'rgba(220,38,38,0.25)'}`,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <span style={{ fontSize: '10px' }}>🎯</span>
+                          {atsScore.score}
+                        </button>
+                      )}
 
                       <div className="control-divider" aria-hidden="true" />
 
