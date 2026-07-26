@@ -33,15 +33,40 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Resume data and job description are required' });
     }
 
-    // Extract text from CV to compare
+    // Extract text from CV to compare — ALL sections
     let resumeText = '';
+    if (data.personal?.tagline) resumeText += `Title: ${data.personal.tagline}\n`;
     if (data.summary) resumeText += `Summary: ${data.summary}\n`;
     data.experience?.forEach(exp => {
+      if (exp.isSpacer) return;
       resumeText += `Title: ${exp.title} at ${exp.company}\n`;
       exp.bullets?.forEach(b => { resumeText += `- ${b}\n`; });
     });
+    data.education?.forEach(edu => {
+      if (edu.isSpacer) return;
+      resumeText += `Education: ${edu.degree || ''} ${edu.fieldOfStudy || ''} at ${edu.institution || ''}\n`;
+    });
+    data.projects?.forEach(proj => {
+      if (proj.isSpacer) return;
+      resumeText += `Project: ${proj.name || ''}\n`;
+      if (proj.description) resumeText += `${proj.description}\n`;
+      proj.highlights?.forEach(h => { resumeText += `- ${h}\n`; });
+    });
+    data.certifications?.forEach(cert => {
+      if (cert.isSpacer) return;
+      resumeText += `Certification: ${cert.name || ''} - ${cert.issuer || ''}\n`;
+    });
     if (data.skills?.technical) resumeText += `Technical Skills: ${data.skills.technical}\n`;
     if (data.skills?.soft) resumeText += `Soft Skills: ${data.skills.soft}\n`;
+    if (data.skills?.languages) resumeText += `Languages: ${data.skills.languages}\n`;
+    data.customSections?.forEach(sec => {
+      resumeText += `${sec.label || 'Custom'}: `;
+      sec.items?.forEach(item => {
+        if (item.isSpacer) return;
+        resumeText += `${item.title || ''} ${item.subtitle || ''} ${item.description || ''}, `;
+      });
+      resumeText += '\n';
+    });
 
     const langInstruction = language === 'fr' ? 'Réponds en Français.' : 
                             language === 'es' ? 'Responde en Español.' : 

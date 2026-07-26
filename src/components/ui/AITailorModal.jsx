@@ -3,64 +3,7 @@ import { useTranslation } from '../../utils/TranslationContext';
 import Modal from './Modal';
 import { tailorResumeWithProxy } from '../../services/geminiService';
 import VisualDiff from './VisualDiff';
-
-function mergeSelected(original, modified, selectedIds) {
-  const merged = structuredClone(original);
-
-  if (selectedIds.has('tagline') && modified.personal?.tagline !== original.personal?.tagline) {
-    merged.personal = merged.personal || {};
-    merged.personal.tagline = modified.personal.tagline;
-  }
-
-  if (selectedIds.has('summary') && modified.summary !== original.summary) {
-    merged.summary = modified.summary;
-  }
-  if (selectedIds.has('skills.technical') && modified.skills?.technical !== original.skills?.technical) {
-    merged.skills = merged.skills || {};
-    merged.skills.technical = modified.skills.technical;
-  }
-  if (selectedIds.has('skills.soft') && modified.skills?.soft !== original.skills?.soft) {
-    merged.skills = merged.skills || {};
-    merged.skills.soft = modified.skills.soft;
-  }
-
-  original.experience?.forEach((exp, idx) => {
-    if (exp.isSpacer) return;
-    const modExp = modified.experience?.find(e => e.id === exp.id) || modified.experience?.[idx];
-    if (!modExp || !merged.experience?.[idx]) return;
-
-    const expId = exp.id || idx;
-    if (selectedIds.has(`exp.${expId}.title`) && modExp.title !== exp.title) {
-      merged.experience[idx].title = modExp.title;
-    }
-    exp.bullets?.forEach((bullet, bIdx) => {
-      if (selectedIds.has(`exp.${expId}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
-        merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
-      }
-    });
-  });
-
-  original.projects?.forEach((proj, idx) => {
-    if (proj.isSpacer) return;
-    const modProj = modified.projects?.find(p => p.id === proj.id) || modified.projects?.[idx];
-    if (!modProj || !merged.projects?.[idx]) return;
-
-    const projId = proj.id || idx;
-    if (selectedIds.has(`proj.${projId}.desc`) && modProj.description !== proj.description) {
-      merged.projects[idx].description = modProj.description;
-    }
-    proj.highlights?.forEach((h, bIdx) => {
-      if (selectedIds.has(`proj.${projId}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
-        merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
-      }
-    });
-  });
-
-  // Preserve headings and other fields from modified that aren't diffed
-  if (modified.headings) merged.headings = modified.headings;
-
-  return merged;
-}
+import { mergeSelected } from '../../utils/mergeSelected';
 
 export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language }) {
   const { t } = useTranslation();

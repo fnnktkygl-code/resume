@@ -3,54 +3,7 @@ import { useTranslation } from '../utils/TranslationContext';
 import Modal from './ui/Modal';
 import { translateWithProxy } from '../services/geminiService';
 import VisualDiff from './ui/VisualDiff';
-
-function mergeSelected(original, modified, selectedIds) {
-  const merged = structuredClone(original);
-
-  if (selectedIds.has('summary') && modified.summary !== original.summary) {
-    merged.summary = modified.summary;
-  }
-  if (selectedIds.has('skills.technical') && modified.skills?.technical !== original.skills?.technical) {
-    merged.skills = merged.skills || {};
-    merged.skills.technical = modified.skills.technical;
-  }
-  if (selectedIds.has('skills.soft') && modified.skills?.soft !== original.skills?.soft) {
-    merged.skills = merged.skills || {};
-    merged.skills.soft = modified.skills.soft;
-  }
-
-  original.experience?.forEach((exp, idx) => {
-    const modExp = modified.experience?.[idx];
-    if (!modExp || !merged.experience?.[idx]) return;
-
-    if (selectedIds.has(`exp.${idx}.title`) && modExp.title !== exp.title) {
-      merged.experience[idx].title = modExp.title;
-    }
-    exp.bullets?.forEach((bullet, bIdx) => {
-      if (selectedIds.has(`exp.${idx}.bullet.${bIdx}`) && modExp.bullets?.[bIdx] && modExp.bullets[bIdx] !== bullet) {
-        merged.experience[idx].bullets[bIdx] = modExp.bullets[bIdx];
-      }
-    });
-  });
-
-  original.projects?.forEach((proj, idx) => {
-    const modProj = modified.projects?.[idx];
-    if (!modProj || !merged.projects?.[idx]) return;
-
-    if (selectedIds.has(`proj.${idx}.desc`) && modProj.description !== proj.description) {
-      merged.projects[idx].description = modProj.description;
-    }
-    proj.highlights?.forEach((h, bIdx) => {
-      if (selectedIds.has(`proj.${idx}.highlight.${bIdx}`) && modProj.highlights?.[bIdx] && modProj.highlights[bIdx] !== h) {
-        merged.projects[idx].highlights[bIdx] = modProj.highlights[bIdx];
-      }
-    });
-  });
-
-  if (modified.headings) merged.headings = modified.headings;
-
-  return merged;
-}
+import { mergeSelected } from '../utils/mergeSelected';
 
 export default function AIPromptModal({ isOpen, onClose, data, language, onTranslationSuccess }) {
   const { t } = useTranslation();
