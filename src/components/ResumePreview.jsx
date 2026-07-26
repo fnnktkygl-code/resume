@@ -46,6 +46,11 @@ function ResumePreview({
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null);
   };
+  // Detect simple-list custom sections (langues, atouts, loisirs) that should render compactly
+  const isCompactCustomSection = (sec) => {
+    const label = (sec.label || '').toLowerCase();
+    return /langue|language|idioma|atout|strength|qualit|asset|compétenc|competenc|loisir|hobbi|interest|détente|intere/.test(label);
+  };
 
   const p = data.personal;
   const hasContact = hasContactInfo(p);
@@ -723,6 +728,49 @@ function ResumePreview({
           if (!customSec || !customSec.items.length) return null;
           const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems.length) return null;
+
+          // Detect simple-list sections (langues, atouts, loisirs) — render compact
+          const isSimpleList = isCompactCustomSection(customSec);
+
+          if (isSimpleList) {
+            return (
+              <SectionWrapper key={sectionId} sectionId={sectionId}>
+                <div className="resume-section-header">{customSec.label || 'Custom'}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 3)}px` }}>
+                  {validItems.map((item, i) => {
+                    if (item.isSpacer) {
+                      return printMode ? (
+                        <div key={item.id || i} style={{ height: `${item.height}px` }} />
+                      ) : (
+                        <NestedSpacer 
+                          key={item.id || i}
+                          height={item.height} 
+                          onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })}
+                          onDelete={() => onItemDelete(sectionId, i)}
+                        />
+                      );
+                    }
+                    const label = [item.title, item.subtitle].filter(Boolean).join(' — ');
+                    return (
+                      <div key={item.id || i}>
+                        <ItemWrapper sectionId={sectionId} itemId={item.id} index={i}>
+                          <div className="resume-bullet" style={{ display: 'flex', alignItems: 'baseline' }}>
+                            <span style={{ marginRight: '6px' }}>•</span>
+                            <span>
+                              {item.title && <strong>{item.title}</strong>}
+                              {item.title && item.subtitle && ' — '}
+                              {item.subtitle && <em>{item.subtitle}</em>}
+                            </span>
+                          </div>
+                          {item.description && <div style={{ marginLeft: '14px', marginTop: '2px', whiteSpace: 'pre-line' }}>{parseMarkdown(item.description)}</div>}
+                        </ItemWrapper>
+                      </div>
+                    );
+                  })}
+                </div>
+              </SectionWrapper>
+            );
+          }
 
           return (
             <SectionWrapper key={sectionId} sectionId={sectionId}>

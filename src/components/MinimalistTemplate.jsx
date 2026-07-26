@@ -304,6 +304,44 @@ function MinimalistTemplate({
           const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems.length) return null;
 
+          // Detect simple-list sections — compact rendering
+          const label = (customSec.label || '').toLowerCase();
+          const isSimpleList = /langue|language|idioma|atout|strength|qualit|asset|compétenc|competenc|loisir|hobbi|interest|détente|intere/.test(label);
+
+          if (isSimpleList) {
+            return (
+              <Wrapper {...getWrapProps(sectionId, sectionWrapperStyle)}>
+                <div style={sectionTitleStyle}>{customSec.label || 'Custom'}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  {validItems.map((item, i) => {
+                    if (item.isSpacer) {
+                      return printMode ? (
+                        <div key={item.id || i} style={{ height: `${item.height}px` }} />
+                      ) : (
+                        <NestedSpacer key={item.id || i} height={item.height} onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })} onDelete={() => onItemDelete(sectionId, i)} />
+                      );
+                    }
+                    return (
+                      <div key={item.id || i}>
+                        <ItemWrapper sectionId={sectionId} itemId={item.id} index={i}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', fontSize: `${fontSize}pt` }}>
+                            <span style={{ fontWeight: 'bold' }}>•</span>
+                            <span>
+                              {item.title && <strong style={{ color: textColor }}>{item.title}</strong>}
+                              {item.title && item.subtitle && ' — '}
+                              {item.subtitle && <em style={{ color: primaryColor }}>{item.subtitle}</em>}
+                            </span>
+                          </div>
+                          {item.description && <div style={{ marginLeft: '12px', marginTop: '2px', whiteSpace: 'pre-line' }}>{parseMarkdown(item.description)}</div>}
+                        </ItemWrapper>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Wrapper>
+            );
+          }
+
           return (
             <Wrapper {...getWrapProps(sectionId, sectionWrapperStyle)}>
               <div style={sectionTitleStyle}>{customSec.label || 'Custom'}</div>
@@ -315,7 +353,6 @@ function MinimalistTemplate({
                     )
                   ) : (
                     <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid', fontSize: `${fontSize}pt` }}>
-                      {/* Similar formatting to experience/education or plain text for lists */}
                       {(item.title || item.date) && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                           <strong style={{ color: textColor }}>{item.title}</strong>

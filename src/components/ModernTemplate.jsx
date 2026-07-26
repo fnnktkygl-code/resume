@@ -282,6 +282,46 @@ function ModernTemplate({
           if (!customSec) return null;
           const validItems = customSec.items.filter(i => i.title || i.subtitle || i.description || i.isSpacer);
           if (!validItems.length) return null;
+
+          // Detect simple-list sections — compact rendering
+          const label = (customSec.label || '').toLowerCase();
+          const isSimpleList = /langue|language|idioma|atout|strength|qualit|asset|compétenc|competenc|loisir|hobbi|interest|détente|intere/.test(label);
+
+          if (isSimpleList) {
+            const isInSidebar = isSidebar(sectionId);
+            return (
+              <Wrapper {...getWrapProps(sectionId)}>
+                <div className={isInSidebar ? "modern-sidebar-section-title" : "resume-section-header"}>{customSec.label || 'Custom'}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  {validItems.map((item, i) => {
+                    if (item.isSpacer) {
+                      return printMode ? (
+                        <div key={item.id || i} style={{ height: `${item.height}px` }} />
+                      ) : (
+                        <NestedSpacer key={item.id || i} height={item.height} onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })} onDelete={() => onItemDelete(sectionId, i)} />
+                      );
+                    }
+                    return (
+                      <div key={item.id || i}>
+                        <ItemWrapper sectionId={sectionId} itemId={item.id} index={i}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '0.85em' }}>•</span>
+                            <span>
+                              {item.title && <strong>{item.title}</strong>}
+                              {item.title && item.subtitle && ' — '}
+                              {item.subtitle && <em style={{ fontWeight: 'normal' }}>{item.subtitle}</em>}
+                            </span>
+                          </div>
+                          {item.description && <div style={{ marginLeft: '12px', marginTop: '2px', whiteSpace: 'pre-line', fontSize: '0.9em' }}>{parseMarkdown(item.description)}</div>}
+                        </ItemWrapper>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Wrapper>
+            );
+          }
+
           return (
             <Wrapper {...getWrapProps(sectionId)}>
               <div className={['custom_langues', 'custom_atouts', 'custom_loisirs'].includes(sectionId) && isSidebar(sectionId) ? "modern-sidebar-section-title" : "resume-section-header"}>{customSec.label || 'Custom'}</div>
