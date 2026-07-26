@@ -242,6 +242,8 @@ export const TRANSLATIONS = {
     'Export CV to JSON?': 'Export CV to JSON?',
 
     // ATS Score
+    'ATS Score & Analysis': 'ATS Score & Analysis',
+    'Missing keywords:': 'Missing keywords:',
     'ATS Readiness': 'ATS Readiness',
     'Excellent — ready to apply': 'Excellent — ready to apply',
     'Good — a few improvements left': 'Good — a few improvements left',
@@ -830,6 +832,8 @@ export const TRANSLATIONS = {
     'Export CV to JSON?': 'Voulez-vous vraiment télécharger le CV au format JSON ?',
 
     // ATS Score
+    'ATS Score & Analysis': 'Score & Analyse ATS',
+    'Missing keywords:': 'Mots-clés manquants :',
     'ATS Readiness': 'Score ATS',
     'Excellent — ready to apply': 'Excellent — prêt à postuler',
     'Good — a few improvements left': 'Bien — quelques améliorations restantes',

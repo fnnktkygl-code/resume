@@ -304,7 +304,14 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
                   </div>
                 );
               } else {
-                // Standard tips are strings (translation keys)
+                // Standard tips are strings or structured objects
+                if (typeof tip === 'object' && tip?.type === 'missing_keywords') {
+                  return (
+                    <div key={i} className="ats-tip-item animate-fade-in" role="listitem">
+                      <strong>{t('Missing keywords:')}</strong> {tip.keywords.join(', ')}
+                    </div>
+                  );
+                }
                 return (
                   <div key={i} className="ats-tip-item animate-fade-in" role="listitem">
                     {t(tip)}

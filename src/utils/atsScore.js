@@ -80,7 +80,25 @@ export function computeAtsScore(data) {
 
   // --- Live ATS Match Score (Feature 1) ---
   if (data.targetJobDescription && data.targetJobDescription.trim().length > 20) {
-    const stopWords = new Set(['the', 'and', 'for', 'with', 'that', 'this', 'you', 'are', 'your', 'from', 'will', 'have', 'experience', 'work', 'team', 'skills', 'can', 'not', 'our', 'all', 'any', 'but', 'pour', 'avec', 'vous', 'dans', 'nous', 'votre', 'sur', 'des', 'les', 'une', 'qui', 'que', 'pas', 'par', 'est', 'sont', 'faire']);
+    const stopWords = new Set([
+      // English stop words & corporate boilerplate
+      'the', 'and', 'for', 'with', 'that', 'this', 'you', 'are', 'your', 'from', 'will', 'have',
+      'experience', 'work', 'working', 'team', 'skills', 'can', 'not', 'our', 'all', 'any', 'but',
+      'about', 'company', 'role', 'looking', 'candidate', 'must', 'should', 'ability', 'strong',
+      'years', 'year', 'preferred', 'required', 'responsibilities', 'qualifications', 'description',
+      'job', 'join', 'help', 'make', 'more', 'other', 'their', 'them', 'they', 'which', 'what',
+      
+      // French stop words & corporate boilerplate
+      'propos', 'offre', 'emploi', 'ensemble', 'construisons', 'chez', 'nous', 'présents', 'notre',
+      'votre', 'entreprise', 'postuler', 'mission', 'profil', 'recherche', 'bureau', 'pays', 'équipe',
+      'compétence', 'compétences', 'opportunité', 'opportunités', 'candidat', 'rôle', 'role',
+      'plus', 'pour', 'dans', 'cœur', 'futur', 'ancrage', 'local', 'transformé', 'défis', 'aujourd',
+      'durables', 'grâce', 'vers', 'sans', 'tous', 'toutes', 'fait', 'faire', 'ainsi', 'afin',
+      'comme', 'aussi', 'avec', 'cette', 'sont', 'être', 'avoir', 'des', 'les', 'une', 'un',
+      'qui', 'que', 'pas', 'par', 'est', 'sur', 'dans', 'aux', 'du', 'au', 'en', 'le', 'la',
+      'bénéficiez', 'rejoindre', 'poste', 'niveau', 'également', 'ainsi', 'afin', 'dans', 'grâce',
+      'situé', 'contexte', 'cadre', 'proposer', 'assurer', 'partie', 'auprès', 'selon', 'souhaité'
+    ]);
     const jdWords = data.targetJobDescription.toLowerCase().match(/[a-zÀ-ÿ]{4,}/g) || [];
     const keywords = [...new Set(jdWords.filter(w => !stopWords.has(w)))];
 
@@ -103,7 +121,10 @@ export function computeAtsScore(data) {
 
       const matchTips = [];
       if (missingKeywords.length > 0) {
-        matchTips.push(`Missing keywords: ${missingKeywords.slice(0, 5).join(', ')}`);
+        matchTips.push({
+          type: 'missing_keywords',
+          keywords: missingKeywords.slice(0, 5)
+        });
       }
       
       return { score: blendedScore, tips: [...matchTips, ...tips].slice(0, 5), isMatchScore: true };
