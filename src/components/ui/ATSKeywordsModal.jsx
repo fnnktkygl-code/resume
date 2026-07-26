@@ -10,6 +10,8 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const [selectedMissingKeywords, setSelectedMissingKeywords] = useState([]);
+
   if (!isOpen) return null;
 
   const handleAnalyze = async () => {
@@ -21,11 +23,20 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
     try {
       const analysis = await matchKeywordsWithProxy(data, jobDescription, language);
       setResult(analysis);
+      if (analysis?.missingKeywords) {
+        setSelectedMissingKeywords([...analysis.missingKeywords]);
+      }
     } catch (err) {
       setError(err.message || t('An error occurred during analysis.'));
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const toggleKeyword = (kw) => {
+    setSelectedMissingKeywords(prev => 
+      prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw]
+    );
   };
 
   const scoreColor = result?.matchScore >= 80 ? 'var(--color-success, #28a745)' : 
@@ -92,20 +103,56 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {result.missingKeywords && result.missingKeywords.length > 0 && (
                 <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: 'var(--color-danger, #d32f2f)' }}>{t('Missing Keywords')}</h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {result.missingKeywords.map((kw, i) => (
-                      <span key={i} style={{ padding: '4px 8px', backgroundColor: 'var(--color-danger-light, #ffe6e6)', color: 'var(--color-danger, #d32f2f)', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500' }}>
-                        {kw}
-                      </span>
-                    ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-danger, #d32f2f)' }}>
+                      {t('Missing Keywords')} ({selectedMissingKeywords.length}/{result.missingKeywords.length})
+                    </h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      {t('Click keywords to select/unselect')}
+                    </span>
                   </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {result.missingKeywords.map((kw, i) => {
+                      const isSelected = selectedMissingKeywords.includes(kw);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => toggleKeyword(kw)}
+                          title={isSelected ? t('Click to exclude') : t('Click to include')}
+                          style={{
+                            padding: '5px 10px',
+                            backgroundColor: isSelected ? 'var(--color-danger-light, #ffe6e6)' : 'var(--color-surface-alt, #f3f4f6)',
+                            color: isSelected ? 'var(--color-danger, #d32f2f)' : 'var(--color-text-muted, #888)',
+                            border: `1px solid ${isSelected ? 'rgba(211,47,47,0.3)' : 'var(--color-border, #ddd)'}`,
+                            borderRadius: '16px',
+                            fontSize: '0.8rem',
+                            fontWeight: isSelected ? '600' : '400',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            textDecoration: isSelected ? 'none' : 'line-through',
+                            opacity: isSelected ? 1 : 0.6,
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span>{isSelected ? '✓' : '✕'}</span>
+                          {kw}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   {dispatch && (
                     <button
                       type="button"
+                      disabled={selectedMissingKeywords.length === 0}
                       onClick={() => {
+                        if (!selectedMissingKeywords.length) return;
                         const currentSkills = data.skills?.technical || '';
-                        const missingKws = result.missingKeywords.join(', ');
+                        const missingKws = selectedMissingKeywords.join(', ');
                         const newSkills = currentSkills ? `${currentSkills}, ${missingKws}` : missingKws;
                         
                         dispatch({
@@ -113,32 +160,32 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
                           payload: { ...data.skills, technical: newSkills }
                         });
                         
-                        // Re-run the analysis since the skills have been updated
+                        // Re-run analysis
                         handleAnalyze();
                         if (onApplied) {
                           onApplied();
                         }
                       }}
                       style={{
-                        marginTop: '12px',
-                        padding: '6px 12px',
-                        fontSize: '11px',
+                        marginTop: '14px',
+                        padding: '8px 14px',
+                        fontSize: '12px',
                         fontWeight: '600',
-                        color: 'var(--color-accent-contrast)',
-                        backgroundColor: 'var(--color-accent)',
+                        color: 'var(--color-accent-contrast, #fff)',
+                        backgroundColor: selectedMissingKeywords.length > 0 ? 'var(--color-accent, #1B6B3A)' : '#ccc',
                         border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
+                        borderRadius: '8px',
+                        cursor: selectedMissingKeywords.length > 0 ? 'pointer' : 'not-allowed',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         alignSelf: 'flex-start',
-                        transition: 'transform 0.1s'
+                        transition: 'all 0.15s ease',
+                        opacity: selectedMissingKeywords.length > 0 ? 1 : 0.5
                       }}
-                      onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
-                      onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
-                      <i className="fi fi-rr-magic-wand"></i> {t('✨ Auto Inject missing keywords')}
+                      <i className="fi fi-rr-magic-wand"></i>
+                      {t(`✨ Auto-apply ${selectedMissingKeywords.length} selected keyword${selectedMissingKeywords.length > 1 ? 's' : ''}`)}
                     </button>
                   )}
                 </div>
