@@ -3,6 +3,7 @@ import { useTranslation } from '../utils/TranslationContext';
 import { memo, useState } from 'react';
 import { analyzeResumeWithProxy } from '../services/geminiService';
 import ATSKeywordsModal from './ui/ATSKeywordsModal';
+import { parseMarkdown } from '../utils/formatText';
 
 function AtsScore({ data, dispatch, onTriggerAction }) {
   const { t, language } = useTranslation();
