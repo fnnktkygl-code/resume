@@ -195,6 +195,9 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
                         if (onApplied) {
                           onApplied();
                         }
+                        if (onClose) {
+                          onClose();
+                        }
                       }}
                       style={{
                         marginTop: '14px',
