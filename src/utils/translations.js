@@ -839,7 +839,7 @@ export const TRANSLATIONS = {
     'Missing keywords:': 'Mots-clés manquants :',
     'Suggested Text (Editable):': 'Proposition de texte (Éditable) :',
     'Accept & Apply to CV': '✅ Appliquer au CV',
-    '✨ Generate Concrete AI Example': '✨ Générer un exemple concrét (IA)',
+    '✨ Generate Concrete AI Example': '✨ Générer un exemple concret (IA)',
     'ATS Readiness': 'Score ATS',
     'Excellent — ready to apply': 'Excellent — prêt à postuler',
     'Good — a few improvements left': 'Bien — quelques améliorations restantes',

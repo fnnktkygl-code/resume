@@ -206,57 +206,31 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
             <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text)' }}>
               {t('Recommendations')} ({displayTips.length})
             </span>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              {!aiTips && (
-                <button
-                  type="button"
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing}
+            {totalTipPages > 1 && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button 
+                  onClick={() => setCurrentTipPage(prev => Math.max(0, prev - 1))}
+                  disabled={currentTipPage === 0}
                   style={{
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    color: 'var(--color-accent-contrast, #fff)',
-                    backgroundColor: 'var(--color-accent, #1B6B3A)',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: isAnalyzing ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    opacity: isAnalyzing ? 0.7 : 1
+                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === 0 ? 'not-allowed' : 'pointer', opacity: currentTipPage === 0 ? 0.5 : 1
                   }}
                 >
-                  <i className="fi fi-rr-magic-wand"></i>
-                  {isAnalyzing ? t('Generating...') : t('✨ Exemples IA')}
+                  <i className="fi fi-rr-angle-left" style={{ fontSize: '10px' }}></i>
                 </button>
-              )}
-              {totalTipPages > 1 && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <button 
-                    onClick={() => setCurrentTipPage(prev => Math.max(0, prev - 1))}
-                    disabled={currentTipPage === 0}
-                    style={{
-                      background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === 0 ? 'not-allowed' : 'pointer', opacity: currentTipPage === 0 ? 0.5 : 1
-                    }}
-                  >
-                    <i className="fi fi-rr-angle-left" style={{ fontSize: '10px' }}></i>
-                  </button>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                    {currentTipPage + 1} / {totalTipPages}
-                  </span>
-                  <button 
-                    onClick={() => setCurrentTipPage(prev => Math.min(totalTipPages - 1, prev + 1))}
-                    disabled={currentTipPage === totalTipPages - 1}
-                    style={{
-                      background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === totalTipPages - 1 ? 'not-allowed' : 'pointer', opacity: currentTipPage === totalTipPages - 1 ? 0.5 : 1
-                    }}
-                  >
-                    <i className="fi fi-rr-angle-right" style={{ fontSize: '10px' }}></i>
-                  </button>
-                </div>
-              )}
-            </div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                  {currentTipPage + 1} / {totalTipPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentTipPage(prev => Math.min(totalTipPages - 1, prev + 1))}
+                  disabled={currentTipPage === totalTipPages - 1}
+                  style={{
+                    background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 8px', cursor: currentTipPage === totalTipPages - 1 ? 'not-allowed' : 'pointer', opacity: currentTipPage === totalTipPages - 1 ? 0.5 : 1
+                  }}
+                >
+                  <i className="fi fi-rr-angle-right" style={{ fontSize: '10px' }}></i>
+                </button>
+              </div>
+            )}
           </div>
           <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')} style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '140px' }}>
             {currentTips.map((tip, i) => {
