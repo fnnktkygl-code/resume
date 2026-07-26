@@ -35,7 +35,7 @@ export const tailorResumeWithProxy = async (resumeData, jobDescription, language
   }
 };
 
-export const analyzeResumeWithProxy = async (resumeData, language) => {
+export const analyzeResumeWithProxy = async (resumeData, language, jobDescription = '') => {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -44,7 +44,8 @@ export const analyzeResumeWithProxy = async (resumeData, language) => {
       },
       body: JSON.stringify({
         resumeData,
-        language
+        language,
+        jobDescription: jobDescription || resumeData.targetJobDescription || ''
       }),
     });
 

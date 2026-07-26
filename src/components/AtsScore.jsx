@@ -235,73 +235,17 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
           <div className="ats-tips" role="list" aria-label={t('ATS improvement tips')} style={{ display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '180px' }}>
             {currentTips.map((tip, i) => {
               if (aiTips) {
-                // AI Tips are now structured objects
                 return (
-                  <div key={i} className="ats-tip-item animate-fade-in" role="listitem" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                    <div style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '13px' }}>{tip.title}</div>
-                    <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', lineHeight: '1.4' }}>{tip.description}</div>
-                    
-                    {tip.action && (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                        <button 
-                          onClick={() => {
-                            if (tip.action === 'OPEN_KEYWORD_MATCHER') {
-                              setIsKeywordsModalOpen(true);
-                            } else if (onTriggerAction) {
-                              onTriggerAction(tip.action, tip.targetIndex, () => removeTip(tip));
-                            }
-                          }}
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            color: 'var(--color-accent-contrast)',
-                            backgroundColor: 'var(--color-accent)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'transform 0.1s'
-                          }}
-                          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
-                          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                          {tip.action === 'OPEN_STAR_GENERATOR' && <><i className="fi fi-rr-magic-wand"></i> {t('✨ AI STAR Rewrite')}</>}
-                          {tip.action === 'OPEN_KEYWORD_MATCHER' && <><i className="fi fi-rr-search-alt"></i> {t('Add missing keywords')}</>}
-                          {tip.action === 'OPEN_TAILOR_MODAL' && <><i className="fi fi-rr-magic-wand"></i> {t('Tailor entire resume')}</>}
-                        </button>
-                        
-                        <button
-                          onClick={() => removeTip(tip)}
-                          title={t('Skip')}
-                          style={{
-                            padding: '6px 12px',
-                            background: 'transparent',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '6px',
-                            color: 'var(--color-text-secondary)',
-                            cursor: 'pointer',
-                            fontSize: '11px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontWeight: '500'
-                          }}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text)';
-                            e.currentTarget.style.borderColor = 'var(--color-text-muted)';
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.color = 'var(--color-text-secondary)';
-                            e.currentTarget.style.borderColor = 'var(--color-border)';
-                          }}
-                        >
-                          {t('Skip')}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <TipCard 
+                    key={i}
+                    tip={tip}
+                    data={data}
+                    dispatch={dispatch}
+                    onRemove={() => removeTip(tip)}
+                    onTriggerAction={onTriggerAction}
+                    setIsKeywordsModalOpen={setIsKeywordsModalOpen}
+                    t={t}
+                  />
                 );
               } else {
                 // Standard tips are strings or structured objects
@@ -322,6 +266,144 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TipCard({ tip, data, dispatch, onRemove, onTriggerAction, setIsKeywordsModalOpen, t }) {
+  const [editedText, setEditedText] = useState(tip.suggestedText || '');
+
+  const handleApply = () => {
+    if (!dispatch) return;
+    const textToInsert = editedText.trim();
+    if (!textToInsert) return;
+
+    if (tip.targetSection === 'summary') {
+      dispatch({ type: 'UPDATE_SUMMARY', payload: textToInsert });
+    } else if (tip.targetSection === 'skills') {
+      const currentSkills = data?.skills?.technical || '';
+      const newSkills = currentSkills ? `${currentSkills}, ${textToInsert}` : textToInsert;
+      dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, technical: newSkills } });
+    } else if (tip.targetSection === 'experience' && data?.experience) {
+      const idx = typeof tip.targetIndex === 'number' ? tip.targetIndex : 0;
+      if (data.experience[idx]) {
+        const updatedExp = [...data.experience];
+        const bullets = [...(updatedExp[idx].bullets || []), textToInsert];
+        updatedExp[idx] = { ...updatedExp[idx], bullets };
+        dispatch({ type: 'UPDATE_EXPERIENCE', payload: updatedExp });
+      }
+    } else if (tip.targetSection === 'projects' && data?.projects) {
+      const idx = typeof tip.targetIndex === 'number' ? tip.targetIndex : 0;
+      if (data.projects[idx]) {
+        const updatedProj = [...data.projects];
+        const highlights = [...(updatedProj[idx].highlights || []), textToInsert];
+        updatedProj[idx] = { ...updatedProj[idx], highlights };
+        dispatch({ type: 'UPDATE_PROJECTS', payload: updatedProj });
+      }
+    } else {
+      // Fallback to skills
+      const currentSkills = data?.skills?.technical || '';
+      const newSkills = currentSkills ? `${currentSkills}, ${textToInsert}` : textToInsert;
+      dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, technical: newSkills } });
+    }
+    onRemove();
+  };
+
+  return (
+    <div className="ats-tip-item animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+      <div style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '13px' }}>{tip.title}</div>
+      <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', lineHeight: '1.4' }}>{tip.description}</div>
+      
+      {tip.suggestedText && (
+        <div style={{ marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-accent)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <i className="fi fi-rr-magic-wand"></i> {t('Suggested Text (Editable):')}
+          </div>
+          <textarea
+            value={editedText}
+            onChange={(e) => setEditedText(e.target.value)}
+            style={{
+              width: '100%',
+              minHeight: '55px',
+              padding: '6px 8px',
+              fontSize: '12px',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              backgroundColor: 'var(--color-bg)',
+              color: 'var(--color-text)',
+              fontFamily: 'inherit',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
+        {tip.suggestedText ? (
+          <button
+            type="button"
+            onClick={handleApply}
+            style={{
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: 'var(--color-accent-contrast, #fff)',
+              backgroundColor: 'var(--color-accent, #1B6B3A)',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <i className="fi fi-rr-check"></i> {t('Accept & Apply to CV')}
+          </button>
+        ) : tip.action ? (
+          <button 
+            type="button"
+            onClick={() => {
+              if (tip.action === 'OPEN_KEYWORD_MATCHER') {
+                setIsKeywordsModalOpen(true);
+              } else if (onTriggerAction) {
+                onTriggerAction(tip.action, tip.targetIndex, onRemove);
+              }
+            }}
+            style={{
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: 'var(--color-accent-contrast)',
+              backgroundColor: 'var(--color-accent)',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <i className="fi fi-rr-magic-wand"></i> {t('Take Action')}
+          </button>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onRemove}
+          title={t('Skip')}
+          style={{
+            padding: '6px 12px',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            fontSize: '11px'
+          }}
+        >
+          {t('Skip')}
+        </button>
+      </div>
     </div>
   );
 }
