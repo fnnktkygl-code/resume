@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet, parseSkillsToTags } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
@@ -85,11 +85,11 @@ function NjmTemplate({
   const renderSkills = (skillsString, defaultClass = 'skill-pill') => {
     if (!skillsString) return null;
     const style = layout.skillStyle || 'pill';
+    const skillTags = parseSkillsToTags(skillsString);
     if (style === 'text') {
-      const skillsArray = formatSkills(skillsString).split(',').map(s => s.trim()).filter(Boolean);
       return (
         <span style={{ lineHeight: '1.5' }}>
-          {skillsArray.map((skill, si) => (
+          {skillTags.map((skill, si) => (
             <span key={si}>
               {si > 0 && ' • '}
               {parseMarkdown(skill)}
@@ -101,7 +101,7 @@ function NjmTemplate({
     const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
     return (
       <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {formatSkills(skillsString).split(',').map((skill, si) => skill.trim() ? <span key={si} className={className}>{parseMarkdown(skill.trim())}</span> : null)}
+        {skillTags.map((skill, si) => <span key={si} className={className}>{parseMarkdown(skill)}</span>)}
       </div>
     );
   };

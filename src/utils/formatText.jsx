@@ -33,6 +33,37 @@ export function formatUrl(url) {
   return `https://${trimmed}`;
 }
 
+/**
+ * Parse a complex skills string into clean individual tags.
+ * Handles formats like: "Programmation : Python (Pandas, NumPy), Node.js; Data Engineering : ETL, SQL"
+ * Returns: ["Python (Pandas, NumPy)", "Node.js", "ETL", "SQL"]
+ */
+export function parseSkillsToTags(skillsString) {
+  if (!skillsString) return [];
+  
+  // Step 1: split by semicolons first (category groups)
+  const groups = skillsString.split(';');
+  const tags = [];
+  
+  for (const group of groups) {
+    let cleaned = group.trim();
+    if (!cleaned) continue;
+    
+    // Step 2: strip category prefix "Category : " (anything before first colon followed by space)
+    cleaned = cleaned.replace(/^[^:,;]{1,40}\s*:\s*/, '');
+    
+    // Step 3: split remaining by commas
+    const items = cleaned.split(',');
+    for (const item of items) {
+      // Strip ** bold markers and trim
+      const tag = item.replace(/\*\*/g, '').trim();
+      if (tag) tags.push(tag);
+    }
+  }
+  
+  return tags;
+}
+
 // --- Casing normalization for bullet points ---
 
 const ACRONYMS = new Set([

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet, parseSkillsToTags } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
@@ -197,19 +197,19 @@ function MinimalistTemplate({
               {data.skills.technical && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.technical).split(',').join(', '))}</span>
+                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.technical).join(', ')}</span>
                 </div>
               )}
               {data.skills.soft && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.soft).split(',').join(', '))}</span>
+                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.soft).join(', ')}</span>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('languages', 'Languages', 'Languages')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseMarkdown(formatSkills(data.skills.languages).split(',').join(', '))}</span>
+                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.languages).join(', ')}</span>
                 </div>
               )}
             </div>

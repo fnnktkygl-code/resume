@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { parseSkillsToTags } from '../../utils/formatText';
 
 /**
  * TagInput – a chip/badge-based input for comma-separated values.
@@ -6,41 +7,33 @@ import { useState, useRef, useCallback } from 'react';
  * Typing + Enter/comma/Tab adds a new tag.
  * Backspace on empty input removes the last tag.
  * 
- * Props:
- *   value: string (comma-separated)
- *   onChange: (newValue: string) => void
- *   placeholder: string
- *   separator: string (default ',') — can also use ';' for groups
+ * Uses parseSkillsToTags to handle complex formats:
+ *   "Category : item1, item2; Category2 : item3" → ["item1", "item2", "item3"]
  */
-
-// Strip markdown bold markers from display
-const stripBold = (s) => s.replace(/\*\*/g, '');
-
-export default function TagInput({ value, onChange, placeholder, separator = ',' }) {
+export default function TagInput({ value, onChange, placeholder }) {
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef(null);
 
-  const tags = value
-    ? value.split(separator).map(s => stripBold(s).trim()).filter(Boolean)
-    : [];
+  // Parse value into clean tags using shared utility
+  const tags = parseSkillsToTags(value);
 
   const commitTag = useCallback((raw) => {
-    const tag = stripBold(raw).trim();
+    const tag = raw.replace(/\*\*/g, '').trim();
     if (!tag) return;
     const newTags = [...tags, tag];
-    onChange(newTags.join(`${separator} `));
+    onChange(newTags.join(', '));
     setInputValue('');
-  }, [tags, onChange, separator]);
+  }, [tags, onChange]);
 
   const removeTag = useCallback((index) => {
     const newTags = tags.filter((_, i) => i !== index);
-    onChange(newTags.join(`${separator} `));
-  }, [tags, onChange, separator]);
+    onChange(newTags.join(', '));
+  }, [tags, onChange]);
 
   const handleKeyDown = useCallback((e) => {
     const val = inputValue;
 
-    if ((e.key === 'Enter' || e.key === 'Tab' || e.key === separator) && val.trim()) {
+    if ((e.key === 'Enter' || e.key === 'Tab' || e.key === ',') && val.trim()) {
       e.preventDefault();
       commitTag(val);
       return;
@@ -50,18 +43,19 @@ export default function TagInput({ value, onChange, placeholder, separator = ','
       e.preventDefault();
       removeTag(tags.length - 1);
     }
-  }, [inputValue, tags, commitTag, removeTag, separator]);
+  }, [inputValue, tags, commitTag, removeTag]);
 
   const handlePaste = useCallback((e) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text');
-    const items = pasted.split(separator).map(s => stripBold(s).trim()).filter(Boolean);
+    // Use the same parser for pasted content
+    const items = parseSkillsToTags(pasted);
     if (items.length > 0) {
       const newTags = [...tags, ...items];
-      onChange(newTags.join(`${separator} `));
+      onChange(newTags.join(', '));
       setInputValue('');
     }
-  }, [tags, onChange, separator]);
+  }, [tags, onChange]);
 
   const handleBlur = useCallback(() => {
     if (inputValue.trim()) {
