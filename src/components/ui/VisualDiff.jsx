@@ -22,10 +22,25 @@ const cleanText = (str) => {
     .toLowerCase();
 };
 
+// Check if bold markers (**) differ between two strings
+const hasBoldDifference = (orig, mod) => {
+  if (!orig || !mod) return false;
+  // Strip everything except ** markers and text, then compare
+  const origBolds = (orig.match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
+  const modBolds = (mod.match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
+  return origBolds !== modBolds;
+};
+
 const isSubstantiallyDifferent = (orig, mod) => {
   if (!orig && !mod) return false;
   if (!orig || !mod) return true;
-  return cleanText(orig) !== cleanText(mod);
+  // Text content changed (ignoring case/bold) OR bold markers changed OR casing changed
+  const textDiff = cleanText(orig) !== cleanText(mod);
+  const boldDiff = hasBoldDifference(orig, mod);
+  // Detect casing change: strip bold markers and compare without lowering
+  const stripBold = (s) => (s || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  const casingDiff = stripBold(orig) !== stripBold(mod);
+  return textDiff || boldDiff || casingDiff;
 };
 
 export default function VisualDiff({ original, modified, onSelectionChange }) {
