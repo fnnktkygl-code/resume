@@ -1,4 +1,5 @@
 import { Field, TextInput, TextArea } from '../ui/FormFields';
+import TagInput from '../ui/TagInput';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
@@ -110,7 +111,7 @@ export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onA
                 <TextInput value={proj.link} onChange={(v) => updateProj(realIdx, 'link', v)} placeholder="github.com/user/project" />
               </Field>
               <Field label={t('Tech Stack')} full>
-                <TextInput value={proj.techStack} onChange={(v) => updateProj(realIdx, 'techStack', v)} placeholder="React, Node.js, PostgreSQL, WebSocket" />
+                <TagInput value={proj.techStack} onChange={(v) => updateProj(realIdx, 'techStack', v)} placeholder="React, Node.js, PostgreSQL, WebSocket..." />
               </Field>
               <Field label={t('Description')} full>
                 <TextArea

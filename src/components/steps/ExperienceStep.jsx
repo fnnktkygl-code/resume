@@ -1,4 +1,5 @@
 import { Field, TextInput, TextArea, Select } from '../ui/FormFields';
+import TagInput from '../ui/TagInput';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
@@ -195,7 +196,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
             </div>
             <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
               <Field label={t('Technologies & Tools (comma separated)')} full>
-                <TextInput value={exp.technologies || ''} onChange={(v) => updateExp(realIdx, 'technologies', v)} placeholder="React, Node.js, SQL, AWS" />
+                <TagInput value={exp.technologies || ''} onChange={(v) => updateExp(realIdx, 'technologies', v)} placeholder="React, Node.js, SQL, AWS..." />
               </Field>
             </div>
           </div>

@@ -1,4 +1,5 @@
-import { Field, TextInput, TextArea } from '../ui/FormFields';
+import { Field, TextInput } from '../ui/FormFields';
+import TagInput from '../ui/TagInput';
 import { useTranslation } from '../../utils/TranslationContext';
 
 export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill }) {
@@ -107,11 +108,10 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
               />
             </div>
           </div>
-          <TextArea
+          <TagInput
             value={data.technical}
             onChange={(v) => update('technical', v)}
-            placeholder="Python, TypeScript, React, Node.js, PostgreSQL, AWS, Docker, Kubernetes, CI/CD, REST APIs, GraphQL"
-            rows={3}
+            placeholder="Python, TypeScript, React, Node.js, PostgreSQL, AWS, Docker..."
           />
         </Field>
         <Field label={
@@ -129,7 +129,7 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
               />
             </div>
           </div>
-          <TextInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile Project Management" />
+          <TagInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile..." />
         </Field>
         <Field label={
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -146,7 +146,7 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
               />
             </div>
           </div>
-          <TextInput value={data.languages || ''} onChange={(v) => update('languages', v)} placeholder="English, French, Spanish" />
+          <TagInput value={data.languages || ''} onChange={(v) => update('languages', v)} placeholder="English, French, Spanish..." />
         </Field>
       </div>
       <div className="tip">
