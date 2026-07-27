@@ -12,16 +12,20 @@ import { useState, useRef, useCallback } from 'react';
  *   placeholder: string
  *   separator: string (default ',') — can also use ';' for groups
  */
+
+// Strip markdown bold markers from display
+const stripBold = (s) => s.replace(/\*\*/g, '');
+
 export default function TagInput({ value, onChange, placeholder, separator = ',' }) {
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef(null);
 
   const tags = value
-    ? value.split(separator).map(s => s.trim()).filter(Boolean)
+    ? value.split(separator).map(s => stripBold(s).trim()).filter(Boolean)
     : [];
 
   const commitTag = useCallback((raw) => {
-    const tag = raw.trim();
+    const tag = stripBold(raw).trim();
     if (!tag) return;
     const newTags = [...tags, tag];
     onChange(newTags.join(`${separator} `));
@@ -51,7 +55,7 @@ export default function TagInput({ value, onChange, placeholder, separator = ','
   const handlePaste = useCallback((e) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text');
-    const items = pasted.split(separator).map(s => s.trim()).filter(Boolean);
+    const items = pasted.split(separator).map(s => stripBold(s).trim()).filter(Boolean);
     if (items.length > 0) {
       const newTags = [...tags, ...items];
       onChange(newTags.join(`${separator} `));
