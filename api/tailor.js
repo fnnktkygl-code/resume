@@ -1,4 +1,4 @@
-import { normalizeResumeCasing } from './normalizeCasing.js';
+import { normalizeResumeCasing } from './_normalizeCasing.js';
 
 export default async function handler(req, res) {
   // CORS Configuration
