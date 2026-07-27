@@ -49,7 +49,7 @@ Rules:
 3. Rewrite bullet points ONLY when necessary to highlight relevant hard skills or missing metrics.
 4. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having.
 5. CRITICAL - DOMAIN PRESERVATION: NEVER scrub or generalize domain-specific terminology (e.g. wind turbines, solar assets, specific technical constraints).
-6. CRITICAL - PRESERVE CASING STYLE: You MUST match the capitalization style of the ORIGINAL resume text. If the original bullet points use normal sentence case (e.g. "Développement de tableaux de bord"), your rewritten text MUST also use normal sentence case. NEVER convert text to ALL UPPERCASE unless the original text was already in ALL UPPERCASE. Mixing casing styles within the same section is STRICTLY FORBIDDEN.
+6. CRITICAL - NORMALIZE CASING: ALL bullet points, summaries, and taglines across the ENTIRE resume MUST use consistent normal sentence case (e.g. "Développement de tableaux de bord et indicateurs de performance"). If any bullet point in the input is written in ALL UPPERCASE (e.g. "GESTION DE LA QUALITÉ DES DONNÉES"), you MUST convert it to normal sentence case (e.g. "Gestion de la qualité des données"). Proper nouns, acronyms (KPI, SQL, SCADA, GMAO), and tool names should keep their standard capitalization. The goal is a uniform, professional appearance across all sections.
 7. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
 
   const promptText = `
