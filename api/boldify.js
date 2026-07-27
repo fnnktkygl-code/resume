@@ -34,16 +34,25 @@ export default async function handler(req, res) {
     const cloneData = { ...resumeData };
     delete cloneData.headings;
 
-    const systemPrompt = `Act as an expert technical recruiter and ATS optimization specialist. 
-Your task is to apply AI Smart Bolding to the text values inside the provided JSON resume.
+    const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume.
 
-CRITICAL RULES:
-1. ONLY add markdown bold (**bold text**) around the most important keywords, strong action verbs, quantifiable metrics, and key technologies/tags (including inside "technologies", "techStack", "skills", "bullets", "title", "summary", etc.).
-2. DO NOT change, rewrite, or translate any words. The spelling, grammar, phrasing, and punctuation of the original text must remain 100% identical. Only inject ** characters around existing words.
-3. BE EXTREMELY MINIMALIST. Only bold 1-3 key terms per sentence or bullet point. Do not bold long phrases. Avoid bolding too many things.
-4. DO NOT modify the JSON keys (e.g. keep "company", "title", "bullets", "summary", etc. exactly as they are).
-5. Maintain all bullet point structures and JSON layout exactly identical.
-6. Return ONLY a valid JSON object. Do not include markdown formatting like \`\`\`json in your response.`;
+ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
+
+1. TEXT PRESERVATION IS SACRED: You must NOT change, rewrite, rephrase, translate, reorder, add, or remove ANY word, punctuation, or character. The ONLY characters you may insert are ** (double asterisks) to create markdown bold. If the original says "Wind Sector Management, Noise Regulation, Bat Protection" then your output MUST contain "**Wind Sector Management**, **Noise Regulation**, **Bat Protection**" — the exact same words with ** around them.
+
+2. PROCESS EVERY SECTION: You MUST apply bolding to ALL experience entries, ALL project entries, ALL education entries, and the summary. Do NOT skip any section or entry. If there are 3 experience entries, all 3 must be processed.
+
+3. WHAT TO BOLD: Bold 1-3 key terms per bullet point:
+   - Strong action verbs (Développement, Conception, Analyse, Optimisation, Mise en place...)
+   - Named technologies and tools (Python, Power BI, SCADA, Node.js, MongoDB, Amplitude, T-SQL...)
+   - Quantifiable metrics and numbers (50MW, +15%, 8 tableaux de bord...)
+   - Domain-specific named terms (Wind Sector Management, Noise Regulation, Atlas Data Federation...)
+
+4. BE MINIMALIST: Do NOT bold entire sentences or long phrases. Bold individual words or short technical terms only (1-3 words max per bold span).
+
+5. JSON STRUCTURE: Return the EXACT same JSON structure. Do NOT modify keys. Do NOT add or remove fields.
+
+SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** markers from your output. The resulting plain text MUST be character-for-character identical to the original input. If it is not, you have made an error — fix it.`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -51,7 +60,7 @@ CRITICAL RULES:
       body: JSON.stringify({
         contents: [{ parts: [{ text: systemPrompt }, { text: `Resume Data:\n${JSON.stringify(cloneData)}` }] }],
         generationConfig: {
-          temperature: 0.1,
+          temperature: 0.05,
           responseMimeType: "application/json"
         }
       })
@@ -69,6 +78,57 @@ CRITICAL RULES:
 
     const jsonResponse = JSON.parse(generatedText);
     
+    // --- POST-PROCESSING VALIDATION ---
+    // Strip ** markers and compare against original. If text was modified, revert to original.
+    const stripBold = (str) => (typeof str === 'string' ? str.replace(/\*\*/g, '') : str);
+    
+    // Validate and fix a string field: if stripping bold doesn't match original, revert to original
+    const validateField = (boldedValue, originalValue) => {
+      if (typeof boldedValue !== 'string' || typeof originalValue !== 'string') return originalValue;
+      const strippedBolded = stripBold(boldedValue).trim();
+      const strippedOriginal = stripBold(originalValue).trim();
+      if (strippedBolded !== strippedOriginal) {
+        // AI modified the content — revert to original (no bold applied)
+        return originalValue;
+      }
+      return boldedValue;
+    };
+
+    // Validate summary
+    if (jsonResponse.summary && cloneData.summary) {
+      jsonResponse.summary = validateField(jsonResponse.summary, cloneData.summary);
+    }
+
+    // Validate experience bullets
+    if (Array.isArray(jsonResponse.experience) && Array.isArray(cloneData.experience)) {
+      for (let i = 0; i < jsonResponse.experience.length && i < cloneData.experience.length; i++) {
+        const boldedExp = jsonResponse.experience[i];
+        const origExp = cloneData.experience[i];
+        if (boldedExp.title && origExp.title) boldedExp.title = validateField(boldedExp.title, origExp.title);
+        if (boldedExp.company && origExp.company) boldedExp.company = validateField(boldedExp.company, origExp.company);
+        if (Array.isArray(boldedExp.bullets) && Array.isArray(origExp.bullets)) {
+          for (let j = 0; j < boldedExp.bullets.length && j < origExp.bullets.length; j++) {
+            boldedExp.bullets[j] = validateField(boldedExp.bullets[j], origExp.bullets[j]);
+          }
+        }
+        if (boldedExp.technologies && origExp.technologies) boldedExp.technologies = validateField(boldedExp.technologies, origExp.technologies);
+      }
+    }
+
+    // Validate projects
+    if (Array.isArray(jsonResponse.projects) && Array.isArray(cloneData.projects)) {
+      for (let i = 0; i < jsonResponse.projects.length && i < cloneData.projects.length; i++) {
+        const boldedProj = jsonResponse.projects[i];
+        const origProj = cloneData.projects[i];
+        if (boldedProj.description && origProj.description) boldedProj.description = validateField(boldedProj.description, origProj.description);
+        if (Array.isArray(boldedProj.highlights) && Array.isArray(origProj.highlights)) {
+          for (let j = 0; j < boldedProj.highlights.length && j < origProj.highlights.length; j++) {
+            boldedProj.highlights[j] = validateField(boldedProj.highlights[j], origProj.highlights[j]);
+          }
+        }
+      }
+    }
+
     if (resumeData.headings) {
       jsonResponse.headings = resumeData.headings;
     }
