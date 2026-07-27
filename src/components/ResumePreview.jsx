@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import ModernTemplate from './ModernTemplate';
 import NjmTemplate from './NjmTemplate';
 import MinimalistTemplate from './MinimalistTemplate';
-import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
@@ -536,7 +536,7 @@ function ResumePreview({
                     <div className="resume-title">{parseMarkdown(exp.title)}</div>
                     <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => (
-                        <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>
+                        <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{renderBullet(b)}</div>
                       ))}
                     </div>
                   </div>
@@ -660,7 +660,7 @@ function ResumePreview({
                     {pr.description && <div style={{ marginBottom: '2px' }}>{parseMarkdown(pr.description)}</div>}
                     {pr.techStack && <div className="resume-tech-stack"><em>Tech: {pr.techStack}</em></div>}
                     {pr.highlights.filter(Boolean).map((h, hi) => (
-                      <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>
+                      <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{renderBullet(h)}</div>
                     ))}
                   </div>
                 );

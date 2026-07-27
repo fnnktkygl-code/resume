@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
@@ -291,7 +291,7 @@ function NjmTemplate({
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '0.9em', color: textColor }}>
                           <span style={{ color: textColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
-                          <div style={{ flex: 1 }}>{parseMarkdown(b)}</div>
+                          <div style={{ flex: 1 }}>{renderBullet(b)}</div>
                         </div>
                       ))}
                     </div>

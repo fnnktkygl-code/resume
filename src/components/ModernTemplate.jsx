@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
 
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
@@ -187,7 +187,7 @@ function ModernTemplate({
                     </div>
                     <div className="resume-title">{parseMarkdown(exp.title)}</div>
                     <div style={{ marginTop: `${Math.round(itemSpacing/2)}px` }}>
-                      {exp.bullets.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(b)}</div>)}
+                      {exp.bullets.filter(Boolean).map((b, bi) => <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{renderBullet(b)}</div>)}
                     </div>
                   </div>
                 );
@@ -251,7 +251,7 @@ function ModernTemplate({
                     {pr.description && <div style={{ fontSize: '0.95em', marginBottom: '4px' }}>{pr.description}</div>}
                     {pr.techStack && <div style={{ fontSize: '0.85em', color: 'var(--resume-text-secondary)', marginBottom: '4px' }}><strong>Tech:</strong> {pr.techStack}</div>}
                     <div>
-                      {pr.highlights.filter(Boolean).map((h, hi) => <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{parseMarkdown(h)}</div>)}
+                      {pr.highlights.filter(Boolean).map((h, hi) => <div key={hi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{renderBullet(h)}</div>)}
                     </div>
                   </div>
                 );

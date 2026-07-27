@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { parseMarkdown, formatUrl, formatSkills } from '../utils/formatText';
+import { parseMarkdown, formatUrl, formatSkills, renderBullet } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
@@ -123,7 +123,7 @@ function MinimalistTemplate({
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} className="resume-bullet" style={{ display: 'flex', fontSize: `${fontSize}pt`, color: textColor }}>
                           <span style={{ marginRight: '6px' }}>•</span>
-                          <div>{parseMarkdown(b)}</div>
+                          <div>{renderBullet(b)}</div>
                         </div>
                       ))}
                     </div>
@@ -238,7 +238,7 @@ function MinimalistTemplate({
                       {pr.highlights.filter(Boolean).map((h, hi) => (
                         <div key={hi} className="resume-bullet" style={{ display: 'flex', fontSize: `${fontSize}pt`, color: textColor, marginTop: '2px' }}>
                           <span style={{ marginRight: '6px' }}>•</span>
-                          <div>{parseMarkdown(h)}</div>
+                          <div>{renderBullet(h)}</div>
                         </div>
                       ))}
                     </div>
