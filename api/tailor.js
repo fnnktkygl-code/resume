@@ -1,3 +1,5 @@
+import { normalizeResumeCasing } from './normalizeCasing.js';
+
 export default async function handler(req, res) {
   // CORS Configuration
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -112,7 +114,11 @@ Output the fully optimized and tailored resume as a valid JSON object.
     }
     
     const jsonText = candidate.content.parts[0].text;
-    const tailoredResume = JSON.parse(jsonText);
+    let tailoredResume = JSON.parse(jsonText);
+    
+    // Deterministic post-processing: normalize ALL CAPS to sentence case
+    // This is a safety net — even if the AI fails to normalize, this guarantees consistency
+    tailoredResume = normalizeResumeCasing(tailoredResume);
     
     if (resumeData.headings) {
         tailoredResume.headings = resumeData.headings;

@@ -1,3 +1,5 @@
+import { normalizeResumeCasing } from './normalizeCasing.js';
+
 export default async function handler(req, res) {
   const { checkAndIncrementQuota } = await import('./firebase.js');
 
@@ -31,8 +33,10 @@ export default async function handler(req, res) {
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
-    const cloneData = { ...resumeData };
-    delete cloneData.headings;
+    const rawClone = { ...resumeData };
+    delete rawClone.headings;
+    // Normalize ALL CAPS to sentence case BEFORE sending to AI
+    const cloneData = normalizeResumeCasing(rawClone);
 
     const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume.
 
@@ -82,14 +86,14 @@ SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** marke
     // Strip ** markers and compare against original. If text was modified, revert to original.
     const stripBold = (str) => (typeof str === 'string' ? str.replace(/\*\*/g, '') : str);
     
-    // Validate and fix a string field: if stripping bold doesn't match original, revert to original
-    const validateField = (boldedValue, originalValue) => {
-      if (typeof boldedValue !== 'string' || typeof originalValue !== 'string') return originalValue;
+    // Validate and fix a string field: if stripping bold doesn't match normalized original, revert to normalized original
+    const validateField = (boldedValue, normalizedOriginalValue) => {
+      if (typeof boldedValue !== 'string' || typeof normalizedOriginalValue !== 'string') return normalizedOriginalValue;
       const strippedBolded = stripBold(boldedValue).trim();
-      const strippedOriginal = stripBold(originalValue).trim();
+      const strippedOriginal = stripBold(normalizedOriginalValue).trim();
       if (strippedBolded !== strippedOriginal) {
-        // AI modified the content — revert to original (no bold applied)
-        return originalValue;
+        // AI modified the content — revert to normalized original (no bold, but casing fixed)
+        return normalizedOriginalValue;
       }
       return boldedValue;
     };
