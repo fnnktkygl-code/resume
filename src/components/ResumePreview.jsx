@@ -606,26 +606,26 @@ function ResumePreview({
         return (
           <SectionWrapper key="skills" sectionId="skills">
             <div className="resume-section-header">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing}px` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${itemSpacing + 4}px` }}>
               {data.skills.technical && (
                 <div>
-                  <strong>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
+                  <strong style={{ display: 'block', marginBottom: '5px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {renderSkills(data.skills.technical, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill')}
                   </div>
                 </div>
               )}
               {data.skills.soft && (
-                <div>
-                  <strong>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
+                <div style={{ paddingTop: '4px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <strong style={{ display: 'block', marginBottom: '5px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {renderSkills(data.skills.soft, 'skill-pill')}
                   </div>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
-                <div>
-                  <strong>{displayHeading('languages', 'Languages', 'Languages')}</strong>
+                <div style={{ paddingTop: '4px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <strong style={{ display: 'block', marginBottom: '5px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {renderSkills(data.skills.languages, 'skill-pill-outline')}
                   </div>

@@ -103,23 +103,23 @@ function ModernTemplate({
             <div className="modern-sidebar-section-title">{displayHeading('skills', 'Skills', 'SKILLS & TOOLS')}</div>
             {data.skills.technical && (
               <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
+                <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')}</strong>
                 <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {renderSkills(data.skills.technical, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill')}
                 </div>
               </div>
             )}
             {data.skills.soft && (
-              <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
+              <div className="modern-sidebar-item" style={{ paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                 <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {renderSkills(data.skills.soft, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill')}
                 </div>
               </div>
             )}
             {data.skills.languages && !hasCustomLangues && (
-              <div className="modern-sidebar-item">
-                <strong style={{ display: 'block', marginBottom: '4px' }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
+              <div className="modern-sidebar-item" style={{ paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <strong style={{ display: 'block', marginBottom: '4px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                 <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {renderSkills(data.skills.languages, layout.coloredSkills !== false ? 'skill-pill-accent' : 'skill-pill-outline')}
                 </div>

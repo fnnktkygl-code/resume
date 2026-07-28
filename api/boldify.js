@@ -38,6 +38,11 @@ export default async function handler(req, res) {
     // Normalize ALL CAPS to sentence case BEFORE sending to AI
     const cloneData = normalizeResumeCasing(rawClone);
 
+    // Save original skills — skills are rendered as pills/tags and should NOT be bolded
+    const originalSkills = cloneData.skills ? { ...cloneData.skills } : null;
+    // Remove skills from AI input to prevent unnecessary bolding
+    delete cloneData.skills;
+
     const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume.
 
 ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
@@ -135,6 +140,11 @@ SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** marke
 
     if (resumeData.headings) {
       jsonResponse.headings = resumeData.headings;
+    }
+
+    // Restore original skills (unbolded) — pills don't need bold markers
+    if (originalSkills) {
+      jsonResponse.skills = originalSkills;
     }
 
     res.status(200).json(jsonResponse);
