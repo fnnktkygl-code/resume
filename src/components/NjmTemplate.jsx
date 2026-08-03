@@ -104,24 +104,29 @@ function NjmTemplate({
     onSkillHighlightToggle(updated);
   };
 
-  const renderSkills = (skillsString, defaultClass = 'skill-pill') => {
+  const renderSkills = (skillsString) => {
     if (!skillsString) return null;
-    const style = layout.skillStyle || 'pill';
+    const style = layout.skillStyle || 'pill'; // 'outline', 'pill-outline', 'square', 'pill', 'text'
+    const colorMode = layout.coloredSkillsMode || (layout.coloredSkills === true ? 'all' : 'highlighted'); // 'neutral', 'highlighted', 'all'
     const skillTags = parseSkillsToTags(skillsString);
+    const highlightedList = (data.skills.highlightedSkills || []).map(s => s.toLowerCase().trim());
+
     if (style === 'text') {
       return (
         <span style={{ lineHeight: '1.5' }}>
           {skillTags.map((skill, si) => {
-            const cls = getSkillClass(skill, defaultClass);
-            const isAccent = cls.includes('-accent');
+            const rawKey = skill.replace(/\*\*/g, '').toLowerCase().trim();
+            const isHighlighted = highlightedList.includes(rawKey);
+            const isExplicitBold = skill.includes('**');
+            const isAccent = colorMode === 'all' ? true : colorMode === 'neutral' ? false : (isExplicitBold || isHighlighted);
             return (
               <span key={si}
                 onClick={() => handleSkillClick(skill)}
                 style={{ 
                   cursor: printMode ? 'default' : 'pointer',
-                  color: isAccent ? 'var(--resume-accent-color, #1B6B3A)' : undefined,
+                  color: isAccent ? 'var(--color-accent, #1B6B3A)' : 'var(--resume-text-secondary, #666)',
                   fontWeight: isAccent ? 700 : 400,
-                  transition: 'color 0.2s ease, font-weight 0.2s ease'
+                  transition: 'all 0.2s ease'
                 }}
                 title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
               >
@@ -133,16 +138,48 @@ function NjmTemplate({
         </span>
       );
     }
-    const baseClass = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+
     return (
       <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
         {skillTags.map((skill, si) => {
-          const cls = getSkillClass(skill, baseClass);
+          const rawKey = skill.replace(/\*\*/g, '').toLowerCase().trim();
+          const isHighlighted = highlightedList.includes(rawKey);
+          const isExplicitBold = skill.includes('**');
+          const isAccent = colorMode === 'all' ? true : colorMode === 'neutral' ? false : (isExplicitBold || isHighlighted);
+
+          const isPill = style === 'pill' || style === 'pill-outline';
+          const isOutline = style === 'outline' || style === 'pill-outline';
+          const borderRadius = isPill ? '9999px' : '4px';
+
+          let border = '1px solid var(--color-border, #e5e7eb)';
+          let color = 'var(--color-text, #333)';
+          let backgroundColor = 'var(--color-surface-alt, #f3f4f6)';
+
+          if (isAccent) {
+            color = 'var(--color-accent, #1B6B3A)';
+            border = '1px solid var(--color-accent, #1B6B3A)';
+            backgroundColor = isOutline ? 'transparent' : 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.1)';
+          } else if (isOutline) {
+            backgroundColor = 'transparent';
+            border = '1px solid var(--color-border, #ccc)';
+          }
+
           return (
-            <span key={si} className={`${cls} skill-toggleable`}
+            <span key={si} className="skill-toggleable"
               onClick={() => handleSkillClick(skill)}
-              style={{ cursor: printMode ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
-              title={!printMode ? (cls.includes('-accent') ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+              style={{
+                fontSize: '0.85em',
+                padding: isPill ? '3px 12px' : '3px 8px',
+                borderRadius,
+                border,
+                color,
+                backgroundColor,
+                fontWeight: isAccent ? 700 : 400,
+                cursor: printMode ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'inline-block'
+              }}
+              title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
             >
               {parseMarkdown(skill)}
             </span>

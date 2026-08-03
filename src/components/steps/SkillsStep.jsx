@@ -41,7 +41,7 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
         {t('Separate skills with commas. These should also appear naturally in your experience bullets for semantic AI matching.')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <Field label={t('Skill Style')} full>
+        <Field label={t('Skills Style')} full>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <select
@@ -59,27 +59,23 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
                   width: '100%'
                 }}
               >
-                <option value="pill">{t('Rounded Circles')}</option>
+                <option value="outline">{t('Square Contour')}</option>
+                <option value="pill-outline">{t('Rounded Contour')}</option>
                 <option value="square">{t('Squares')}</option>
+                <option value="pill">{t('Rounded Circles')}</option>
                 <option value="text">{t('Simple Text')}</option>
               </select>
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <select
-                value={
-                  (data.highlightedSkills?.length > 0 && layout?.coloredSkills !== true)
-                    ? 'highlighted'
-                    : layout?.coloredSkills === true ? 'all' : 'neutral'
-                }
+                value={layout?.coloredSkillsMode || (layout?.coloredSkills === true ? 'all' : 'highlighted')}
                 onChange={(e) => {
                   const val = e.target.value;
+                  updateLayout('coloredSkillsMode', val);
                   if (val === 'all') {
                     updateLayout('coloredSkills', true);
-                  } else if (val === 'highlighted') {
-                    updateLayout('coloredSkills', false);
                   } else {
                     updateLayout('coloredSkills', false);
-                    onChange({ ...data, highlightedSkills: [] });
                   }
                 }}
                 style={{
