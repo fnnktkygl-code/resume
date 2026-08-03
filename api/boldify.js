@@ -1,5 +1,22 @@
 import { normalizeResumeCasing } from './_normalizeCasing.js';
 
+// Lightweight skill parser (mirrors src/utils/formatText.jsx parseSkillsToTags)
+function parseSkillsToTags(skillsString) {
+  if (!skillsString) return [];
+  const groups = skillsString.split(';');
+  const tags = [];
+  for (const group of groups) {
+    let cleaned = group.trim();
+    if (!cleaned) continue;
+    cleaned = cleaned.replace(/^[^:,;]{1,40}\s*:\s*/, '');
+    for (const item of cleaned.split(',')) {
+      const tag = item.replace(/\*\*/g, '').trim();
+      if (tag) tags.push(tag);
+    }
+  }
+  return tags;
+}
+
 export default async function handler(req, res) {
   const { checkAndIncrementQuota } = await import('./firebase.js');
 
@@ -38,12 +55,13 @@ export default async function handler(req, res) {
     // Normalize ALL CAPS to sentence case BEFORE sending to AI
     const cloneData = normalizeResumeCasing(rawClone);
 
-    // Save original skills — skills are rendered as pills/tags and should NOT be bolded
+    // Keep skills in the payload but strip highlightedSkills to avoid bias
     const originalSkills = cloneData.skills ? { ...cloneData.skills } : null;
-    // Remove skills from AI input to prevent unnecessary bolding
-    delete cloneData.skills;
+    if (cloneData.skills) {
+      delete cloneData.skills.highlightedSkills;
+    }
 
-    const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume.
+    const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume, AND to identify which technical/soft skills are most relevant.
 
 ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
 
@@ -60,6 +78,8 @@ ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
 4. BE MINIMALIST: Do NOT bold entire sentences or long phrases. Bold individual words or short technical terms only (1-3 words max per bold span).
 
 5. JSON STRUCTURE: Return the EXACT same JSON structure. Do NOT modify keys. Do NOT add or remove fields.
+
+6. SKILL HIGHLIGHTING: Analyze the resume content (experience, projects, summary) and identify which skills from the "skills.technical" and "skills.soft" fields are MOST relevant and impactful — the ones a recruiter would look for. Return these as a NEW field "highlightedSkills" which is an array of lowercase skill names (exact matches from the skills fields). Select approximately 40-60% of the most relevant skills. Do NOT modify the skills.technical or skills.soft text — only add the highlightedSkills array.
 
 SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** markers from your output. The resulting plain text MUST be character-for-character identical to the original input. If it is not, you have made an error — fix it.`;
 
@@ -142,9 +162,22 @@ SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** marke
       jsonResponse.headings = resumeData.headings;
     }
 
-    // Restore original skills (unbolded) — pills don't need bold markers
+    // Restore original skills text (unbolded) but keep AI-identified highlightedSkills
     if (originalSkills) {
-      jsonResponse.skills = originalSkills;
+      // Validate highlightedSkills: only keep skills that actually exist in the original data
+      const allSkillsLower = [
+        ...parseSkillsToTags(originalSkills.technical || ''),
+        ...parseSkillsToTags(originalSkills.soft || ''),
+      ].map(s => s.toLowerCase().trim());
+
+      const aiHighlighted = Array.isArray(jsonResponse.highlightedSkills) 
+        ? jsonResponse.highlightedSkills.filter(s => typeof s === 'string' && allSkillsLower.includes(s.toLowerCase().trim()))
+        : [];
+
+      jsonResponse.skills = {
+        ...originalSkills,
+        highlightedSkills: aiHighlighted.map(s => s.toLowerCase().trim())
+      };
     }
 
     res.status(200).json(jsonResponse);

@@ -66,8 +66,23 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <select
-                value={layout?.coloredSkills === undefined ? true : layout.coloredSkills}
-                onChange={(e) => updateLayout('coloredSkills', e.target.value === 'true')}
+                value={
+                  (data.highlightedSkills?.length > 0 && layout?.coloredSkills !== true)
+                    ? 'highlighted'
+                    : layout?.coloredSkills === true ? 'all' : 'neutral'
+                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'all') {
+                    updateLayout('coloredSkills', true);
+                  } else if (val === 'highlighted') {
+                    updateLayout('coloredSkills', false);
+                  } else {
+                    updateLayout('coloredSkills', false);
+                    // Clear highlighted skills when going full neutral
+                    onChange({ ...data, highlightedSkills: [] });
+                  }
+                }}
                 style={{
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
@@ -80,8 +95,9 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
                   width: '100%'
                 }}
               >
-                <option value="true">{t('Color All Skills')}</option>
-                <option value="false">{t('Neutral Skills')}</option>
+                <option value="neutral">{t('Neutral Skills')}</option>
+                <option value="highlighted">{t('AI Highlighted')}</option>
+                <option value="all">{t('Color All Skills')}</option>
               </select>
             </div>
           </div>

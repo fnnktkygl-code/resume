@@ -21,10 +21,32 @@ function ModernTemplate({
   onAddSectionSpacer,
   onUpdateSectionSpacer,
   onDeleteSectionSpacer,
-  printMode = false
+  printMode = false,
+  onSkillHighlightToggle
 }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
+
+  const highlightedSkills = data.skills.highlightedSkills || [];
+  const hasPerSkillHighlights = highlightedSkills.length > 0;
+
+  const getSkillClass = (skillText, defaultClass) => {
+    const key = skillText.toLowerCase().trim();
+    if (hasPerSkillHighlights) {
+      return highlightedSkills.includes(key) ? defaultClass.replace('skill-pill', 'skill-pill-accent').replace('skill-square', 'skill-square-accent') : defaultClass.replace('-accent', '');
+    }
+    return defaultClass;
+  };
+
+  const handleSkillClick = (skillText) => {
+    if (printMode || !onSkillHighlightToggle) return;
+    const key = skillText.toLowerCase().trim();
+    const current = data.skills.highlightedSkills || [];
+    const updated = current.includes(key)
+      ? current.filter(s => s !== key)
+      : [...current, key];
+    onSkillHighlightToggle(updated);
+  };
 
   const renderSkills = (skillsString, defaultClass) => {
     if (!skillsString) return null;
@@ -33,17 +55,41 @@ function ModernTemplate({
     if (style === 'text') {
       return (
         <span style={{ fontSize: '0.95em', lineHeight: '1.5' }}>
-          {skillTags.map((skill, si) => (
-            <span key={si}>
-              {si > 0 && ' • '}
-              {parseMarkdown(skill)}
-            </span>
-          ))}
+          {skillTags.map((skill, si) => {
+            const cls = getSkillClass(skill, defaultClass);
+            const isAccent = cls.includes('-accent');
+            return (
+              <span key={si}
+                onClick={() => handleSkillClick(skill)}
+                style={{ 
+                  cursor: printMode ? 'default' : 'pointer',
+                  color: isAccent ? 'var(--resume-accent-color, #1B6B3A)' : undefined,
+                  fontWeight: isAccent ? 600 : undefined,
+                  transition: 'color 0.2s ease, font-weight 0.2s ease'
+                }}
+                title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+              >
+                {si > 0 && ' • '}
+                {parseMarkdown(skill)}
+              </span>
+            );
+          })}
         </span>
       );
     }
-    const className = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
-    return skillTags.map((skill, si) => <span key={si} className={className}>{parseMarkdown(skill)}</span>);
+    const baseClass = style === 'square' ? defaultClass.replace('pill', 'square') : defaultClass;
+    return skillTags.map((skill, si) => {
+      const cls = getSkillClass(skill, baseClass);
+      return (
+        <span key={si} className={`${cls} skill-toggleable`}
+          onClick={() => handleSkillClick(skill)}
+          style={{ cursor: printMode ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
+          title={!printMode ? (cls.includes('-accent') ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+        >
+          {parseMarkdown(skill)}
+        </span>
+      );
+    });
   };
 
   const p = data.personal;

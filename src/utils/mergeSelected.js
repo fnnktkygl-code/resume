@@ -31,6 +31,13 @@ export function mergeSelected(original, modified, selectedIds) {
     merged.skills = merged.skills || {};
     merged.skills.languages = modified.skills.languages;
   }
+  // highlightedSkills: always merge if present in modified (auto-selected by AI)
+  if (modified.skills?.highlightedSkills && JSON.stringify(modified.skills.highlightedSkills) !== JSON.stringify(original.skills?.highlightedSkills)) {
+    if (selectedIds.has('skills.highlightedSkills')) {
+      merged.skills = merged.skills || {};
+      merged.skills.highlightedSkills = modified.skills.highlightedSkills;
+    }
+  }
 
   // Experience
   original.experience?.forEach((exp, idx) => {

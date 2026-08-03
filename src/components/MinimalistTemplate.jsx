@@ -19,7 +19,8 @@ function MinimalistTemplate({
   onAddSectionSpacer,
   onUpdateSectionSpacer,
   onDeleteSectionSpacer,
-  printMode = false
+  printMode = false,
+  onSkillHighlightToggle
 }) {
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
@@ -34,6 +35,48 @@ function MinimalistTemplate({
   );
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
   const h = data.headings || {};
+
+  const highlightedSkills = data.skills.highlightedSkills || [];
+  const hasPerSkillHighlights = highlightedSkills.length > 0;
+
+  const handleSkillClick = (skillText) => {
+    if (printMode || !onSkillHighlightToggle) return;
+    const key = skillText.toLowerCase().trim();
+    const current = data.skills.highlightedSkills || [];
+    const updated = current.includes(key)
+      ? current.filter(s => s !== key)
+      : [...current, key];
+    onSkillHighlightToggle(updated);
+  };
+
+  const renderMinimalistSkills = (skillsString) => {
+    const tags = parseSkillsToTags(skillsString);
+    return (
+      <span>
+        {tags.map((skill, si) => {
+          const key = skill.toLowerCase().trim();
+          const isAccent = hasPerSkillHighlights
+            ? highlightedSkills.includes(key)
+            : layout.coloredSkills !== false;
+          return (
+            <span key={si}
+              onClick={() => handleSkillClick(skill)}
+              style={{
+                color: isAccent ? primaryColor : textColor,
+                fontWeight: isAccent ? 500 : 'normal',
+                cursor: printMode ? 'default' : 'pointer',
+                transition: 'color 0.2s ease, font-weight 0.2s ease'
+              }}
+              title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+            >
+              {si > 0 && ', '}
+              {skill}
+            </span>
+          );
+        })}
+      </span>
+    );
+  };
 
   const getWrapProps = (id, style) => {
     if (SectionWrapper) {
@@ -197,19 +240,19 @@ function MinimalistTemplate({
               {data.skills.technical && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
                   <strong style={{ color: textColor }}>{displayHeading('technical', 'Technical Skills', 'Technical Skills')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.technical).join(', ')}</span>
+                  {renderMinimalistSkills(data.skills.technical)}
                 </div>
               )}
               {data.skills.soft && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4', paddingTop: '6px', borderTop: `1px solid ${textColor}1A` }}>
                   <strong style={{ color: textColor }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.soft).join(', ')}</span>
+                  {renderMinimalistSkills(data.skills.soft)}
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
                 <div style={{ marginBottom: '6px', lineHeight: '1.4', paddingTop: '6px', borderTop: `1px solid ${textColor}1A` }}>
                   <strong style={{ color: textColor }}>{displayHeading('languages', 'Languages', 'Languages')} : </strong>
-                  <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.languages).join(', ')}</span>
+                  {renderMinimalistSkills(data.skills.languages)}
                 </div>
               )}
             </div>

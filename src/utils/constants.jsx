@@ -150,7 +150,7 @@ export const DEFAULT_DATA = {
   summary: '',
   experience: [createEmptyExperience()],
   education: [createEmptyEducation()],
-  skills: { technical: '', soft: '', languages: '' },
+  skills: { technical: '', soft: '', languages: '', highlightedSkills: [] },
   projects: [createEmptyProject()],
   certifications: [createEmptyCertification()],
   customSections: [

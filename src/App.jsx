@@ -60,7 +60,7 @@ const DEFAULT_LAYOUT = {
   accentColor: '#1B6B3A',
   fontFamily: 'Inter',
   splitLinks: true,
-  coloredSkills: true,
+  coloredSkills: false,
 };
 
 const DEFAULT_SECTION_ORDER = ['contact', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'custom_langues', 'custom_atouts', 'custom_loisirs'];
@@ -1423,6 +1423,7 @@ export default function App() {
                 onAddSectionSpacer={handleAddSectionSpacer}
                 onUpdateSectionSpacer={handleUpdateSectionSpacer}
                 onDeleteSectionSpacer={handleDeleteSectionSpacer}
+                onSkillHighlightToggle={(updated) => dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, highlightedSkills: updated } })}
                 compact 
               />
             </aside>
@@ -1584,6 +1585,7 @@ export default function App() {
                 onAddSectionSpacer={handleAddSectionSpacer}
                 onUpdateSectionSpacer={handleUpdateSectionSpacer}
                 onDeleteSectionSpacer={handleDeleteSectionSpacer}
+                onSkillHighlightToggle={(updated) => dispatch({ type: 'UPDATE_SKILLS', payload: { ...data.skills, highlightedSkills: updated } })}
               />
             </div>
           </div>

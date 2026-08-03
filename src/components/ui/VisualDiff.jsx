@@ -103,6 +103,19 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     }
 
+    // Highlighted Skills Diff (AI-selected per-skill highlighting)
+    const origHighlighted = original.skills?.highlightedSkills || [];
+    const modHighlighted = modified.skills?.highlightedSkills || [];
+    if (modHighlighted.length > 0 && JSON.stringify(origHighlighted) !== JSON.stringify(modHighlighted)) {
+      items.push({
+        id: 'skills.highlightedSkills',
+        section: t('Skill Highlighting'),
+        type: 'text',
+        original: origHighlighted.length > 0 ? `${origHighlighted.length} skill(s) highlighted` : t('No skills highlighted'),
+        modified: `${modHighlighted.length} skill(s) highlighted: ${modHighlighted.join(', ')}`
+      });
+    }
+
     // Experience Diff
     original.experience?.forEach((exp, idx) => {
       if (exp.isSpacer) return;

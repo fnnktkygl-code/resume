@@ -157,8 +157,8 @@ export function sanitizeResumeData(raw) {
       ? raw.education.map(sanitizeEducation).filter(Boolean)
       : [],
     skills: raw.skills && typeof raw.skills === 'object'
-      ? { technical: stripHtml(raw.skills.technical || ''), soft: stripHtml(raw.skills.soft || ''), languages: stripHtml(raw.skills.languages || '') }
-      : { technical: '', soft: '', languages: '' },
+      ? { technical: stripHtml(raw.skills.technical || ''), soft: stripHtml(raw.skills.soft || ''), languages: stripHtml(raw.skills.languages || ''), highlightedSkills: Array.isArray(raw.skills.highlightedSkills) ? raw.skills.highlightedSkills.filter(s => typeof s === 'string') : [] }
+      : { technical: '', soft: '', languages: '', highlightedSkills: [] },
     projects: Array.isArray(raw.projects)
       ? raw.projects.map(sanitizeProject).filter(Boolean)
       : [],

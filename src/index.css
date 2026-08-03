@@ -2142,6 +2142,21 @@ input[type="range"] {
   border: 1px solid rgba(var(--resume-accent-rgb, 27, 107, 58), 0.2);
 }
 
+.skill-toggleable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+@media print {
+  .skill-toggleable {
+    cursor: default !important;
+  }
+  .skill-toggleable:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
 .resume-section-icon {
   margin-right: 6px;
   font-style: normal;
