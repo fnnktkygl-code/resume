@@ -3,8 +3,9 @@ import TagInput from '../ui/TagInput';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
+export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange, layout, onLayoutChange }) {
   const { t } = useTranslation();
+  const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
   const visibleItems = data.filter(e => !e.isSpacer);
 
   const updateExp = (realIdx, field, val) => {
@@ -194,10 +195,58 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
               </div>
               <button className="btn-add" style={{ marginTop: '10px' }} onClick={() => addBullet(realIdx)}>+ {t('Add bullet point')}</button>
             </div>
-            <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+            <div style={{ marginTop: '16px', borderTop: '1px solid var(--color-border, #eee)', paddingTop: '12px' }}>
               <Field label={t('Technologies & Tools (comma separated)')} full>
                 <TagInput value={exp.technologies || ''} onChange={(v) => updateExp(realIdx, 'technologies', v)} placeholder="React, Node.js, SQL, AWS..." />
               </Field>
+
+              {layout && onLayoutChange && (
+                <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--color-surface-alt, #fafafa)', borderRadius: '6px', border: '1px solid var(--color-border, #eee)' }}>
+                  <div style={{ fontSize: '11.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-text-secondary, #666)', marginBottom: '8px' }}>
+                    🎨 {t('Tags & Technologies Style')}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select
+                      value={layout?.tagStyle || 'outline'}
+                      onChange={(e) => updateLayout('tagStyle', e.target.value)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 'var(--radius-md, 4px)',
+                        border: '1px solid var(--color-border, #ccc)',
+                        backgroundColor: 'var(--color-surface, #fff)',
+                        color: 'var(--color-text, #333)',
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        flex: 1
+                      }}
+                    >
+                      <option value="outline">{t('Square Contour')}</option>
+                      <option value="pill-outline">{t('Rounded Contour')}</option>
+                      <option value="square">{t('Squares')}</option>
+                      <option value="pill">{t('Rounded Circles')}</option>
+                      <option value="text">{t('Simple Text')}</option>
+                    </select>
+                    <select
+                      value={layout?.coloredTags || 'highlighted'}
+                      onChange={(e) => updateLayout('coloredTags', e.target.value)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 'var(--radius-md, 4px)',
+                        border: '1px solid var(--color-border, #ccc)',
+                        backgroundColor: 'var(--color-surface, #fff)',
+                        color: 'var(--color-text, #333)',
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        flex: 1
+                      }}
+                    >
+                      <option value="neutral">{t('Neutral Tags')}</option>
+                      <option value="highlighted">{t('AI Highlighted')}</option>
+                      <option value="all">{t('Color All Tags')}</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );

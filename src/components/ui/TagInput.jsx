@@ -1,34 +1,37 @@
 import { useState, useRef, useCallback } from 'react';
-import { parseSkillsToTags } from '../../utils/formatText';
 
 /**
- * TagInput – a chip/badge-based input for comma-separated values.
- * Each item is rendered as a tag with an × button.
- * Typing + Enter/comma/Tab adds a new tag.
- * Backspace on empty input removes the last tag.
- * 
- * Uses parseSkillsToTags to handle complex formats:
- *   "Category : item1, item2; Category2 : item3" → ["item1", "item2", "item3"]
+ * TagInput – chip/badge-based input for comma-separated values.
+ * Allows toggling bold (**) per chip with a 'B' button or click.
  */
 export default function TagInput({ value, onChange, placeholder }) {
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef(null);
 
-  // Parse value into clean tags using shared utility
-  const tags = parseSkillsToTags(value);
+  // Parse raw value into tags list preserving ** markers
+  const rawTags = (value || '').split(',').map(s => s.trim()).filter(Boolean);
 
   const commitTag = useCallback((raw) => {
-    const tag = raw.replace(/\*\*/g, '').trim();
+    const tag = raw.trim();
     if (!tag) return;
-    const newTags = [...tags, tag];
+    const newTags = [...rawTags, tag];
     onChange(newTags.join(', '));
     setInputValue('');
-  }, [tags, onChange]);
+  }, [rawTags, onChange]);
 
   const removeTag = useCallback((index) => {
-    const newTags = tags.filter((_, i) => i !== index);
+    const newTags = rawTags.filter((_, i) => i !== index);
     onChange(newTags.join(', '));
-  }, [tags, onChange]);
+  }, [rawTags, onChange]);
+
+  const toggleBoldTag = useCallback((index) => {
+    const newTags = rawTags.map((t, i) => {
+      if (i !== index) return t;
+      const clean = t.replace(/\*\*/g, '').trim();
+      return t.includes('**') ? clean : `**${clean}**`;
+    });
+    onChange(newTags.join(', '));
+  }, [rawTags, onChange]);
 
   const handleKeyDown = useCallback((e) => {
     const val = inputValue;
@@ -39,23 +42,22 @@ export default function TagInput({ value, onChange, placeholder }) {
       return;
     }
 
-    if (e.key === 'Backspace' && val === '' && tags.length > 0) {
+    if (e.key === 'Backspace' && val === '' && rawTags.length > 0) {
       e.preventDefault();
-      removeTag(tags.length - 1);
+      removeTag(rawTags.length - 1);
     }
-  }, [inputValue, tags, commitTag, removeTag]);
+  }, [inputValue, rawTags, commitTag, removeTag]);
 
   const handlePaste = useCallback((e) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text');
-    // Use the same parser for pasted content
-    const items = parseSkillsToTags(pasted);
+    const items = pasted.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
     if (items.length > 0) {
-      const newTags = [...tags, ...items];
+      const newTags = [...rawTags, ...items];
       onChange(newTags.join(', '));
       setInputValue('');
     }
-  }, [tags, onChange]);
+  }, [rawTags, onChange]);
 
   const handleBlur = useCallback(() => {
     if (inputValue.trim()) {
@@ -67,20 +69,86 @@ export default function TagInput({ value, onChange, placeholder }) {
     <div
       className="tag-input-container"
       onClick={() => inputRef.current?.focus()}
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '6px',
+        alignItems: 'center',
+        padding: '6px 10px',
+        borderRadius: 'var(--radius-md, 6px)',
+        border: '1px solid var(--color-border, #ccc)',
+        backgroundColor: 'var(--color-surface, #fff)',
+        minHeight: '42px',
+        cursor: 'text'
+      }}
     >
-      {tags.map((tag, i) => (
-        <span key={`${tag}-${i}`} className="tag-chip">
-          <span className="tag-chip-text">{tag}</span>
-          <button
-            type="button"
-            className="tag-chip-remove"
-            onClick={(e) => { e.stopPropagation(); removeTag(i); }}
-            aria-label={`Remove ${tag}`}
+      {rawTags.map((rawTag, i) => {
+        const isBold = rawTag.includes('**');
+        const cleanText = rawTag.replace(/\*\*/g, '');
+        return (
+          <span
+            key={`${cleanText}-${i}`}
+            className="tag-chip"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: isBold ? '700' : '400',
+              border: isBold ? '1px solid var(--color-accent, #1B6B3A)' : '1px solid var(--color-border, #ddd)',
+              backgroundColor: isBold ? 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.12)' : 'var(--color-surface-alt, #f5f5f5)',
+              color: isBold ? 'var(--color-accent, #1B6B3A)' : 'var(--color-text, #333)',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              userSelect: 'none',
+              transition: 'all 0.15s ease'
+            }}
           >
-            ×
-          </button>
-        </span>
-      ))}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); toggleBoldTag(i); }}
+              title="Mettre en gras / Retirer le gras"
+              style={{
+                background: isBold ? 'var(--color-accent, #1B6B3A)' : 'transparent',
+                color: isBold ? '#fff' : 'var(--color-text-secondary, #777)',
+                border: isBold ? 'none' : '1px solid var(--color-border, #ccc)',
+                borderRadius: '3px',
+                padding: '0 4px',
+                fontSize: '10px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                lineHeight: '1.2'
+              }}
+            >
+              B
+            </button>
+            <span
+              onClick={(e) => { e.stopPropagation(); toggleBoldTag(i); }}
+              style={{ cursor: 'pointer' }}
+              title="Cliquer pour basculer le gras"
+            >
+              {cleanText}
+            </span>
+            <button
+              type="button"
+              className="tag-chip-remove"
+              onClick={(e) => { e.stopPropagation(); removeTag(i); }}
+              aria-label={`Remove ${cleanText}`}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                opacity: 0.6,
+                padding: '0 2px',
+                fontSize: '13px',
+                color: 'inherit'
+              }}
+            >
+              ×
+            </button>
+          </span>
+        );
+      })}
       <input
         ref={inputRef}
         type="text"
@@ -90,7 +158,15 @@ export default function TagInput({ value, onChange, placeholder }) {
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
         onBlur={handleBlur}
-        placeholder={tags.length === 0 ? placeholder : ''}
+        placeholder={rawTags.length === 0 ? placeholder : ''}
+        style={{
+          border: 'none',
+          outline: 'none',
+          background: 'transparent',
+          flex: '1 1 120px',
+          fontSize: '13px',
+          color: 'var(--color-text, #333)'
+        }}
       />
     </div>
   );

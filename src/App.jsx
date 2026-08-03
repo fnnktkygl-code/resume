@@ -898,6 +898,8 @@ export default function App() {
                   onChange={(v) => dispatch({ type: 'UPDATE_EXPERIENCE', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  layout={data.layout}
+                  onLayoutChange={(v) => dispatch({ type: 'UPDATE_LAYOUT', payload: v })}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBulletConfig({
                       isOpen: true, 
