@@ -2811,12 +2811,14 @@ input[type="range"] {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 15mm 20mm;
+    margin: 0;
   }
 
   body.print-cover-letter {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   body.print-cover-letter #root,
@@ -2867,20 +2869,24 @@ input[type="range"] {
     overflow: visible !important;
   }
 
-  body.print-cover-letter .cl-a4-paper {
+  body.print-cover-letter .cl-a4-paper.print-hidden {
+    display: none !important;
+  }
+
+  body.print-cover-letter .cl-a4-paper.print-only {
     display: block !important;
     width: 100% !important;
-    max-width: 100% !important;
-    min-height: auto !important;
-    height: auto !important;
+    box-sizing: border-box !important;
+    min-height: 100vh !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
+    padding: 15mm 20mm !important;
     margin: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     line-height: 1.6 !important;
-    page-break-inside: auto;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
 
