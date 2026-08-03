@@ -117,31 +117,58 @@ export default function PersonalStep({ data, headings, onChange, onHeadingsChang
         <div className="field-full">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <label className="field-label" style={{ marginBottom: 0 }}>{t('Professional Title / Tagline')}</label>
-            {onAISectionFill && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <button
                 type="button"
-                onClick={() => onAISectionFill('tagline')}
-                className="btn-ai-suggest"
-                title={t('AI Suggestions')}
+                onClick={() => {
+                  const val = data.tagline || '';
+                  if (val.startsWith('**') && val.endsWith('**')) {
+                    update('tagline', val.slice(2, -2));
+                  } else {
+                    update('tagline', `**${val.replace(/\*\*/g, '')}**`);
+                  }
+                }}
+                className="btn-secondary"
+                title="Mettre en gras / Retirer le gras"
                 style={{
-                  background: 'var(--color-accent-light)',
-                  border: 'none',
-                  color: 'var(--color-accent)',
+                  padding: '2px 8px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  borderRadius: '4px',
                   cursor: 'pointer',
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'all 0.15s ease',
-                  whiteSpace: 'nowrap',
+                  border: '1px solid var(--color-border)',
+                  background: data.tagline?.includes('**') ? 'var(--color-accent-light)' : 'transparent',
+                  color: data.tagline?.includes('**') ? 'var(--color-accent)' : 'var(--color-text)'
                 }}
               >
-                ✨ {t('AI Suggest')}
+                <strong>B</strong>
               </button>
-            )}
+              {onAISectionFill && (
+                <button
+                  type="button"
+                  onClick={() => onAISectionFill('tagline')}
+                  className="btn-ai-suggest"
+                  title={t('AI Suggestions')}
+                  style={{
+                    background: 'var(--color-accent-light)',
+                    border: 'none',
+                    color: 'var(--color-accent)',
+                    cursor: 'pointer',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    borderRadius: '6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ✨ {t('AI Suggest')}
+                </button>
+              )}
+            </div>
           </div>
           <TextInput value={data.tagline} onChange={(v) => update('tagline', v)} placeholder={t('Senior Software Engineer')} />
         </div>

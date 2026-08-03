@@ -120,7 +120,7 @@ function NjmTemplate({
                 style={{ 
                   cursor: printMode ? 'default' : 'pointer',
                   color: isAccent ? 'var(--resume-accent-color, #1B6B3A)' : undefined,
-                  fontWeight: isAccent ? 600 : undefined,
+                  fontWeight: isAccent ? 700 : 400,
                   transition: 'color 0.2s ease, font-weight 0.2s ease'
                 }}
                 title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
