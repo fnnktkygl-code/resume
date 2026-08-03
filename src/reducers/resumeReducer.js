@@ -72,6 +72,15 @@ export default function resumeReducer(state, action) {
         customSections: action.payload
       };
 
+    case 'UPDATE_LAYOUT':
+      return {
+        ...state,
+        layout: {
+          ...(state.layout || {}),
+          ...action.payload
+        }
+      };
+
     case 'REORDER_SECTIONS':
       return {
         ...state,
