@@ -6,10 +6,11 @@
 
 const MODEL_CASCADE_TIERS = [
   'gemini-2.0-flash',
+  'gemini-flash-latest',
   'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-pro'
+  'gemini-pro-latest',
+  'gemini-1.5-pro',
+  'gemini-1.5-flash-8b'
 ];
 
 let lastCallTimestamp = 0;
