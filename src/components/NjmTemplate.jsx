@@ -244,21 +244,81 @@ function NjmTemplate({
     if (!tagString) return null;
     const tags = tagString.split(',').map(s => s.trim()).filter(Boolean);
     if (!tags.length) return null;
+    const style = layout.tagStyle || 'outline'; // 'outline', 'pill-outline', 'square', 'pill', 'text'
+    const colorMode = layout.coloredTags || 'highlighted'; // 'neutral', 'highlighted', 'all'
+    const highlightedList = data.skills.highlightedSkills || [];
+
+    if (style === 'text') {
+      return (
+        <span style={{ fontSize: '0.85em', lineHeight: '1.5', marginTop: '4px', display: 'inline-block' }}>
+          {tags.map((tag, idx) => {
+            const rawKey = tag.replace(/\*\*/g, '').toLowerCase().trim();
+            const isHighlighted = highlightedList.includes(rawKey);
+            const isExplicitBold = tag.includes('**');
+            const isAccent = colorMode === 'all' ? true : colorMode === 'neutral' ? false : (isExplicitBold || isHighlighted);
+            return (
+              <span key={idx}
+                onClick={() => handleSkillClick(tag)}
+                style={{
+                  cursor: printMode ? 'default' : 'pointer',
+                  color: isAccent ? 'var(--color-accent, #1B6B3A)' : 'var(--resume-text-secondary, #666)',
+                  fontWeight: isAccent ? 700 : 400,
+                  transition: 'all 0.2s ease'
+                }}
+                title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+              >
+                {idx > 0 && ' • '}
+                {parseMarkdown(tag)}
+              </span>
+            );
+          })}
+        </span>
+      );
+    }
+
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
         {tags.map((tag, idx) => {
-          const isBold = tag.includes('**');
+          const rawKey = tag.replace(/\*\*/g, '').toLowerCase().trim();
+          const isHighlighted = highlightedList.includes(rawKey);
+          const isExplicitBold = tag.includes('**');
+          const isAccent = colorMode === 'all' ? true : colorMode === 'neutral' ? false : (isExplicitBold || isHighlighted);
+
+          const isPill = style === 'pill' || style === 'pill-outline';
+          const isFilled = style === 'pill' || style === 'square';
+          const borderRadius = isPill ? '9999px' : '4px';
+
+          let border = '1px solid var(--resume-border-color, #ccc)';
+          let color = 'var(--resume-text-color, #333)';
+          let backgroundColor = 'var(--color-surface-alt, #fafafa)';
+
+          if (isAccent) {
+            color = 'var(--color-accent, #1B6B3A)';
+            border = '1px solid var(--color-accent, #1B6B3A)';
+            backgroundColor = 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.1)';
+          } else if (isFilled) {
+            backgroundColor = 'var(--color-surface-alt, #f3f4f6)';
+            border = '1px solid var(--color-border, #e5e7eb)';
+          }
+
           return (
-            <span key={idx} style={{
-              fontSize: '0.75em',
-              border: isBold ? '1px solid var(--color-accent, #1B6B3A)' : '1px solid var(--resume-border-color, #ccc)',
-              borderRadius: '4px',
-              padding: '1px 6px',
-              color: isBold ? 'var(--color-accent, #1B6B3A)' : 'var(--resume-text-color, #333)',
-              fontWeight: isBold ? '700' : '500',
-              textTransform: 'uppercase',
-              backgroundColor: isBold ? 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.1)' : 'var(--color-surface-alt, #fafafa)'
-            }}>
+            <span key={idx} 
+              onClick={() => handleSkillClick(tag)}
+              className="skill-toggleable"
+              style={{
+                fontSize: '0.75em',
+                border,
+                borderRadius,
+                padding: isPill ? '2px 10px' : '1px 6px',
+                color,
+                fontWeight: isAccent ? 700 : 400,
+                textTransform: 'uppercase',
+                backgroundColor,
+                cursor: printMode ? 'default' : 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+            >
               {parseMarkdown(tag)}
             </span>
           );
