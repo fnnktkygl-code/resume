@@ -125,7 +125,7 @@ ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
 
 1. TEXT PRESERVATION IS SACRED: You must NOT change, rewrite, rephrase, translate, reorder, add, or remove ANY word, punctuation, or character. The ONLY characters you may insert are ** (double asterisks) to create markdown bold. If the original says "Wind Sector Management, Noise Regulation, Bat Protection" then your output MUST contain "**Wind Sector Management**, **Noise Regulation**, **Bat Protection**" — the exact same words with ** around them.
 
-2. PROCESS EVERY SECTION: You MUST apply bolding to ALL experience entries, ALL project entries, ALL education entries, and the summary. Do NOT skip any section or entry. If there are 3 experience entries, all 3 must be processed.
+2. PROCESS EVERY SECTION: You MUST apply bolding to ALL experience entries, ALL project entries, ALL education entries, the summary, AND the personal.tagline (professional title/slogan). Do NOT skip any section or entry. If there are 3 experience entries, all 3 must be processed.
 
 3. WHAT TO BOLD: Bold 1-3 key terms per bullet point:
    - Strong action verbs (Développement, Conception, Analyse, Optimisation, Mise en place...)
@@ -184,6 +184,11 @@ SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** marke
     // Validate summary
     if (jsonResponse.summary && cloneData.summary) {
       jsonResponse.summary = validateField(jsonResponse.summary, cloneData.summary);
+    }
+
+    // Validate personal.tagline
+    if (jsonResponse.personal?.tagline && cloneData.personal?.tagline) {
+      jsonResponse.personal.tagline = validateField(jsonResponse.personal.tagline, cloneData.personal.tagline);
     }
 
     // Validate experience bullets

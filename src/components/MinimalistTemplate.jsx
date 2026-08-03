@@ -63,7 +63,7 @@ function MinimalistTemplate({
               onClick={() => handleSkillClick(skill)}
               style={{
                 color: isAccent ? primaryColor : textColor,
-                fontWeight: isAccent ? 500 : 'normal',
+                fontWeight: isAccent ? 700 : 'normal',
                 cursor: printMode ? 'default' : 'pointer',
                 transition: 'color 0.2s ease, font-weight 0.2s ease'
               }}
