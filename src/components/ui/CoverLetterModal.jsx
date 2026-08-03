@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateCoverLetterWithProxy, boldifyCoverLetterWithProxy } from '../../services/geminiService';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
@@ -23,6 +23,12 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
   const [isBoldifying, setIsBoldifying] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Undo / Redo History State
+  const [history, setHistory] = useState(['']);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -37,6 +43,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   }, [isOpen, data?.targetJobDescription]);
 
+  // Modal lifecycle & ESC key / Popstate
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('print-cover-letter');
@@ -65,6 +72,115 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   }, [isOpen, onClose]);
 
+  // Proactive Header Injection & Placeholder Replacement Helper
+  const autoInjectHeaderInfo = useCallback((text) => {
+    if (!text) return text;
+    let result = text;
+    
+    // 1. Clean markdown codeblock wrappers if Gemini returns ```markdown ... ```
+    result = result.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
+    const todayStr = new Date().toLocaleDateString(
+      language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US',
+      { day: 'numeric', month: 'long', year: 'numeric' }
+    );
+
+    // 2. Replace residual generic placeholders
+    if (data?.personal) {
+      const p = data.personal;
+      if (p.name) {
+        result = result.replace(/\[(Your Name|Candidate Name|Nom Prénom|Nom|Full Name|Votre Nom)\]/gi, p.name);
+      }
+      if (p.email) {
+        result = result.replace(/\[(Your Email|Email Address|Email|Votre Email)\]/gi, p.email);
+      }
+      if (p.phone) {
+        result = result.replace(/\[(Your Phone|Phone Number|Téléphone|Phone|Votre Téléphone)\]/gi, p.phone);
+      }
+      if (p.location) {
+        result = result.replace(/\[(Your Address|Address|City, State|Ville, Pays|Adresse|Your Location)\]/gi, p.location);
+      }
+    }
+
+    result = result.replace(/\[(Date|Today's Date|Date du jour)\]/gi, todayStr);
+
+    if (companyName) {
+      result = result.replace(/\[(Company Name|Nom de l'entreprise|Entreprise)\]/gi, companyName);
+    }
+    if (targetRole) {
+      result = result.replace(/\[(Target Role|Title|Job Title|Poste)\]/gi, targetRole);
+    }
+
+    // 3. Prepend candidate header block if letter lacks a header entirely
+    const p = data?.personal;
+    const hasHeaderName = p?.name && result.toLowerCase().includes(p.name.toLowerCase());
+    if (p?.name && !hasHeaderName) {
+      let headerBlock = `${p.name}\n`;
+      if (p.location) headerBlock += `${p.location}\n`;
+      if (p.phone || p.email) headerBlock += `${[p.phone, p.email].filter(Boolean).join(' | ')}\n`;
+      headerBlock += `${todayStr}\n\n`;
+      result = headerBlock + result;
+    }
+
+    return result;
+  }, [data?.personal, language, companyName, targetRole]);
+
+  // Update Cover Letter state with Undo/Redo history tracking
+  const updateLetterContent = (newText, clearHistory = false) => {
+    const formatted = autoInjectHeaderInfo(newText);
+    setCoverLetter(formatted);
+
+    if (clearHistory) {
+      setHistory([formatted]);
+      setHistoryIndex(0);
+    } else {
+      setHistory(prev => {
+        const sliced = prev.slice(0, historyIndex + 1);
+        if (sliced[sliced.length - 1] === formatted) return prev;
+        return [...sliced, formatted];
+      });
+      setHistoryIndex(prev => prev + 1);
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const prevIndex = historyIndex - 1;
+      setHistoryIndex(prevIndex);
+      setCoverLetter(history[prevIndex]);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextIndex = historyIndex + 1;
+      setHistoryIndex(nextIndex);
+      setCoverLetter(history[nextIndex]);
+    }
+  };
+
+  // Keyboard shortcut listener for Cmd+Z (Undo) and Cmd+Shift+Z / Cmd+Y (Redo)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            handleRedo();
+          } else {
+            handleUndo();
+          }
+        } else if (e.key.toLowerCase() === 'y') {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, historyIndex, history]);
+
   if (!isOpen) return null;
 
   const isResumeEmpty = !data || !data.experience || data.experience.length === 0;
@@ -88,7 +204,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       
       combinedPrompt += `Length Constraint: ${clLength} (Ensure the letter strictly reflects this length constraint)`;
       const result = await generateCoverLetterWithProxy(data, combinedPrompt, language);
-      setCoverLetter(result);
+      updateLetterContent(result, true);
+      
       if (window.innerWidth <= 768 && previewRef.current) {
         setTimeout(() => {
           previewRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -107,7 +224,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     setError(null);
     try {
       const result = await boldifyCoverLetterWithProxy(coverLetter, jobDescription);
-      setCoverLetter(result);
+      updateLetterContent(result);
     } catch (err) {
       setError(err.message || t('An error occurred during boldification.'));
     } finally {
@@ -117,19 +234,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
   const handleRemoveBold = () => {
     if (!coverLetter) return;
-    setCoverLetter(coverLetter.replace(/\*\*/g, ''));
-  };
-
-  // Parse markdown bold (**text**) into React elements
-  const renderMarkdownBold = (text) => {
-    if (!text) return null;
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
+    updateLetterContent(coverLetter.replace(/\*\*/g, ''));
   };
 
   const hasBoldMarkers = coverLetter.includes('**');
@@ -144,7 +249,6 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       const wordFont = clFontFamily.split(',')[0].replace(/['"]/g, '').trim();
       const wordSize = Math.round(clFontSize * 2);
 
-      // Parse markdown bold markers into separate TextRuns
       const parseLineToRuns = (line) => {
         const runs = [];
         const parts = line.split(/(\*\*[^*]+\*\*)/g);
@@ -215,7 +319,6 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
             <p>{t('Details to tailor your cover letter.')}</p>
           </div>
 
-          {/* Language Selector inside Modal for Mobile/Convenience */}
           <div className="cl-form-group">
             <label className="cl-label">
               <i className="fi fi-rr-globe"></i> {t('Language')}
@@ -421,9 +524,43 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           </div>
         </div>
 
-        {/* Right Panel: Live Preview */}
+        {/* Right Panel: Live Preview & Editor */}
         <div className="cl-preview-area" ref={previewRef}>
-          <div className="cl-toolbar">
+          <div className="cl-toolbar" style={{ flexWrap: 'wrap', gap: '6px' }}>
+            {/* Undo / Redo Buttons */}
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleUndo}
+              disabled={historyIndex <= 0}
+              style={{ padding: '6px 10px', opacity: historyIndex <= 0 ? 0.4 : 1 }}
+              title={t('Undo (Cmd+Z)')}
+            >
+              ↩️ {t('Undo')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleRedo}
+              disabled={historyIndex >= history.length - 1}
+              style={{ padding: '6px 10px', opacity: historyIndex >= history.length - 1 ? 0.4 : 1 }}
+              title={t('Redo (Cmd+Shift+Z)')}
+            >
+              ↪️ {t('Redo')}
+            </button>
+
+            <span style={{ width: '1px', height: '20px', background: 'var(--color-border)', margin: '0 4px' }} />
+
+            {/* Edit / Preview Mode Toggle */}
+            <button
+              type="button"
+              className={`btn-secondary ${isEditMode ? 'active' : ''}`}
+              onClick={() => setIsEditMode(!isEditMode)}
+              style={{ padding: '6px 10px' }}
+            >
+              {isEditMode ? `👁️ ${t('Preview Mode')}` : `✍️ ${t('Edit Text')}`}
+            </button>
+
             <button 
               className="btn-secondary" 
               onClick={handleBoldify} 
@@ -436,47 +573,68 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                 <><i className="fi fi-rr-star"></i> {t('Smart Bold')}</>
               )}
             </button>
+
             {hasBoldMarkers && (
               <button className="btn-secondary" onClick={handleRemoveBold} title={t('Remove all bold formatting')}>
                 <i className="fi fi-rr-eraser"></i> {t('Remove Bold')}
               </button>
             )}
+
             <button className="btn-secondary" onClick={handlePrint} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
               <i className="fi fi-rr-print"></i> {t('Export PDF')}
             </button>
+
             <button className="btn-secondary" onClick={handleExportWord} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
               <i className="fi fi-rr-document-signed"></i> {t('Export Word')}
             </button>
+
             <button className="btn-secondary" onClick={() => coverLetter && navigator.clipboard.writeText(coverLetter)} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
               <i className="fi fi-rr-copy"></i> {t('Copy')}
             </button>
           </div>
 
-          <div 
-            ref={textareaRef}
-            className="cl-a4-paper print-hidden"
-            style={{ minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt`, outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => {
-              // Convert <strong>/<b> back to ** markers to preserve bold through edits
-              let html = e.currentTarget.innerHTML;
-              html = html.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
-              html = html.replace(/<b>(.*?)<\/b>/gi, '**$1**');
-              // Strip remaining HTML tags and decode entities
-              const tmp = document.createElement('div');
-              tmp.innerHTML = html;
-              setCoverLetter(tmp.innerText || tmp.textContent || '');
-            }}
-            dangerouslySetInnerHTML={{ 
-              __html: coverLetter 
-                ? coverLetter
-                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\n/g, '<br>')
-                : '\u200B' 
-            }}
-          />
+          {isEditMode ? (
+            <textarea
+              className="cl-a4-paper print-hidden"
+              style={{
+                minHeight: '60vh',
+                fontFamily: clFontFamily,
+                fontSize: `${clFontSize}pt`,
+                width: '100%',
+                padding: '24px',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                resize: 'vertical',
+                outline: 'none',
+                lineHeight: '1.6'
+              }}
+              value={coverLetter}
+              onChange={(e) => updateLetterContent(e.target.value)}
+              placeholder={t('Type or edit your cover letter text here...')}
+            />
+          ) : (
+            <div 
+              className="cl-a4-paper print-hidden"
+              style={{ 
+                minHeight: '60vh', 
+                fontFamily: clFontFamily, 
+                fontSize: `${clFontSize}pt`, 
+                whiteSpace: 'pre-wrap', 
+                wordWrap: 'break-word',
+                lineHeight: '1.6',
+                padding: '24px'
+              }}
+              dangerouslySetInnerHTML={{ 
+                __html: coverLetter 
+                  ? coverLetter
+                      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\n/g, '<br>')
+                  : '\u200B' 
+              }}
+            />
+          )}
+
           <div 
             className="cl-a4-paper print-only" 
             style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}

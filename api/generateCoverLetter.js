@@ -34,9 +34,20 @@ export default async function handler(req, res) {
     }
 
     let resumeText = '';
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString(
+      language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US',
+      { day: 'numeric', month: 'long', year: 'numeric' }
+    );
+
     if (data.personal) {
-      resumeText += `Name: ${data.personal.name}\nEmail: ${data.personal.email}\nPhone: ${data.personal.phone}\n`;
+      if (data.personal.name) resumeText += `Candidate Name: ${data.personal.name}\n`;
+      if (data.personal.location) resumeText += `Address/City: ${data.personal.location}\n`;
+      if (data.personal.email) resumeText += `Email: ${data.personal.email}\n`;
+      if (data.personal.phone) resumeText += `Phone: ${data.personal.phone}\n`;
     }
+    resumeText += `Today's Date: ${formattedDate}\n`;
+
     if (data.summary) resumeText += `Summary: ${data.summary}\n`;
     data.experience?.forEach(exp => {
       resumeText += `Experience: ${exp.title} at ${exp.company}\n`;
@@ -46,6 +57,7 @@ export default async function handler(req, res) {
       resumeText += `Education: ${edu.degree} at ${edu.institution}\n`;
     });
     if (data.skills?.technical) resumeText += `Technical Skills: ${data.skills.technical}\n`;
+    if (data.skills?.soft) resumeText += `Soft Skills: ${data.skills.soft}\n`;
 
     const langInstruction = language === 'fr' ? 'Écris la lettre de motivation en Français.' : 
                             language === 'es' ? 'Escribe la carta de presentación en Español.' : 
@@ -60,7 +72,7 @@ Your task is to write a highly professional, tailored, and persuasive Cover Lett
 
 Instructions:
 1. Make sure to map the candidate's actual experience from their Resume to the requirements in the Job Description.
-2. The letter should have a professional format (sender info, date, recipient info, salutation, body paragraphs, closing, sign-off).
+2. SENDER HEADER & DATE: Start the letter with the candidate's ACTUAL personal contact information provided below and TODAY'S DATE (${formattedDate}). NEVER use generic placeholders like '[Your Name]', '[Your Address]', '[City, State]', '[Phone Number]', '[Email Address]', or '[Date]'. Insert candidate details directly into the header block.
 3. Do not invent fake experience. If the candidate lacks a specific skill, focus on their transferable skills.
 4. Output ONLY the cover letter text, properly formatted using Markdown. Do not include any meta-commentary.
 5. ${langInstruction}
@@ -70,7 +82,7 @@ Job Description:
 ${jobDescription}
 """
 
-Resume Content:
+Resume Content & Candidate Details:
 """
 ${resumeText}
 """

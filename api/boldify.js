@@ -80,13 +80,15 @@ Return ONLY the formatted cover letter text.`;
       const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!generatedText) throw new Error("No response generated");
 
+      let cleanedText = generatedText.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
       // Validate: stripped text should be close to original length
-      const stripped = generatedText.replace(/\*\*/g, '');
+      const stripped = cleanedText.replace(/\*\*/g, '');
       if (stripped.trim().length < coverLetter.trim().length * 0.8) {
         return res.status(200).json({ boldedCoverLetter: coverLetter });
       }
 
-      return res.status(200).json({ boldedCoverLetter: generatedText });
+      return res.status(200).json({ boldedCoverLetter: cleanedText });
     } catch (error) {
       console.error('Boldify Cover Letter error:', error);
       if (error.message === 'QUOTA_EXCEEDED') return res.status(429).json({ error: 'QUOTA_EXCEEDED' });
