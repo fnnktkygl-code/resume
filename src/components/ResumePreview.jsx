@@ -616,7 +616,7 @@ function ResumePreview({
                 </div>
               )}
               {data.skills.soft && (
-                <div style={{ paddingTop: '4px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ paddingTop: '8px', marginTop: '4px', borderTop: '1px solid rgba(0,0,0,0.12)' }}>
                   <strong style={{ display: 'block', marginBottom: '5px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {renderSkills(data.skills.soft, 'skill-pill')}
@@ -624,7 +624,7 @@ function ResumePreview({
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
-                <div style={{ paddingTop: '4px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ paddingTop: '8px', marginTop: '4px', borderTop: '1px solid rgba(0,0,0,0.12)' }}>
                   <strong style={{ display: 'block', marginBottom: '5px', fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.3px', opacity: 0.7 }}>{displayHeading('languages', 'Languages', 'Languages')}</strong>
                   <div className="skills-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {renderSkills(data.skills.languages, 'skill-pill-outline')}

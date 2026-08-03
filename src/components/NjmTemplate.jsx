@@ -383,11 +383,11 @@ function NjmTemplate({
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 {skillsList.map((skill, i) => (
-                  <tr key={i}>
+                  <tr key={i} style={i < skillsList.length - 1 ? { borderBottom: '1px solid rgba(0,0,0,0.08)' } : undefined}>
                     <td style={{ 
                       width: '140px', 
                       verticalAlign: 'top', 
-                      padding: '2px 12px 2px 0', 
+                      padding: '6px 12px 6px 0', 
                       textAlign: 'right', 
                       fontSize: '0.8em',
                       color: grayColor,
@@ -399,7 +399,7 @@ function NjmTemplate({
                     </td>
                     <td style={{ 
                       verticalAlign: 'top', 
-                      padding: '2px 0 2px 12px', 
+                      padding: '6px 0 6px 12px', 
                       fontSize: '0.9em',
                       fontWeight: '500',
                       color: textColor

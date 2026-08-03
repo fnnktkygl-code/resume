@@ -201,13 +201,13 @@ function MinimalistTemplate({
                 </div>
               )}
               {data.skills.soft && (
-                <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
+                <div style={{ marginBottom: '6px', lineHeight: '1.4', paddingTop: '6px', borderTop: `1px solid ${textColor}1A` }}>
                   <strong style={{ color: textColor }}>{displayHeading('interpersonal', 'Soft Skills', 'Soft Skills')} : </strong>
                   <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.soft).join(', ')}</span>
                 </div>
               )}
               {data.skills.languages && !hasCustomLangues && (
-                <div style={{ marginBottom: '6px', lineHeight: '1.4' }}>
+                <div style={{ marginBottom: '6px', lineHeight: '1.4', paddingTop: '6px', borderTop: `1px solid ${textColor}1A` }}>
                   <strong style={{ color: textColor }}>{displayHeading('languages', 'Languages', 'Languages')} : </strong>
                   <span style={{ color: layout.coloredSkills !== false ? primaryColor : textColor, fontWeight: layout.coloredSkills !== false ? 500 : 'normal' }}>{parseSkillsToTags(data.skills.languages).join(', ')}</span>
                 </div>
