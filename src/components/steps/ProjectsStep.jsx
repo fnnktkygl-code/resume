@@ -1,5 +1,6 @@
 import { Field, TextInput, TextArea } from '../ui/FormFields';
 import TagInput from '../ui/TagInput';
+import SectionHeader from '../ui/SectionHeader';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
@@ -58,15 +59,11 @@ export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onA
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
-        <TextInput
-          value={headings?.projects || ''}
-          onChange={v => onHeadingsChange?.({ ...headings, projects: v })}
-          placeholder={t('Projects')}
-          style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
-        />
-      </div>
+      <SectionHeader
+        title={headings?.projects}
+        onTitleChange={(v) => onHeadingsChange?.({ ...headings, projects: v })}
+        titlePlaceholder={t('Projects')}
+      />
       {visibleItems.map((proj, pi) => {
         const realIdx = data.findIndex(item => item.id === proj.id);
         return (

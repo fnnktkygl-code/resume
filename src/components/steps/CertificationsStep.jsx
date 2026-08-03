@@ -1,4 +1,5 @@
 import { Field, TextInput } from '../ui/FormFields';
+import SectionHeader from '../ui/SectionHeader';
 import { createEmptyCertification } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
@@ -39,15 +40,11 @@ export default function CertificationsStep({ data, onChange, onAISectionFill, he
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
-        <TextInput
-          value={headings?.certifications || ''}
-          onChange={v => onHeadingsChange?.({ ...headings, certifications: v })}
-          placeholder={t('Certifications')}
-          style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
-        />
-      </div>
+      <SectionHeader
+        title={headings?.certifications}
+        onTitleChange={(v) => onHeadingsChange?.({ ...headings, certifications: v })}
+        titlePlaceholder={t('Certifications')}
+      />
       {visibleItems.map((cert, ci) => {
         const realIdx = data.findIndex(item => item.id === cert.id);
         return (

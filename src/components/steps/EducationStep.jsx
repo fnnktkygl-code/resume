@@ -1,4 +1,5 @@
 import { Field, TextInput, Select } from '../ui/FormFields';
+import SectionHeader from '../ui/SectionHeader';
 import { YEARS, createEmptyEducation } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
@@ -39,15 +40,11 @@ export default function EducationStep({ data, onChange, headings, onHeadingsChan
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
-        <TextInput
-          value={headings?.education || ''}
-          onChange={v => onHeadingsChange?.({ ...headings, education: v })}
-          placeholder={t('Education')}
-          style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
-        />
-      </div>
+      <SectionHeader
+        title={headings?.education}
+        onTitleChange={(v) => onHeadingsChange?.({ ...headings, education: v })}
+        titlePlaceholder={t('Education')}
+      />
       {visibleItems.map((edu, vi) => {
         const realIdx = data.findIndex(item => item.id === edu.id);
         return (

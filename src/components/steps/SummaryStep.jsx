@@ -1,22 +1,16 @@
-import { TextArea, TextInput } from '../ui/FormFields';
+import { TextArea } from '../ui/FormFields';
+import SectionHeader from '../ui/SectionHeader';
 import { useTranslation } from '../../utils/TranslationContext';
 
 export default function SummaryStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   return (
     <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-        <div className="card-title" style={{ marginBottom: 0 }}>{t('Professional Summary')}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{t('Section title')}:</span>
-          <TextInput
-            value={headings?.summary || ''}
-            onChange={v => onHeadingsChange?.({ ...headings, summary: v })}
-            placeholder={t('Summary')}
-            style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
-          />
-        </div>
-      </div>
+      <SectionHeader
+        title={headings?.summary}
+        onTitleChange={(v) => onHeadingsChange?.({ ...headings, summary: v })}
+        titlePlaceholder={t('Summary')}
+      />
       <div className="card-subtitle">
         {t('2–4 sentences positioning you for the role. Include your years of experience, core expertise, and a standout metric.')}
       </div>

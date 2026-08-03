@@ -1,5 +1,6 @@
 import { Field, TextInput } from '../ui/FormFields';
 import TagInput from '../ui/TagInput';
+import SectionHeader from '../ui/SectionHeader';
 import { useTranslation } from '../../utils/TranslationContext';
 
 export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill }) {
@@ -36,76 +37,43 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
 
   return (
     <div className="card">
-      <div className="card-title">{t('Skills')}</div>
+      <SectionHeader
+        title={headings?.skills}
+        onTitleChange={(v) => updateHeading('skills', v)}
+        titlePlaceholder={t('SKILLS & TOOLS')}
+        styleControls={{
+          label: t('Skills Style'),
+          dropdowns: [
+            {
+              value: layout?.skillStyle || 'pill',
+              onChange: (v) => updateLayout('skillStyle', v),
+              options: [
+                { value: 'outline', label: t('Square Contour') },
+                { value: 'pill-outline', label: t('Rounded Contour') },
+                { value: 'square', label: t('Squares') },
+                { value: 'pill', label: t('Rounded Circles') },
+                { value: 'text', label: t('Simple Text') }
+              ]
+            },
+            {
+              value: layout?.coloredSkillsMode || (layout?.coloredSkills === true ? 'all' : 'highlighted'),
+              onChange: (v) => {
+                updateLayout('coloredSkillsMode', v);
+                updateLayout('coloredSkills', v === 'all');
+              },
+              options: [
+                { value: 'neutral', label: t('Neutral Skills') },
+                { value: 'highlighted', label: t('AI Highlighted') },
+                { value: 'all', label: t('Color All Skills') }
+              ]
+            }
+          ]
+        }}
+      />
       <div className="card-subtitle">
         {t('Separate skills with commas. These should also appear naturally in your experience bullets for semantic AI matching.')}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <Field label={t('Skills Style')} full>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <select
-                value={layout?.skillStyle || 'pill'}
-                onChange={(e) => updateLayout('skillStyle', e.target.value)}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                <option value="outline">{t('Square Contour')}</option>
-                <option value="pill-outline">{t('Rounded Contour')}</option>
-                <option value="square">{t('Squares')}</option>
-                <option value="pill">{t('Rounded Circles')}</option>
-                <option value="text">{t('Simple Text')}</option>
-              </select>
-            </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <select
-                value={layout?.coloredSkillsMode || (layout?.coloredSkills === true ? 'all' : 'highlighted')}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  updateLayout('coloredSkillsMode', val);
-                  if (val === 'all') {
-                    updateLayout('coloredSkills', true);
-                  } else {
-                    updateLayout('coloredSkills', false);
-                  }
-                }}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                <option value="neutral">{t('Neutral Skills')}</option>
-                <option value="highlighted">{t('AI Highlighted')}</option>
-                <option value="all">{t('Color All Skills')}</option>
-              </select>
-            </div>
-          </div>
-        </Field>
-
-
-        <Field label={t('Skills Header')} full>
-          <TextInput 
-            value={headings?.skills || ''} 
-            onChange={(v) => updateHeading('skills', v)} 
-            placeholder={t('SKILLS & TOOLS')} 
-          />
-        </Field>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '12px' }}>
         <Field label={
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {t('Technical Skills')}
