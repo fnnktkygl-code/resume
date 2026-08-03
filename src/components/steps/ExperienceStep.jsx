@@ -61,14 +61,63 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
-        <TextInput
-          value={headings?.experience || ''}
-          onChange={v => onHeadingsChange?.({ ...headings, experience: v })}
-          placeholder={t('Work Experience')}
-          style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
-        />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: 'var(--color-surface-alt, #fafafa)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--color-border, #eee)' }}>
+        {layout && onLayoutChange && (
+          <div style={{ flex: 1, minWidth: '280px' }}>
+            <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-text-secondary, #666)', marginBottom: '6px' }}>
+              🎨 {t('Tags & Technologies Style')}
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <select
+                value={layout?.tagStyle || 'outline'}
+                onChange={(e) => updateLayout('tagStyle', e.target.value)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-md, 4px)',
+                  border: '1px solid var(--color-border, #ccc)',
+                  backgroundColor: 'var(--color-surface, #fff)',
+                  color: 'var(--color-text, #333)',
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  flex: 1
+                }}
+              >
+                <option value="outline">{t('Square Contour')}</option>
+                <option value="pill-outline">{t('Rounded Contour')}</option>
+                <option value="square">{t('Squares')}</option>
+                <option value="pill">{t('Rounded Circles')}</option>
+                <option value="text">{t('Simple Text')}</option>
+              </select>
+              <select
+                value={layout?.coloredTags || 'highlighted'}
+                onChange={(e) => updateLayout('coloredTags', e.target.value)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-md, 4px)',
+                  border: '1px solid var(--color-border, #ccc)',
+                  backgroundColor: 'var(--color-surface, #fff)',
+                  color: 'var(--color-text, #333)',
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  flex: 1
+                }}
+              >
+                <option value="neutral">{t('Neutral Tags')}</option>
+                <option value="highlighted">{t('AI Highlighted')}</option>
+                <option value="all">{t('Color All Tags')}</option>
+              </select>
+            </div>
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t('Section title')}:</span>
+          <TextInput
+            value={headings?.experience || ''}
+            onChange={v => onHeadingsChange?.({ ...headings, experience: v })}
+            placeholder={t('Work Experience')}
+            style={{ padding: '4px 8px', fontSize: '12px', width: '160px' }}
+          />
+        </div>
       </div>
       {visibleItems.map((exp, vi) => {
         const realIdx = data.findIndex(item => item.id === exp.id);
