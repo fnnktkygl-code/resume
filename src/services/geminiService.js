@@ -323,6 +323,25 @@ export async function generateCoverLetterWithProxy(data, jobDescription, languag
   }
 }
 
+export async function boldifyCoverLetterWithProxy(coverLetter, jobDescription) {
+  try {
+    const res = await fetch('/api/boldifyCoverLetter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coverLetter, jobDescription })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to boldify cover letter');
+    }
+    const result = await res.json();
+    return result.boldedCoverLetter;
+  } catch (error) {
+    console.error('Boldify Cover Letter Error:', error);
+    throw error;
+  }
+}
+
 export async function generateBulletPointsWithProxy(experienceText, language) {
   try {
     const res = await fetch('/api/generateBulletPoints', {

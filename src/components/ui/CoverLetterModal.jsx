@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
-import { generateCoverLetterWithProxy } from '../../services/geminiService';
+import { generateCoverLetterWithProxy, boldifyCoverLetterWithProxy } from '../../services/geminiService';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 
@@ -22,6 +22,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState(null);
+  const [isBoldifying, setIsBoldifying] = useState(false);
   const previewRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -100,6 +101,39 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   };
 
+  const handleBoldify = async () => {
+    if (!coverLetter || isBoldifying) return;
+    setIsBoldifying(true);
+    setError(null);
+    try {
+      const result = await boldifyCoverLetterWithProxy(coverLetter, jobDescription);
+      setCoverLetter(result);
+    } catch (err) {
+      setError(err.message || t('An error occurred during boldification.'));
+    } finally {
+      setIsBoldifying(false);
+    }
+  };
+
+  const handleRemoveBold = () => {
+    if (!coverLetter) return;
+    setCoverLetter(coverLetter.replace(/\*\*/g, ''));
+  };
+
+  // Parse markdown bold (**text**) into React elements
+  const renderMarkdownBold = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const hasBoldMarkers = coverLetter.includes('**');
+
   const handlePrint = () => {
     window.print();
   };
@@ -110,15 +144,32 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       const wordFont = clFontFamily.split(',')[0].replace(/['"]/g, '').trim();
       const wordSize = Math.round(clFontSize * 2);
 
-      const paragraphs = coverLetter.split('\n').map(line => {
-        return new Paragraph({
-          children: [
-            new TextRun({
-              text: line,
+      // Parse markdown bold markers into separate TextRuns
+      const parseLineToRuns = (line) => {
+        const runs = [];
+        const parts = line.split(/(\*\*[^*]+\*\*)/g);
+        for (const part of parts) {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            runs.push(new TextRun({
+              text: part.slice(2, -2),
               font: wordFont,
               size: wordSize,
-            }),
-          ],
+              bold: true,
+            }));
+          } else if (part) {
+            runs.push(new TextRun({
+              text: part,
+              font: wordFont,
+              size: wordSize,
+            }));
+          }
+        }
+        return runs;
+      };
+
+      const paragraphs = coverLetter.split('\n').map(line => {
+        return new Paragraph({
+          children: parseLineToRuns(line),
           spacing: {
             after: 120,
           }
@@ -373,6 +424,23 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
         {/* Right Panel: Live Preview */}
         <div className="cl-preview-area" ref={previewRef}>
           <div className="cl-toolbar">
+            <button 
+              className="btn-secondary" 
+              onClick={handleBoldify} 
+              disabled={!coverLetter || isBoldifying} 
+              style={{ opacity: !coverLetter ? 0.5 : 1 }}
+            >
+              {isBoldifying ? (
+                <><i className="fi fi-rr-spinner cl-spin"></i> {t('Bolding...')}</>
+              ) : (
+                <><i className="fi fi-rr-star"></i> {t('Smart Bold')}</>
+              )}
+            </button>
+            {hasBoldMarkers && (
+              <button className="btn-secondary" onClick={handleRemoveBold} title={t('Remove all bold formatting')}>
+                <i className="fi fi-rr-eraser"></i> {t('Remove Bold')}
+              </button>
+            )}
             <button className="btn-secondary" onClick={handlePrint} disabled={!coverLetter} style={{ opacity: !coverLetter ? 0.5 : 1 }}>
               <i className="fi fi-rr-print"></i> {t('Export PDF')}
             </button>
@@ -387,16 +455,40 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           <div 
             ref={textareaRef}
             className="cl-a4-paper print-hidden"
-            style={{ minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt`, outline: 'none' }}
+            style={{ minHeight: '60vh', fontFamily: clFontFamily, fontSize: `${clFontSize}pt`, outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
             contentEditable
             suppressContentEditableWarning
-            onBlur={(e) => setCoverLetter(e.currentTarget.innerText)}
-          >
-            {coverLetter || '\u200B'}
-          </div>
-          <div className="cl-a4-paper print-only" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}>
-            {coverLetter}
-          </div>
+            onBlur={(e) => {
+              // Convert <strong>/<b> back to ** markers to preserve bold through edits
+              let html = e.currentTarget.innerHTML;
+              html = html.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
+              html = html.replace(/<b>(.*?)<\/b>/gi, '**$1**');
+              // Strip remaining HTML tags and decode entities
+              const tmp = document.createElement('div');
+              tmp.innerHTML = html;
+              setCoverLetter(tmp.innerText || tmp.textContent || '');
+            }}
+            dangerouslySetInnerHTML={{ 
+              __html: coverLetter 
+                ? coverLetter
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>')
+                : '\u200B' 
+            }}
+          />
+          <div 
+            className="cl-a4-paper print-only" 
+            style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontFamily: clFontFamily, fontSize: `${clFontSize}pt` }}
+            dangerouslySetInnerHTML={{ 
+              __html: coverLetter 
+                ? coverLetter
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>')
+                : '' 
+            }}
+          />
         </div>
       </div>
     </div>
