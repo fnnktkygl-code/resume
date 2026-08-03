@@ -57,80 +57,44 @@ Rules:
 7. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
 
   const promptText = `
-### JOB DESCRIPTION
-${jobDescription}
 
-### ORIGINAL RESUME (JSON)
-${JSON.stringify(cloneData)}
+  const systemInstruction = `You are an expert resume writer and ATS (Applicant Tracking System) optimization specialist.
+Your task is to tailor a candidate's JSON resume to match a specific job description, ensuring it passes ATS screeners while maintaining 100% truthfulness to the candidate's actual experience.
 
-Output the fully optimized and tailored resume as a valid JSON object.
-`;
+Target Output Language: ${targetLang}
+You MUST output the entire tailored resume in ${targetLang}, regardless of the input language. Translate all titles, subtitles, bullet points, summaries, and descriptions to ${targetLang}.
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
-
-  const requestBody = {
-    system_instruction: {
-      parts: [{ text: systemInstruction }]
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: promptText }]
-      }
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      response_mime_type: "application/json",
-    }
-  };
+RULES:
+1. Return ONLY a valid JSON object with the EXACT same top-level structure as the input resumeData.
+2. Maintain truthfulness: Do NOT invent new jobs, degrees, or fake metrics. Adapt existing bullet points to emphasize relevant skills from the job description.
+3. Optimize keywords: Naturally integrate key terminology and skills from the job description into the summary, bullet points, and skills sections.
+4. Capitalization: Use Standard Sentence Case for job titles, sub-titles, company names, and bullet points. Never output ALL CAPS text.
+5. Preserved Fields: Preserve personal contact details (name, email, phone, location, links) as-is.`;
 
   try {
     const { checkAndIncrementQuota } = await import('./firebase.js');
     await checkAndIncrementQuota();
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    const jsonText = await callGeminiApi({
+      apiKey,
+      prompt: `Resume Data:\n${JSON.stringify(resumeData)}\n\nTarget Job Description:\n${jobDescription}`,
+      systemInstruction,
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Gemini API Error:", errorData);
-      
-      if (response.status === 429) {
-        return res.status(429).json({ error: 'QUOTA_EXCEEDED', message: 'Gemini API quota exceeded' });
-      }
-      
-      return res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to call Gemini API from server' });
-    }
-
-    const data = await response.json();
-    const candidate = data.candidates?.[0];
-    if (!candidate || !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-        return res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Invalid response format from Gemini' });
-    }
-    
-    const jsonText = candidate.content.parts[0].text;
     let tailoredResume = JSON.parse(jsonText);
-    
-    // Deterministic post-processing: normalize ALL CAPS to sentence case
-    // This is a safety net — even if the AI fails to normalize, this guarantees consistency
     tailoredResume = normalizeResumeCasing(tailoredResume);
     
     if (resumeData.headings) {
-        tailoredResume.headings = resumeData.headings;
+      tailoredResume.headings = resumeData.headings;
     }
     
     return res.status(200).json({ tailoredResume });
-    
   } catch (error) {
     console.error("Function Error:", error);
-    if (error.message === 'QUOTA_EXCEEDED') {
-      return res.status(429).json({ error: 'QUOTA_EXCEEDED', message: 'Gemini API quota exceeded' });
-    }
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: error.message || 'An unexpected error occurred' });
   }
 }
