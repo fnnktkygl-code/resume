@@ -11,21 +11,33 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
   const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
   
-  // Persistence state initialization from CV data or localStorage
-  const [companyName, setCompanyName] = useState(() => data?.coverLetterSettings?.companyName || localStorage.getItem('resume-cl-company') || '');
-  const [targetRole, setTargetRole] = useState(() => data?.coverLetterSettings?.targetRole || localStorage.getItem('resume-cl-role') || '');
-  const [referenceLetter, setReferenceLetter] = useState(() => data?.coverLetterSettings?.referenceLetter || localStorage.getItem('resume-cl-ref') || '');
-  const [industry, setIndustry] = useState(() => data?.coverLetterSettings?.industry || localStorage.getItem('resume-cl-industry') || 'General');
-  const [tone, setTone] = useState(() => data?.coverLetterSettings?.tone || localStorage.getItem('resume-cl-tone') || 'Professional');
-  const [clLength, setClLength] = useState(() => data?.coverLetterSettings?.clLength || localStorage.getItem('resume-cl-length') || 'Standard');
+  // Safe persistence state initialization
+  const [companyName, setCompanyName] = useState(() => {
+    try { return data?.coverLetterSettings?.companyName || localStorage.getItem('resume-cl-company') || ''; } catch { return ''; }
+  });
+  const [targetRole, setTargetRole] = useState(() => {
+    try { return data?.coverLetterSettings?.targetRole || localStorage.getItem('resume-cl-role') || ''; } catch { return ''; }
+  });
+  const [referenceLetter, setReferenceLetter] = useState(() => {
+    try { return data?.coverLetterSettings?.referenceLetter || localStorage.getItem('resume-cl-ref') || ''; } catch { return ''; }
+  });
+  const [industry, setIndustry] = useState(() => {
+    try { return data?.coverLetterSettings?.industry || localStorage.getItem('resume-cl-industry') || 'General'; } catch { return 'General'; }
+  });
+  const [tone, setTone] = useState(() => {
+    try { return data?.coverLetterSettings?.tone || localStorage.getItem('resume-cl-tone') || 'Professional'; } catch { return 'Professional'; }
+  });
+  const [clLength, setClLength] = useState(() => {
+    try { return data?.coverLetterSettings?.clLength || localStorage.getItem('resume-cl-length') || 'Standard'; } catch { return 'Standard'; }
+  });
   const [clFontFamily, setClFontFamily] = useState(defaultFontFamily);
   const [clFontSize, setClFontSize] = useState(defaultFontSize);
   
   const [isGenerating, setIsGenerating] = useState(false);
   
   const [coverLetter, setCoverLetter] = useState(() => {
-    if (data?.coverLetter) return data.coverLetter;
     try {
+      if (typeof data?.coverLetter === 'string' && data.coverLetter) return data.coverLetter;
       const saved = localStorage.getItem('resume-cover-letter-text');
       if (saved) return saved;
     } catch {}
@@ -36,16 +48,16 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   const [isBoldifying, setIsBoldifying] = useState(false);
 
   // Undo / Redo History State
-  const [history, setHistory] = useState(() => [coverLetter]);
+  const [history, setHistory] = useState(['']);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const previewRef = useRef(null);
   const editorRef = useRef(null);
   const isInternalChangeRef = useRef(false);
 
-  // Helper to convert Markdown / text to HTML with <strong> tags
+  // Helper to convert Markdown / text to HTML with <strong> tags safely
   const textToHtml = useCallback((text) => {
-    if (!text) return '';
+    if (!text || typeof text !== 'string') return '';
     let html = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -57,7 +69,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
   // Helper to convert HTML from contentEditable back to clean text with **bold**
   const htmlToText = (html) => {
-    if (!html) return '';
+    if (!html || typeof html !== 'string') return '';
     let text = html
       .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
       .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, '**$1**')
@@ -85,34 +97,42 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   }, [isOpen, data?.targetJobDescription]);
 
-  // Restore saved cover letter into editor when modal opens or component mounts
+  // Sync saved cover letter into editor when modal opens
   useEffect(() => {
     if (isOpen) {
-      const textToLoad = data?.coverLetter || localStorage.getItem('resume-cover-letter-text') || coverLetter;
-      if (textToLoad) {
-        setCoverLetter(textToLoad);
-        if (editorRef.current && editorRef.current.innerHTML !== textToHtml(textToLoad)) {
+      let textToLoad = coverLetter;
+      try {
+        if (typeof data?.coverLetter === 'string' && data.coverLetter) {
+          textToLoad = data.coverLetter;
+        } else {
+          const saved = localStorage.getItem('resume-cover-letter-text');
+          if (saved) textToLoad = saved;
+        }
+      } catch {}
+
+      setCoverLetter(textToLoad);
+      setHistory([textToLoad]);
+      setHistoryIndex(0);
+
+      setTimeout(() => {
+        if (editorRef.current) {
           editorRef.current.innerHTML = textToHtml(textToLoad);
         }
-      }
+      }, 50);
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-save cover letter to localStorage and reducer state
+  // Save cover letter to localStorage safely
   useEffect(() => {
-    if (coverLetter !== undefined) {
+    if (typeof coverLetter === 'string') {
       try {
         localStorage.setItem('resume-cover-letter-text', coverLetter);
       } catch {}
-      if (dispatch) {
-        dispatch({ type: 'UPDATE_COVER_LETTER', payload: coverLetter });
-      }
     }
-  }, [coverLetter, dispatch]);
+  }, [coverLetter]);
 
-  // Auto-save settings to localStorage and reducer state
+  // Save settings to localStorage safely
   useEffect(() => {
-    const settings = { companyName, targetRole, industry, tone, clLength, referenceLetter, clFontFamily, clFontSize };
     try {
       localStorage.setItem('resume-cl-company', companyName);
       localStorage.setItem('resume-cl-role', targetRole);
@@ -121,43 +141,31 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       localStorage.setItem('resume-cl-length', clLength);
       localStorage.setItem('resume-cl-ref', referenceLetter);
     } catch {}
-    if (dispatch) {
-      dispatch({ type: 'UPDATE_COVER_LETTER_SETTINGS', payload: settings });
-    }
-  }, [companyName, targetRole, industry, tone, clLength, referenceLetter, clFontFamily, clFontSize, dispatch]);
+  }, [companyName, targetRole, industry, tone, clLength, referenceLetter]);
 
-  // Modal lifecycle & ESC key / Popstate
+  // Modal lifecycle & ESC key
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('print-cover-letter');
       document.body.style.overflow = 'hidden';
 
-      const stateId = Math.random().toString(36).substring(2, 9);
-      window.history.pushState({ modalId: stateId }, '');
-
-      const handlePopState = (e) => {
-        if (!e.state || e.state.modalId !== stateId) {
-          onClose();
-        }
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') onClose();
       };
 
-      window.addEventListener('popstate', handlePopState);
+      window.addEventListener('keydown', handleEscape);
 
       return () => {
         document.body.classList.remove('print-cover-letter');
         document.body.style.overflow = '';
-        window.removeEventListener('popstate', handlePopState);
-        
-        if (window.history.state && window.history.state.modalId === stateId) {
-          window.history.back();
-        }
+        window.removeEventListener('keydown', handleEscape);
       };
     }
   }, [isOpen, onClose]);
 
   // Proactive Header Injection & Placeholder Replacement Helper
   const autoInjectHeaderInfo = useCallback((text) => {
-    if (!text) return text;
+    if (!text || typeof text !== 'string') return text;
     let result = text;
     
     // 1. Clean markdown codeblock wrappers if Gemini returns ```markdown ... ```
@@ -359,7 +367,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     updateLetterContent(coverLetter.replace(/\*\*/g, ''));
   };
 
-  const hasBoldMarkers = coverLetter.includes('**') || (editorRef.current && editorRef.current.innerHTML.includes('<strong>'));
+  const hasBoldMarkers = (typeof coverLetter === 'string' && coverLetter.includes('**')) || (editorRef.current && editorRef.current.innerHTML.includes('<strong>'));
 
   const handlePrint = () => {
     window.print();
