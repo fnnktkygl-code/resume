@@ -35,10 +35,68 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { resumeData } = req.body;
+  const { resumeData, coverLetter, jobDescription: clJobDescription } = req.body;
 
+  // --- Cover Letter Boldify Mode ---
+  if (coverLetter) {
+    try {
+      await checkAndIncrementQuota();
+      const apiKey = process.env.GEMINI_API_KEY_MASTER;
+      if (!apiKey) throw new Error("GEMINI_API_KEY_MASTER is missing");
+
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+      const clPrompt = `You are a text formatter for cover letters. Your ONLY job is to add markdown bold markers (**) around the most impactful keywords and phrases.
+
+ABSOLUTE RULES:
+1. TEXT PRESERVATION IS SACRED: Do NOT change, rewrite, rephrase, translate, reorder, add, or remove ANY word. Only insert ** markers.
+2. WHAT TO BOLD (be strategic, 1-3 terms per paragraph):
+   - Strong action verbs (développé, piloté, managed, led, achieved...)
+   - Named technologies and tools (Python, Agile, SAP, Power BI...)
+   - Quantifiable results (+30%, 50 collaborateurs, €2M budget...)
+   - Domain-specific terms matching the job requirements
+3. BE MINIMALIST: Bold individual words or short terms only (1-3 words max per bold span).
+4. PRESERVE all line breaks, spacing, and structure exactly as-is.
+${clJobDescription ? `5. Prioritize bolding terms relevant to: """${clJobDescription}"""` : ''}
+
+SELF-CHECK: Strip all ** from output. Plain text must be identical to input.
+Return ONLY the formatted cover letter text.`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: clPrompt }, { text: `Cover Letter:\n${coverLetter}` }] }],
+          generationConfig: { temperature: 0.05 }
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) return res.status(429).json({ error: 'QUOTA_EXCEEDED' });
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!generatedText) throw new Error("No response generated");
+
+      // Validate: stripped text should be close to original length
+      const stripped = generatedText.replace(/\*\*/g, '');
+      if (stripped.trim().length < coverLetter.trim().length * 0.8) {
+        return res.status(200).json({ boldedCoverLetter: coverLetter });
+      }
+
+      return res.status(200).json({ boldedCoverLetter: generatedText });
+    } catch (error) {
+      console.error('Boldify Cover Letter error:', error);
+      if (error.message === 'QUOTA_EXCEEDED') return res.status(429).json({ error: 'QUOTA_EXCEEDED' });
+      return res.status(500).json({ error: error.message || 'Failed to boldify cover letter' });
+    }
+  }
+
+  // --- Resume Boldify Mode ---
   if (!resumeData) {
-    res.status(400).json({ error: 'resumeData is required' });
+    res.status(400).json({ error: 'resumeData or coverLetter is required' });
     return;
   }
 

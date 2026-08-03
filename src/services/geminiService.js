@@ -325,7 +325,7 @@ export async function generateCoverLetterWithProxy(data, jobDescription, languag
 
 export async function boldifyCoverLetterWithProxy(coverLetter, jobDescription) {
   try {
-    const res = await fetch('/api/boldifyCoverLetter', {
+    const res = await fetch('/api/boldify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ coverLetter, jobDescription })
