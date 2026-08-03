@@ -1,38 +1,36 @@
 /**
- * Smart Gemini Quota & Model Rotator — Resume Builder
+ * Smart Gemini & Gemma Quota Rotator — Resume Builder
  * 
- * Order of efficiency according to Google AI Studio Quotas:
- * 1. Lite High-Capacity Models (15 RPM / 500 RPD) — Absolute Priority:
+ * Hierarchy & Quota Optimization:
+ * 1. Performance & High Capacity (15 RPM / 500 RPD):
  *    - gemini-3.5-flash-lite
  *    - gemini-3.1-flash-lite
  *    - gemini-2.5-flash-lite
  * 
- * 2. Standard Flash Models (5 RPM / 20 RPD) — Measured Rotation:
+ * 2. Premium Quality Flash (5 RPM / 20 RPD):
  *    - gemini-3.5-flash
  *    - gemini-3.6-flash
  *    - gemini-2.5-flash
  * 
- * 3. Fallback Models:
- *    - gemini-2.0-flash
- *    - gemini-1.5-flash
- *    - gemini-1.5-flash-8b
+ * 3. Ultimate Reserve: Gemma 4 High-Quota Models (30 RPM / 14,400 RPD):
+ *    - gemma-4-31b-it
+ *    - gemma-4-26b-a4b-it
  */
 
 const MODEL_CASCADE_TIERS = [
-  // TIER 1: Lite High-Capacity (15 RPM / 500 RPD) — Priorité absolue
+  // TIER 1: Modèles Lite Haute Capacité (15 RPM / 500 RPD) — Performance & Rapidité
   'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite',
   'gemini-2.5-flash-lite',
 
-  // TIER 2: Standard Flash (5 RPM / 20 RPD) — Rotation mesurée
+  // TIER 2: Modèles Standard Flash (5 RPM / 20 RPD) — Qualité Supérieure
   'gemini-3.5-flash',
   'gemini-3.6-flash',
   'gemini-2.5-flash',
 
-  // TIER 3: Fallbacks
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b'
+  // TIER 3: Modèles Gemma 4 Réserve Ultime (30 RPM / 14 400 RPD) — Inépuisable (14.4K RPD)
+  'gemma-4-31b-it',
+  'gemma-4-26b-a4b-it'
 ];
 
 // In-memory model cooldown registry (lasts across warm serverless invocations)
@@ -40,7 +38,7 @@ const modelCooldownMap = new Map(); // modelName -> cooldownTimestamp
 
 let lastCallTimestamp = 0;
 
-async function enforcePacingDelay(delayMs = 250) {
+async function enforcePacingDelay(delayMs = 200) {
   const now = Date.now();
   const elapsed = now - lastCallTimestamp;
   if (elapsed < delayMs) {
@@ -66,7 +64,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
     }
 
     try {
-      await enforcePacingDelay(250);
+      await enforcePacingDelay(200);
 
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
