@@ -171,6 +171,7 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                     value={item.title} 
                     onChange={(v) => updateItem(realIdx, 'title', v)} 
                     placeholder={fields.titlePlaceholder} 
+                    showBoldButton
                   />
                 </Field>
                 {fields.showSubtitle && (
@@ -179,6 +180,7 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                       value={item.subtitle} 
                       onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
                       placeholder={fields.subtitlePlaceholder} 
+                      showBoldButton
                     />
                   </Field>
                 )}

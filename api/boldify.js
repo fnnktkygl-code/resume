@@ -125,13 +125,13 @@ ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
 
 1. TEXT PRESERVATION IS SACRED: You must NOT change, rewrite, rephrase, translate, reorder, add, or remove ANY word, punctuation, or character. The ONLY characters you may insert are ** (double asterisks) to create markdown bold. If the original says "Wind Sector Management, Noise Regulation, Bat Protection" then your output MUST contain "**Wind Sector Management**, **Noise Regulation**, **Bat Protection**" — the exact same words with ** around them.
 
-2. PROCESS EVERY SECTION: You MUST apply bolding to ALL experience entries, ALL project entries, ALL education entries, the summary, AND the personal.tagline (professional title/slogan). Do NOT skip any section or entry. If there are 3 experience entries, all 3 must be processed.
+2. PROCESS EVERY SECTION: You MUST apply bolding to ALL experience entries, ALL project entries, ALL education entries, ALL customSections items (such as Atouts, Loisirs, Languages — bold key terms in item.title, item.subtitle, and item.description), the summary, AND the personal.tagline (professional title/slogan). Do NOT skip any section or entry.
 
-3. WHAT TO BOLD: Bold 1-3 key terms per bullet point:
+3. WHAT TO BOLD: Bold 1-3 key terms per bullet point / item title:
    - Strong action verbs (Développement, Conception, Analyse, Optimisation, Mise en place...)
    - Named technologies and tools (Python, Power BI, SCADA, Node.js, MongoDB, Amplitude, T-SQL...)
    - Quantifiable metrics and numbers (50MW, +15%, 8 tableaux de bord...)
-   - Domain-specific named terms (Wind Sector Management, Noise Regulation, Atlas Data Federation...)
+   - Domain-specific named terms (Wind Sector Management, Noise Regulation, Resolution de probleme...)
 
 4. BE MINIMALIST: Do NOT bold entire sentences or long phrases. Bold individual words or short technical terms only (1-3 words max per bold span).
 
@@ -216,6 +216,23 @@ SELF-CHECK BEFORE RETURNING: For every bullet point, mentally strip all ** marke
         if (Array.isArray(boldedProj.highlights) && Array.isArray(origProj.highlights)) {
           for (let j = 0; j < boldedProj.highlights.length && j < origProj.highlights.length; j++) {
             boldedProj.highlights[j] = validateField(boldedProj.highlights[j], origProj.highlights[j]);
+          }
+        }
+      }
+    }
+
+    // Validate customSections
+    if (Array.isArray(jsonResponse.customSections) && Array.isArray(cloneData.customSections)) {
+      for (let i = 0; i < jsonResponse.customSections.length && i < cloneData.customSections.length; i++) {
+        const boldedSec = jsonResponse.customSections[i];
+        const origSec = cloneData.customSections[i];
+        if (Array.isArray(boldedSec.items) && Array.isArray(origSec.items)) {
+          for (let j = 0; j < boldedSec.items.length && j < origSec.items.length; j++) {
+            const boldedItem = boldedSec.items[j];
+            const origItem = origSec.items[j];
+            if (boldedItem.title && origItem.title) boldedItem.title = validateField(boldedItem.title, origItem.title);
+            if (boldedItem.subtitle && origItem.subtitle) boldedItem.subtitle = validateField(boldedItem.subtitle, origItem.subtitle);
+            if (boldedItem.description && origItem.description) boldedItem.description = validateField(boldedItem.description, origItem.description);
           }
         }
       }

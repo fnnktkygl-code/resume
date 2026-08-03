@@ -10,11 +10,85 @@ export function Field({ label, children, full }) {
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text', style, className }) {
+export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton }) {
+  const { t } = useTranslation();
+
+  const handleKeyDown = (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+      e.preventDefault();
+      applyBold(e.target);
+    }
+  };
+
+  const applyBold = (input) => {
+    if (!input) return;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    
+    if (start === end) return;
+    
+    const val = value || '';
+    const selectedText = val.substring(start, end);
+    const isBold = val.substring(start - 2, start) === '**' && val.substring(end, end + 2) === '**';
+    
+    let newValue, newCursorPos;
+    if (isBold) {
+      newValue = val.substring(0, start - 2) + selectedText + val.substring(end + 2);
+      newCursorPos = start + selectedText.length - 2;
+    } else {
+      newValue = val.substring(0, start) + '**' + selectedText + '**' + val.substring(end);
+      newCursorPos = start + selectedText.length + 2;
+    }
+    
+    onChange(newValue);
+    
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  if (showBoldButton) {
+    return (
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+        <input
+          type={type}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={`input ${className || ''}`.trim()}
+          style={{ paddingRight: '36px', ...style }}
+        />
+        <button
+          type="button"
+          onClick={(e) => applyBold(e.currentTarget.previousSibling)}
+          className="format-btn"
+          title={t("Bold (Cmd+B)")}
+          style={{
+            position: 'absolute',
+            right: '6px',
+            background: 'var(--color-surface, #fff)',
+            border: '1px solid var(--color-border, #ccc)',
+            borderRadius: '4px',
+            color: 'var(--color-text-secondary, #555)',
+            cursor: 'pointer',
+            padding: '1px 6px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            lineHeight: '1.2'
+          }}
+        >
+          B
+        </button>
+      </div>
+    );
+  }
+
   return (
     <input
       type={type}
-      value={value}
+      value={value || ''}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       className={`input ${className || ''}`.trim()}
