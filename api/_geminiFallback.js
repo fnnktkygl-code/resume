@@ -1,17 +1,37 @@
 /**
  * Smart Gemini Quota & Model Rotator — Resume Builder
- * Inspired by RIANE Portfolio AI Quota Router architecture:
- * 1. Maintains active cooldown tracker per model when HTTP 429 (Rate Limit / Quota) is hit.
- * 2. Seamlessly falls back to alternative active models without raising errors to the user.
- * 3. Enforces pacing delays between requests to eliminate burst limits.
+ * 
+ * Order of efficiency according to Google AI Studio Quotas:
+ * 1. Lite High-Capacity Models (15 RPM / 500 RPD) — Absolute Priority:
+ *    - gemini-3.5-flash-lite
+ *    - gemini-3.1-flash-lite
+ *    - gemini-2.5-flash-lite
+ * 
+ * 2. Standard Flash Models (5 RPM / 20 RPD) — Measured Rotation:
+ *    - gemini-3.5-flash
+ *    - gemini-3.6-flash
+ *    - gemini-2.5-flash
+ * 
+ * 3. Fallback Models:
+ *    - gemini-2.0-flash
+ *    - gemini-1.5-flash
+ *    - gemini-1.5-flash-8b
  */
 
 const MODEL_CASCADE_TIERS = [
+  // TIER 1: Lite High-Capacity (15 RPM / 500 RPD) — Priorité absolue
+  'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-2.5-flash-lite',
+
+  // TIER 2: Standard Flash (5 RPM / 20 RPD) — Rotation mesurée
+  'gemini-3.5-flash',
+  'gemini-3.6-flash',
+  'gemini-2.5-flash',
+
+  // TIER 3: Fallbacks
   'gemini-2.0-flash',
-  'gemini-flash-latest',
   'gemini-1.5-flash',
-  'gemini-pro-latest',
-  'gemini-1.5-pro',
   'gemini-1.5-flash-8b'
 ];
 
@@ -20,7 +40,7 @@ const modelCooldownMap = new Map(); // modelName -> cooldownTimestamp
 
 let lastCallTimestamp = 0;
 
-async function enforcePacingDelay(delayMs = 200) {
+async function enforcePacingDelay(delayMs = 250) {
   const now = Date.now();
   const elapsed = now - lastCallTimestamp;
   if (elapsed < delayMs) {
@@ -46,7 +66,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
     }
 
     try {
-      await enforcePacingDelay(200);
+      await enforcePacingDelay(250);
 
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -82,7 +102,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
           continue;
         }
 
-        // If invalid model name or not found (404/400), cascade immediately
+        // If unavailable (404/400), cascade immediately
         if (response.status === 404 || response.status === 400) {
           lastErr = new Error(errorBody.error?.message || `Unavailable ${modelName}`);
           continue;
