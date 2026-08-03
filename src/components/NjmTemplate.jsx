@@ -221,6 +221,7 @@ function NjmTemplate({
     const matchedIds = new Set();
     
     const langSec = data.customSections?.find(s => 
+      s.id === 'custom_langues' ||
       s.label?.toLowerCase().includes('langue') || 
       s.label?.toLowerCase().includes('language') || 
       s.label?.toLowerCase().includes('idioma')
@@ -228,8 +229,10 @@ function NjmTemplate({
     if (langSec) matchedIds.add(langSec.id);
 
     const atoutsSec = data.customSections?.find(s => 
+      s.id === 'custom_atouts' ||
       s.label?.toLowerCase().includes('atout') || 
       s.label?.toLowerCase().includes('strength') || 
+      s.label?.toLowerCase().includes('fortaleza') ||
       s.label?.toLowerCase().includes('compétenc') || 
       s.label?.toLowerCase().includes('competenc') || 
       s.label?.toLowerCase().includes('qualit') || 
@@ -238,8 +241,10 @@ function NjmTemplate({
     if (atoutsSec) matchedIds.add(atoutsSec.id);
 
     const loisirsSec = data.customSections?.find(s => 
+      s.id === 'custom_loisirs' ||
       s.label?.toLowerCase().includes('loisir') || 
       s.label?.toLowerCase().includes('hobbi') || 
+      s.label?.toLowerCase().includes('aficion') ||
       s.label?.toLowerCase().includes('interest') || 
       s.label?.toLowerCase().includes('détente') || 
       s.label?.toLowerCase().includes('intere')
