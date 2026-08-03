@@ -2809,29 +2809,78 @@ input[type="range"] {
 }
 
 @media print {
-  body.print-cover-letter .cl-workspace-overlay {
-    background: #fff !important;
+  @page {
+    size: A4 portrait;
+    margin: 15mm 20mm;
   }
+
+  body.print-cover-letter {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body.print-cover-letter #root,
+  body.print-cover-letter .app {
+    background: #ffffff !important;
+  }
+
+  body.print-cover-letter .cl-workspace-overlay {
+    position: static !important;
+    display: block !important;
+    background: #ffffff !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    z-index: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   body.print-cover-letter .cl-header,
   body.print-cover-letter .cl-sidebar,
-  body.print-cover-letter .cl-toolbar {
+  body.print-cover-letter .cl-toolbar,
+  body.print-cover-letter #resume-print,
+  body.print-cover-letter .skip-link,
+  body.print-cover-letter .header,
+  body.print-cover-letter .main,
+  body.print-cover-letter .mobile-bottom-nav {
     display: none !important;
   }
-  body.print-cover-letter .cl-preview-area {
-    padding: 0 !important;
-    background: #fff !important;
-  }
-  body.print-cover-letter .cl-a4-paper {
-    box-shadow: none !important;
-    padding: 0 !important;
-    width: 100% !important;
-    min-height: auto !important;
-  }
-}
 
-@media print {
-  body.print-cover-letter #resume-print {
-    display: none !important;
+  body.print-cover-letter .cl-workspace-main {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body.print-cover-letter .cl-preview-area {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body.print-cover-letter .cl-a4-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    line-height: 1.6 !important;
+    page-break-inside: auto;
   }
 }
 

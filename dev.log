@@ -68,3 +68,6 @@
 11:30:05 AM [vite] (client) page reload .vercel/output/static/index.html
 11:32:03 AM [vite] (client) page reload .vercel/output/static/index.html
 11:32:06 AM [vite] (client) page reload .vercel/output/static/index.html
+11:36:47 AM [vite] (client) hmr update /src/index.css
+11:36:56 AM [vite] (client) page reload .vercel/output/static/index.html
+11:36:59 AM [vite] (client) page reload .vercel/output/static/index.html
