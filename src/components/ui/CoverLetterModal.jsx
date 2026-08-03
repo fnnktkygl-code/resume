@@ -10,38 +10,38 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   const defaultFontSize = data?.layout?.fontSize || 10.5;
 
   const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
-  const [companyName, setCompanyName] = useState('');
-  const [targetRole, setTargetRole] = useState('');
-  const [referenceLetter, setReferenceLetter] = useState('');
-  const [industry, setIndustry] = useState('General');
-  const [tone, setTone] = useState('Professional');
-  const [clLength, setClLength] = useState('Standard');
+  
+  // Persistence state initialization from CV data or localStorage
+  const [companyName, setCompanyName] = useState(() => data?.coverLetterSettings?.companyName || localStorage.getItem('resume-cl-company') || '');
+  const [targetRole, setTargetRole] = useState(() => data?.coverLetterSettings?.targetRole || localStorage.getItem('resume-cl-role') || '');
+  const [referenceLetter, setReferenceLetter] = useState(() => data?.coverLetterSettings?.referenceLetter || localStorage.getItem('resume-cl-ref') || '');
+  const [industry, setIndustry] = useState(() => data?.coverLetterSettings?.industry || localStorage.getItem('resume-cl-industry') || 'General');
+  const [tone, setTone] = useState(() => data?.coverLetterSettings?.tone || localStorage.getItem('resume-cl-tone') || 'Professional');
+  const [clLength, setClLength] = useState(() => data?.coverLetterSettings?.clLength || localStorage.getItem('resume-cl-length') || 'Standard');
   const [clFontFamily, setClFontFamily] = useState(defaultFontFamily);
   const [clFontSize, setClFontSize] = useState(defaultFontSize);
   
   const [isGenerating, setIsGenerating] = useState(false);
-  const [coverLetter, setCoverLetter] = useState('');
+  
+  const [coverLetter, setCoverLetter] = useState(() => {
+    if (data?.coverLetter) return data.coverLetter;
+    try {
+      const saved = localStorage.getItem('resume-cover-letter-text');
+      if (saved) return saved;
+    } catch {}
+    return '';
+  });
+
   const [error, setError] = useState(null);
   const [isBoldifying, setIsBoldifying] = useState(false);
 
   // Undo / Redo History State
-  const [history, setHistory] = useState(['']);
+  const [history, setHistory] = useState(() => [coverLetter]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const previewRef = useRef(null);
   const editorRef = useRef(null);
   const isInternalChangeRef = useRef(false);
-
-  useEffect(() => {
-    if (data?.layout?.fontFamily) setClFontFamily(data.layout.fontFamily);
-    if (data?.layout?.fontSize) setClFontSize(data.layout.fontSize);
-  }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
-
-  useEffect(() => {
-    if (isOpen && data?.targetJobDescription) {
-      setJobDescription(data.targetJobDescription);
-    }
-  }, [isOpen, data?.targetJobDescription]);
 
   // Helper to convert Markdown / text to HTML with <strong> tags
   const textToHtml = useCallback((text) => {
@@ -73,6 +73,58 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       .replace(/&quot;/g, '"');
     return text.trim();
   };
+
+  useEffect(() => {
+    if (data?.layout?.fontFamily) setClFontFamily(data.layout.fontFamily);
+    if (data?.layout?.fontSize) setClFontSize(data.layout.fontSize);
+  }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
+
+  useEffect(() => {
+    if (isOpen && data?.targetJobDescription) {
+      setJobDescription(data.targetJobDescription);
+    }
+  }, [isOpen, data?.targetJobDescription]);
+
+  // Restore saved cover letter into editor when modal opens or component mounts
+  useEffect(() => {
+    if (isOpen) {
+      const textToLoad = data?.coverLetter || localStorage.getItem('resume-cover-letter-text') || coverLetter;
+      if (textToLoad) {
+        setCoverLetter(textToLoad);
+        if (editorRef.current && editorRef.current.innerHTML !== textToHtml(textToLoad)) {
+          editorRef.current.innerHTML = textToHtml(textToLoad);
+        }
+      }
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save cover letter to localStorage and reducer state
+  useEffect(() => {
+    if (coverLetter !== undefined) {
+      try {
+        localStorage.setItem('resume-cover-letter-text', coverLetter);
+      } catch {}
+      if (dispatch) {
+        dispatch({ type: 'UPDATE_COVER_LETTER', payload: coverLetter });
+      }
+    }
+  }, [coverLetter, dispatch]);
+
+  // Auto-save settings to localStorage and reducer state
+  useEffect(() => {
+    const settings = { companyName, targetRole, industry, tone, clLength, referenceLetter, clFontFamily, clFontSize };
+    try {
+      localStorage.setItem('resume-cl-company', companyName);
+      localStorage.setItem('resume-cl-role', targetRole);
+      localStorage.setItem('resume-cl-industry', industry);
+      localStorage.setItem('resume-cl-tone', tone);
+      localStorage.setItem('resume-cl-length', clLength);
+      localStorage.setItem('resume-cl-ref', referenceLetter);
+    } catch {}
+    if (dispatch) {
+      dispatch({ type: 'UPDATE_COVER_LETTER_SETTINGS', payload: settings });
+    }
+  }, [companyName, targetRole, industry, tone, clLength, referenceLetter, clFontFamily, clFontSize, dispatch]);
 
   // Modal lifecycle & ESC key / Popstate
   useEffect(() => {
@@ -226,7 +278,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   };
 
-  // Keyboard shortcut listener for Cmd+Z / Cmd+Y
+  // Keyboard shortcut listener for Cmd+Z / Cmd+Y / Cmd+B
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;

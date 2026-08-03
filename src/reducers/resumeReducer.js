@@ -30,6 +30,21 @@ export default function resumeReducer(state, action) {
         targetJobDescription: typeof action.payload === 'object' ? action.payload.description : action.payload
       };
 
+    case 'UPDATE_COVER_LETTER':
+      return {
+        ...state,
+        coverLetter: action.payload
+      };
+
+    case 'UPDATE_COVER_LETTER_SETTINGS':
+      return {
+        ...state,
+        coverLetterSettings: {
+          ...(state.coverLetterSettings || {}),
+          ...action.payload
+        }
+      };
+
     case 'UPDATE_TARGET_JOB_ANALYSIS':
       return {
         ...state,
