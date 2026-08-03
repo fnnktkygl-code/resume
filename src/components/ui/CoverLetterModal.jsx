@@ -143,6 +143,38 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
   };
 
+  const applyManualBold = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    if (start === undefined || end === undefined || start === end) {
+      return;
+    }
+
+    const val = coverLetter || '';
+    const selectedText = val.substring(start, end);
+    const isBold = val.substring(start - 2, start) === '**' && val.substring(end, end + 2) === '**';
+
+    let newValue, newCursorPos;
+    if (isBold) {
+      newValue = val.substring(0, start - 2) + selectedText + val.substring(end + 2);
+      newCursorPos = start + selectedText.length - 2;
+    } else {
+      newValue = val.substring(0, start) + '**' + selectedText + '**' + val.substring(end);
+      newCursorPos = start + selectedText.length + 2;
+    }
+
+    updateLetterContent(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
   const handleUndo = () => {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
@@ -561,6 +593,20 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               {isEditMode ? `👁️ ${t('Preview Mode')}` : `✍️ ${t('Edit Text')}`}
             </button>
 
+            {/* Manual Bold Button for selected word/text */}
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                if (!isEditMode) setIsEditMode(true);
+                setTimeout(applyManualBold, 50);
+              }}
+              style={{ padding: '6px 12px', fontWeight: 'bold' }}
+              title={t('Bold Selected Text (Cmd+B)')}
+            >
+              <b>B</b> {t('Bold')}
+            </button>
+
             <button 
               className="btn-secondary" 
               onClick={handleBoldify} 
@@ -595,6 +641,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
           {isEditMode ? (
             <textarea
+              ref={textareaRef}
               className="cl-a4-paper print-hidden"
               style={{
                 minHeight: '60vh',
@@ -610,6 +657,12 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               }}
               value={coverLetter}
               onChange={(e) => updateLetterContent(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+                  e.preventDefault();
+                  applyManualBold();
+                }
+              }}
               placeholder={t('Type or edit your cover letter text here...')}
             />
           ) : (
