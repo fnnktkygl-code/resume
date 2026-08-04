@@ -5,6 +5,7 @@ import MinimalistTemplate from './MinimalistTemplate';
 import { parseMarkdown, formatUrl, formatSkills, renderBullet, parseSkillsToTags } from '../utils/formatText';
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
+import { getAdaptiveAccentColor, hexToRgbStr } from '../utils/colorUtils';
 
 function ResumePreview({
   data,
@@ -1038,9 +1039,11 @@ function ResumePreview({
     return isNaN(r) ? '27, 107, 58' : `${r}, ${g}, ${b}`;
   };
 
-  const accentColor = layout.accentColor || '#1B6B3A';
+  const rawAccentColor = layout.accentColor || '#1B6B3A';
+  const isDark = !printMode && typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark';
+  const accentColor = getAdaptiveAccentColor(rawAccentColor, isDark ? 'dark' : 'light');
   const fontFamily = layout.fontFamily || 'Inter';
-  const accentRgb = hexToRgb(accentColor);
+  const accentRgb = hexToRgbStr(accentColor);
 
   const pageGap = 32; // Gap between page sheets in the editor (px, before scaling)
 

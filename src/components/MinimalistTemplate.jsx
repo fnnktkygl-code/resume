@@ -101,7 +101,7 @@ function MinimalistTemplate({
 
   const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
   const formatDate = (m, y) => formatResumeDate(m, y, language);
-  const primaryColor = layout.accentColor || '#1E3A8A'; // Fallback to dark blue like screenshot
+  const primaryColor = 'var(--resume-accent-color, ' + (layout.accentColor || '#1E3A8A') + ')';
   const textColor = 'var(--resume-text-color, #222)';
   const hasContact = hasContactInfo(p);
 

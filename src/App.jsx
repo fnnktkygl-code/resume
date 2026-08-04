@@ -30,6 +30,7 @@ import useResumeHistory from './hooks/useResumeHistory';
 import useResumeDocuments from './hooks/useResumeDocuments';
 import resumeReducer from './reducers/resumeReducer';
 import { translateHeadings, translateCustomSectionLabels } from './utils/languageSwitcher';
+import { getAdaptiveAccentColor, hexToRgbStr } from './utils/colorUtils';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
@@ -283,34 +284,25 @@ export default function App() {
       .catch(() => {}); // silently ignore if demo-data.json is missing
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Dynamic theme accent color sync
+  // Dynamic theme accent color sync (adapts accent contrast for dark mode)
   useEffect(() => {
-    const accent = layout.accentColor || '#1B6B3A';
+    const rawAccent = layout.accentColor || '#1B6B3A';
+    const accent = getAdaptiveAccentColor(rawAccent, theme);
     document.documentElement.style.setProperty('--color-accent', accent);
     
-    let r = 27, g = 107, b = 58;
-    if (accent.startsWith('#')) {
-      const cleanHex = accent.replace('#', '');
-      if (cleanHex.length === 3) {
-        r = parseInt(cleanHex[0] + cleanHex[0], 16);
-        g = parseInt(cleanHex[1] + cleanHex[1], 16);
-        b = parseInt(cleanHex[2] + cleanHex[2], 16);
-      } else if (cleanHex.length === 6) {
-        r = parseInt(cleanHex.slice(0, 2), 16);
-        g = parseInt(cleanHex.slice(2, 4), 16);
-        b = parseInt(cleanHex.slice(4, 6), 16);
-      }
-    }
+    const rgbStr = hexToRgbStr(accent);
+    const [r, g, b] = rgbStr.split(',').map(n => parseInt(n.trim(), 10));
     
     if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+      const lightOpacity = theme === 'dark' ? '0.18' : '0.1';
       document.documentElement.style.setProperty('--color-accent-rgb', `${r}, ${g}, ${b}`);
-      document.documentElement.style.setProperty('--color-accent-light', `rgba(${r}, ${g}, ${b}, 0.1)`);
+      document.documentElement.style.setProperty('--color-accent-light', `rgba(${r}, ${g}, ${b}, ${lightOpacity})`);
       document.documentElement.style.setProperty('--color-accent-hover', `rgba(${r}, ${g}, ${b}, 0.85)`);
     } else {
-      document.documentElement.style.setProperty('--color-accent-light', 'rgba(27, 107, 58, 0.1)');
+      document.documentElement.style.setProperty('--color-accent-light', theme === 'dark' ? 'rgba(74, 222, 128, 0.18)' : 'rgba(27, 107, 58, 0.1)');
       document.documentElement.style.setProperty('--color-accent-hover', 'rgba(27, 107, 58, 0.85)');
     }
-  }, [layout.accentColor]);
+  }, [layout.accentColor, theme]);
 
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);

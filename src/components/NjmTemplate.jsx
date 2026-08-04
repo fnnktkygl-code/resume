@@ -258,7 +258,7 @@ function NjmTemplate({
 
   const formatDate = (m, y) => formatResumeDate(m, y, language);
 
-  const primaryColor = layout.accentColor || '#0F3A8C';
+  const primaryColor = 'var(--resume-accent-color, ' + (layout.accentColor || '#0F3A8C') + ')';
   const textColor = 'var(--resume-text-color, #111)';
   const grayColor = 'var(--resume-text-secondary, #444)';
 
