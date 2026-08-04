@@ -171,13 +171,17 @@ function ResumePreview({
           const main = contentRef.current.querySelector('.modern-main');
           innerH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
         }
-        const effectivePageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
-        const totalH = template === 'modern' ? innerH : innerH + (paddingY * 2 * 96);
+        // Subtract any artificial push-margins from page-break simulation
+        const pushEls = contentRef.current.querySelectorAll('[data-page-push]');
+        let totalPush = 0;
+        pushEls.forEach(el => { totalPush += (parseFloat(el.style.marginTop) || 0); });
+        const naturalH = innerH - totalPush;
+
+        const effectivePageHeight = 1122;
+        const totalH = template === 'modern' ? naturalH : naturalH + (paddingY * 2 * 96);
         const neededPages = Math.max(1, Math.ceil((totalH - 10) / effectivePageHeight));
         setPagesCount(neededPages);
-        // Calculate how much of the last page is used (0-1)
         const lastPageUsage = (totalH % effectivePageHeight) / effectivePageHeight;
-        // If content spills onto a new page but uses ≤20% of it, flag as overflow
         setOverflowRatio(neededPages > 1 && lastPageUsage > 0 && lastPageUsage <= 0.2 ? lastPageUsage : 0);
       });
     });
@@ -192,44 +196,77 @@ function ResumePreview({
   const pageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
 
-  // ── Editor: simulate page-break-inside:avoid by pushing sections to next page ──
+  // ── Editor: simulate page-break-inside:avoid with correct dead-zone margins ──
   useEffect(() => {
     if (printMode || !contentRef.current) return;
-    const paddingTopPx = paddingY * 96; // convert inches to px
-    const paddingBottomPx = paddingY * 96;
-    const usablePageHeight = pageHeight; // full A4 page height (padding is part of the container)
+    const P = paddingY * 96; // padding in px (top = bottom)
 
-    // Get all direct child sections of contentRef
     const sections = contentRef.current.querySelectorAll(
       '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]'
     );
     if (!sections.length) return;
 
-    // Reset any previously injected margin
-    sections.forEach(s => { s.style.marginTop = ''; });
+    // Reset any previously injected push margins
+    sections.forEach(s => {
+      s.style.marginTop = '';
+      s.removeAttribute('data-page-push');
+    });
 
     // After reset, let the browser reflow, then calculate
     requestAnimationFrame(() => {
       if (!contentRef.current) return;
-      const containerTop = contentRef.current.getBoundingClientRect().top;
+
+      // Measure natural content height (after margin reset)
+      let naturalH = contentRef.current.offsetHeight;
+      if (template === 'modern') {
+        const sidebar = contentRef.current.querySelector('.modern-sidebar');
+        const main = contentRef.current.querySelector('.modern-main');
+        naturalH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
+      }
+      const totalH = template === 'modern' ? naturalH : naturalH + (2 * P);
+      // If content fits on 1 page, don't push anything
+      if (totalH <= pageHeight + 10) return;
+
+      const containerRect = contentRef.current.getBoundingClientRect();
+      let cumulativeOffset = 0;
+
+      // Process sections top-to-bottom
+      // Coordinate system: all positions relative to contentRef top
+      // contentRef is at P pixels inside resume-page (due to padding-top)
+      // Page break lines (from resume-page top): N * pageHeight for N=1,2,3...
+      // Relative to contentRef: N * pageHeight - P
+      //
+      // Dead zone around page break N (relative to contentRef):
+      //   start = N * pageHeight - 2P  (bottom margin of page N)
+      //   end   = N * pageHeight        (after top margin of page N+1)
+      //
+      // Example for N=1, P=72: dead zone from 978px to 1122px
 
       sections.forEach(section => {
         const rect = section.getBoundingClientRect();
-        const sectionTop = rect.top - containerTop;
-        const sectionBottom = sectionTop + rect.height;
+        const originalTop = rect.top - containerRect.top;
+        const effectiveTop = originalTop + cumulativeOffset;
+        const sectionHeight = rect.height;
 
-        // Which page does the top of this section fall on?
-        const pageIndex = Math.floor(sectionTop / usablePageHeight);
-        // Where does that page end (content area)?
-        const pageEnd = (pageIndex + 1) * usablePageHeight - paddingBottomPx;
+        // Which page is this section on? (0-indexed)
+        const pageIdx = Math.floor(effectiveTop / pageHeight);
 
-        // If the section crosses the page boundary...
-        if (sectionTop < pageEnd && sectionBottom > pageEnd) {
-          // Push it to the start of the next page (with top padding)
-          const nextPageStart = (pageIndex + 1) * usablePageHeight + paddingTopPx;
-          const pushAmount = nextPageStart - sectionTop;
-          if (pushAmount > 0 && pushAmount < usablePageHeight) {
-            section.style.marginTop = `${pushAmount}px`;
+        // Dead zone for this page boundary
+        const deadZoneStart = (pageIdx + 1) * pageHeight - 2 * P;
+        const deadZoneEnd = (pageIdx + 1) * pageHeight;
+
+        // Check if section overlaps with dead zone
+        const sectionBottom = effectiveTop + sectionHeight;
+        if (sectionBottom > deadZoneStart && effectiveTop < deadZoneEnd) {
+          // Only push if section can fit on a single page
+          const usablePerPage = pageHeight - 2 * P;
+          if (sectionHeight <= usablePerPage) {
+            const pushAmount = deadZoneEnd - effectiveTop;
+            if (pushAmount > 0 && pushAmount < pageHeight) {
+              section.style.marginTop = `${pushAmount}px`;
+              section.setAttribute('data-page-push', 'true');
+              cumulativeOffset += pushAmount;
+            }
           }
         }
       });
