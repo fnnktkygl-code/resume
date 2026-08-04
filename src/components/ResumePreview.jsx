@@ -201,8 +201,15 @@ function ResumePreview({
   // ── Editor: simulate page-break-inside:avoid with visual page gap ──
   useEffect(() => {
     if (printMode || !contentRef.current) return;
-    const P = paddingY * 96; // padding in px (top = bottom)
+    const P = paddingY * 96; // padding in px (page pixels, unscaled)
     const gap = 32; // must match pageGap
+    // rect.top/height come from getBoundingClientRect(), which reflects the
+    // CSS transform: scale(...) applied to .resume-page. Every threshold
+    // below (pageHeight, gap, P) is expressed in *unscaled* page pixels, so
+    // every measurement must be divided by `scale` before comparison —
+    // otherwise pushAmount ends up wrong by a factor of `scale` and blocks
+    // land half inside the page-gap overlay instead of fully past it.
+    const safeScale = scale || 1;
 
     const sections = contentRef.current.querySelectorAll(
       '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]'
@@ -215,11 +222,9 @@ function ResumePreview({
       s.removeAttribute('data-page-push');
     });
 
-    // After reset, let the browser reflow, then calculate
     requestAnimationFrame(() => {
       if (!contentRef.current) return;
 
-      // Measure natural content height (after margin reset)
       let naturalH = contentRef.current.offsetHeight;
       if (template === 'modern') {
         const sidebar = contentRef.current.querySelector('.modern-sidebar');
@@ -227,43 +232,48 @@ function ResumePreview({
         naturalH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
       }
       const totalH = template === 'modern' ? naturalH : naturalH + (2 * P);
-      // If content fits on 1 page (with padding as tolerance), don't push anything
       if (totalH <= pageHeight + P) return;
 
       const containerRect = contentRef.current.getBoundingClientRect();
-      // getBoundingClientRect() returns coordinates AFTER transform:scale()
-      // applied to .resume-page. Since scale is almost never 1 in the editor,
-      // we must divide by scale to convert back to the real "page pixels"
-      // (the coordinate system in which pageHeight/gap/P are expressed).
-      const safeScale = scale || 1;
+      const usablePerPage = pageHeight - 2 * P;
+      const slot = pageHeight + gap;
+
+      // Atomic units already "handled" (pushed, or confirmed to fit as a
+      // whole on their current page). Once a unit is handled, any element
+      // nested inside it is skipped — we never split an atomic block into
+      // sub-pushes. Only when a unit is *too tall to ever be atomic* do we
+      // let its children be evaluated independently, one level down.
+      const handled = [];
+      const isInsideHandled = (el) => handled.some(h => h !== el && h.contains(el));
 
       sections.forEach(section => {
+        if (isInsideHandled(section)) return;
+
         const rect = section.getBoundingClientRect();
         const sectionTop = (rect.top - containerRect.top) / safeScale;
         const sectionHeight = rect.height / safeScale;
-        const slot = pageHeight + gap;
 
-        // Which page slot is this section on? (0-indexed)
+        // Too tall to ever fit as one atomic block (even on a blank page):
+        // don't touch it here, let its children (bullets/items) be
+        // evaluated independently in the next iterations.
+        if (sectionHeight > usablePerPage) return;
+
         const pageIdx = Math.floor(sectionTop / slot);
-
-        // Dead zone: only push sections that extend into the bottom padding
-        // Start = bottom padding area of current page
-        // End = start of next page slot (content will start P px into page = top margin,
-        //        because contentRef is offset by P from resume-page top via CSS padding-top)
         const deadZoneStart = pageIdx * slot + pageHeight - P;
         const deadZoneEnd = (pageIdx + 1) * slot;
+        const nextPageContentStart = deadZoneEnd + P;
 
         const sectionBottom = sectionTop + sectionHeight;
         if (sectionBottom > deadZoneStart && sectionTop < deadZoneEnd) {
-          const usablePerPage = pageHeight - 2 * P;
-          if (sectionHeight <= usablePerPage) {
-            const pushAmount = deadZoneEnd - sectionTop;
-            if (pushAmount > 0 && pushAmount < slot) {
-              section.style.marginTop = `${pushAmount}px`;
-              section.setAttribute('data-page-push', 'true');
-            }
+          const pushAmount = nextPageContentStart - sectionTop;
+          if (pushAmount > 0 && pushAmount < slot) {
+            section.style.marginTop = `${pushAmount}px`;
+            section.setAttribute('data-page-push', 'true');
           }
         }
+        // Whether pushed or already fitting cleanly, this block is now
+        // "handled" as one atomic unit — its children won't be re-evaluated.
+        handled.push(section);
       });
     });
   });
