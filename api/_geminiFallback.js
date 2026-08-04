@@ -12,9 +12,14 @@
  *    - gemini-3.6-flash
  *    - gemini-2.5-flash
  * 
- * 3. Ultimate Reserve: Gemma 4 High-Quota Models (30 RPM / 14,400 RPD):
+ * 3. Gemma 4 & Gemma 2 High-Quota Models (30 RPM / 14.4K RPD):
  *    - gemma-4-31b-it
  *    - gemma-4-26b-a4b-it
+ *    - gemma-2-27b-it
+ * 
+ * 4. Production Fallbacks:
+ *    - gemini-2.0-flash
+ *    - gemini-1.5-flash
  */
 
 const MODEL_CASCADE_TIERS = [
@@ -28,9 +33,14 @@ const MODEL_CASCADE_TIERS = [
   'gemini-3.6-flash',
   'gemini-2.5-flash',
 
-  // TIER 3: Modèles Gemma 4 Réserve Ultime (30 RPM / 14 400 RPD) — Inépuisable (14.4K RPD)
+  // TIER 3: Modèles Gemma 4 & Gemma 2 Réserve (30 RPM / 14 400 RPD) — Inépuisable (14.4K RPD)
   'gemma-4-31b-it',
-  'gemma-4-26b-a4b-it'
+  'gemma-4-26b-a4b-it',
+  'gemma-2-27b-it',
+
+  // TIER 4: Modèles Production Fallback
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
 ];
 
 // In-memory model cooldown registry (lasts across warm serverless invocations)
@@ -38,7 +48,7 @@ const modelCooldownMap = new Map(); // modelName -> cooldownTimestamp
 
 let lastCallTimestamp = 0;
 
-async function enforcePacingDelay(delayMs = 200) {
+async function enforcePacingDelay(delayMs = 150) {
   const now = Date.now();
   const elapsed = now - lastCallTimestamp;
   if (elapsed < delayMs) {
@@ -64,7 +74,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
     }
 
     try {
-      await enforcePacingDelay(200);
+      await enforcePacingDelay(150);
 
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -100,7 +110,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
           continue;
         }
 
-        // If unavailable (404/400), cascade immediately
+        // If unavailable (404/400), cascade immediately to next tier
         if (response.status === 404 || response.status === 400) {
           lastErr = new Error(errorBody.error?.message || `Unavailable ${modelName}`);
           continue;
