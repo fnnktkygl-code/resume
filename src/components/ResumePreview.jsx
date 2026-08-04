@@ -231,21 +231,16 @@ function ResumePreview({
       if (totalH <= pageHeight + P) return;
 
       const containerRect = contentRef.current.getBoundingClientRect();
-
-      // In the editor, the container is: page1 content | gap | page2 content | gap | ...
-      // Each "slot" has size (pageHeight + gap), except the last which has no trailing gap.
-      // Content for page N starts at: N * (pageHeight + gap) + P
-      // Content for page N ends at:   N * (pageHeight + gap) + pageHeight - P
-      //
-      // A section should be pushed if it falls in the "dead zone":
-      //   deadZoneStart = N * (pageHeight + gap) + pageHeight - 2*P  (bottom padding of page N)
-      //   deadZoneEnd   = (N+1) * (pageHeight + gap)                 (start of page N+1 content area, before top padding)
-      // Push target: deadZoneEnd (section will start at top of next page slot)
+      // getBoundingClientRect() returns coordinates AFTER transform:scale()
+      // applied to .resume-page. Since scale is almost never 1 in the editor,
+      // we must divide by scale to convert back to the real "page pixels"
+      // (the coordinate system in which pageHeight/gap/P are expressed).
+      const safeScale = scale || 1;
 
       sections.forEach(section => {
         const rect = section.getBoundingClientRect();
-        const sectionTop = rect.top - containerRect.top;
-        const sectionHeight = rect.height;
+        const sectionTop = (rect.top - containerRect.top) / safeScale;
+        const sectionHeight = rect.height / safeScale;
         const slot = pageHeight + gap;
 
         // Which page slot is this section on? (0-indexed)
@@ -253,7 +248,8 @@ function ResumePreview({
 
         // Dead zone: only push sections that extend into the bottom padding
         // Start = bottom padding area of current page
-        // End = start of next page slot (content will start P px into the page = top margin)
+        // End = start of next page slot (content will start P px into page = top margin,
+        //        because contentRef is offset by P from resume-page top via CSS padding-top)
         const deadZoneStart = pageIdx * slot + pageHeight - P;
         const deadZoneEnd = (pageIdx + 1) * slot;
 
