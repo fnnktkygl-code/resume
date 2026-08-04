@@ -6,16 +6,16 @@ import { parseMarkdown, formatUrl, formatSkills, renderBullet, parseSkillsToTags
 import { getTranslation } from '../utils/translations';
 import { hasContactInfo, displayHeading as _displayHeading, formatResumeDate } from '../utils/resumeHelpers';
 
-function ResumePreview({ 
-  data, 
-  layout = {}, 
-  language = 'en', 
-  compact = false, 
-  printMode = false, 
-  template = 'standard', 
-  onSectionReorder, 
-  onSectionRemove, 
-  onSectionClick, 
+function ResumePreview({
+  data,
+  layout = {},
+  language = 'en',
+  compact = false,
+  printMode = false,
+  template = 'standard',
+  onSectionReorder,
+  onSectionRemove,
+  onSectionClick,
   onPagesCountChange,
   // New props:
   onItemReorder,
@@ -62,7 +62,7 @@ function ResumePreview({
             return (
               <span key={si}
                 onClick={() => handleSkillClick(skill)}
-                style={{ 
+                style={{
                   cursor: printMode ? 'default' : 'pointer',
                   color: isAccent ? 'var(--resume-accent-color, #1B6B3A)' : undefined,
                   fontWeight: isAccent ? 600 : undefined,
@@ -104,23 +104,23 @@ function ResumePreview({
   const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
   const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
   const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s => 
+  const hasCustomLangues = data.customSections?.some(s =>
     s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
   );
-  
+
   const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const hasContent = hasContact || data.summary || 
-    data.experience.some(e => e.company || e.title) || 
-    data.education.some(e => e.institution || e.degree) || 
-    hasSkills || 
-    data.projects.some(pr => pr.name) || 
+  const hasContent = hasContact || data.summary ||
+    data.experience.some(e => e.company || e.title) ||
+    data.education.some(e => e.institution || e.degree) ||
+    hasSkills ||
+    data.projects.some(pr => pr.name) ||
     data.certifications.some(c => c.name);
 
   const h = data.headings || {};
   const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 
-  const { 
-    fontSize = 10.5, 
+  const {
+    fontSize = 10.5,
     isCompact = false,
     lineHeight = isCompact ? 1.3 : 1.45,
     paddingX = isCompact ? 0.5 : 0.75,
@@ -199,27 +199,37 @@ function ResumePreview({
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
 
   // ── Editor: simulate page-break-inside:avoid with visual page gap ──
+  //
+  // Strategy (mirrors real CSS fragmentation for `break-inside: avoid`):
+  // try to keep the OUTERMOST atomic block (a whole section) in one piece;
+  // only if that block can never fit on a single page do we fall back to
+  // its children (each experience/education/project item), one level at a
+  // time. Crucially this is resolved ONE element at a time, re-measuring
+  // the live DOM from scratch after every push — not computed once in a
+  // single pass — because pushing one block shifts every sibling below it,
+  // and a stale one-shot calculation silently mis-resolves siblings that
+  // were fine a moment ago (this was the bug: a section-sized wrapper that
+  // "fit" got marked as fully handled, which incorrectly skipped checking
+  // the individual item inside it that actually needed to move).
   useEffect(() => {
     if (printMode || !contentRef.current) return;
     const P = paddingY * 96; // padding in px (page pixels, unscaled)
     const gap = 32; // must match pageGap
-    // rect.top/height come from getBoundingClientRect(), which reflects the
-    // CSS transform: scale(...) applied to .resume-page. Every threshold
-    // below (pageHeight, gap, P) is expressed in *unscaled* page pixels, so
-    // every measurement must be divided by `scale` before comparison —
-    // otherwise pushAmount ends up wrong by a factor of `scale` and blocks
-    // land half inside the page-gap overlay instead of fully past it.
     const safeScale = scale || 1;
+    const usablePerPage = pageHeight - 2 * P;
+    const slot = pageHeight + gap;
 
-    const sections = contentRef.current.querySelectorAll(
-      '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]'
-    );
-    if (!sections.length) return;
+    const SELECTOR = '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]';
+    const getCandidates = () =>
+      contentRef.current ? Array.from(contentRef.current.querySelectorAll(SELECTOR)) : [];
 
-    // Reset any previously injected push margins
-    sections.forEach(s => {
-      s.style.marginTop = '';
-      s.removeAttribute('data-page-push');
+    const initialCandidates = getCandidates();
+    if (!initialCandidates.length) return;
+
+    // Reset any previously injected push margins before recalculating
+    initialCandidates.forEach(el => {
+      el.style.marginTop = '';
+      el.removeAttribute('data-page-push');
     });
 
     requestAnimationFrame(() => {
@@ -234,47 +244,71 @@ function ResumePreview({
       const totalH = template === 'modern' ? naturalH : naturalH + (2 * P);
       if (totalH <= pageHeight + P) return;
 
-      const containerRect = contentRef.current.getBoundingClientRect();
-      const usablePerPage = pageHeight - 2 * P;
-      const slot = pageHeight + gap;
+      // rect.top/height come from getBoundingClientRect(), which reflects
+      // the CSS transform: scale(...) applied to .resume-page. Every
+      // threshold here (pageHeight, gap, P) is expressed in *unscaled*
+      // page pixels, so every live measurement is divided by `scale`.
+      const measure = (el) => {
+        const containerRect = contentRef.current.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
+        return {
+          top: (rect.top - containerRect.top) / safeScale,
+          height: rect.height / safeScale,
+        };
+      };
 
-      // Atomic units already "handled" (pushed, or confirmed to fit as a
-      // whole on their current page). Once a unit is handled, any element
-      // nested inside it is skipped — we never split an atomic block into
-      // sub-pushes. Only when a unit is *too tall to ever be atomic* do we
-      // let its children be evaluated independently, one level down.
-      const handled = [];
-      const isInsideHandled = (el) => handled.some(h => h !== el && h.contains(el));
+      const resolved = new Set();
+      let guard = 0;
+      const MAX_ITERATIONS = 300;
 
-      sections.forEach(section => {
-        if (isInsideHandled(section)) return;
+      while (guard++ < MAX_ITERATIONS) {
+        const candidates = getCandidates();
 
-        const rect = section.getBoundingClientRect();
-        const sectionTop = (rect.top - containerRect.top) / safeScale;
-        const sectionHeight = rect.height / safeScale;
+        // Find the first (document-order) candidate that hasn't been
+        // resolved yet, and isn't nested inside an already-resolved block
+        // (a resolved ancestor "owns" the page-break decision for its
+        // whole subtree — we never split further inside it).
+        let target = null;
+        for (const el of candidates) {
+          if (resolved.has(el)) continue;
+          let insideResolved = false;
+          for (const r of resolved) {
+            if (r !== el && r.contains(el)) { insideResolved = true; break; }
+          }
+          if (insideResolved) continue;
+          target = el;
+          break;
+        }
+        if (!target) break; // nothing left to resolve
 
-        // Too tall to ever fit as one atomic block (even on a blank page):
-        // don't touch it here, let its children (bullets/items) be
-        // evaluated independently in the next iterations.
-        if (sectionHeight > usablePerPage) return;
+        const { top, height } = measure(target);
 
-        const pageIdx = Math.floor(sectionTop / slot);
+        // Too tall to ever fit as one atomic block, even on a blank page:
+        // leave it unpushed and mark it resolved so we don't reconsider
+        // this exact node again — its children remain eligible below.
+        if (height > usablePerPage) {
+          resolved.add(target);
+          continue;
+        }
+
+        const pageIdx = Math.floor(top / slot);
         const deadZoneStart = pageIdx * slot + pageHeight - P;
         const deadZoneEnd = (pageIdx + 1) * slot;
         const nextPageContentStart = deadZoneEnd + P;
+        const bottom = top + height;
 
-        const sectionBottom = sectionTop + sectionHeight;
-        if (sectionBottom > deadZoneStart && sectionTop < deadZoneEnd) {
-          const pushAmount = nextPageContentStart - sectionTop;
+        if (bottom > deadZoneStart && top < deadZoneEnd) {
+          const pushAmount = nextPageContentStart - top;
           if (pushAmount > 0 && pushAmount < slot) {
-            section.style.marginTop = `${pushAmount}px`;
-            section.setAttribute('data-page-push', 'true');
+            target.style.marginTop = `${pushAmount}px`;
+            target.setAttribute('data-page-push', 'true');
           }
         }
-        // Whether pushed or already fitting cleanly, this block is now
-        // "handled" as one atomic unit — its children won't be re-evaluated.
-        handled.push(section);
-      });
+        resolved.add(target);
+        // Loop again from scratch: this push may have shifted every
+        // sibling below it, so the next candidate must be re-measured
+        // fresh rather than trusted from this pass.
+      }
     });
   });
 
@@ -306,7 +340,7 @@ function ResumePreview({
       document.getElementById(styleId)?.remove();
     };
   }, [paddingX, paddingY]);
- 
+
   const formatDate = (m, y) => formatResumeDate(m, y, language);
 
   // Drag & Drop handlers for Sections
@@ -350,7 +384,7 @@ function ResumePreview({
       isTop = section.classList.contains('drag-over-top');
       section.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
     }
-    
+
     try {
       const dataStr = e.dataTransfer.getData('application/json');
       if (!dataStr) return;
@@ -373,12 +407,12 @@ function ResumePreview({
           }
         }
       }
-    } catch(err) {}
+    } catch (err) { }
   }, [sectionOrder, onSectionReorder]);
 
   const handleDragEnd = useCallback((e) => {
     e.target.closest('.draggable-section')?.classList.remove('dragging');
-    document.querySelectorAll('.draggable-section').forEach(el => 
+    document.querySelectorAll('.draggable-section').forEach(el =>
       el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom')
     );
   }, []);
@@ -427,12 +461,12 @@ function ResumePreview({
       isTop = item.classList.contains('drag-over-top');
       item.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
     }
-    
+
     const data = e.dataTransfer.getData('text/plain');
     if (!data) return;
     const [fromSectionId, , fromIndexStr] = data.split(':');
     const fromIndex = parseInt(fromIndexStr, 10);
-    
+
     if (fromSectionId === sectionId && onItemReorder) {
       let toIndex = index;
       if (fromIndex < index && isTop) {
@@ -440,7 +474,7 @@ function ResumePreview({
       } else if (fromIndex > index && !isTop) {
         toIndex = index + 1;
       }
-      
+
       if (fromIndex !== toIndex) {
         onItemReorder(sectionId, fromIndex, toIndex);
       }
@@ -450,7 +484,7 @@ function ResumePreview({
   const handleItemDragEnd = useCallback((e) => {
     e.stopPropagation();
     e.target.closest('.draggable-item')?.classList.remove('dragging');
-    document.querySelectorAll('.draggable-item').forEach(el => 
+    document.querySelectorAll('.draggable-item').forEach(el =>
       el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom')
     );
   }, []);
@@ -459,10 +493,10 @@ function ResumePreview({
     const isDraggable = !printMode && onItemReorder;
 
     const dragClass = isDraggable ? 'draggable-item preview-interactive-item' : '';
-      
+
     const combinedClassName = `${dragClass} ${className || ''}`.trim();
     const combinedStyle = { position: 'relative', ...(style || {}) };
-    
+
     const wrapperRef = useRef(null);
 
     const wrapProps = isDraggable ? {
@@ -481,25 +515,25 @@ function ResumePreview({
       <div {...wrapProps}>
         {isDraggable && (
           <div className="item-actions" aria-hidden="true">
-            <span 
-              className="item-drag-handle" 
+            <span
+              className="item-drag-handle"
               title={t('Drag to reorder item')}
               draggable={true}
               onDragStart={(e) => {
-                 if (wrapperRef.current) {
-                    try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch(err) {}
-                 }
-                 handleItemDragStart(e, sectionId, itemId, index);
+                if (wrapperRef.current) {
+                  try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch (err) { }
+                }
+                handleItemDragStart(e, sectionId, itemId, index);
               }}
               onDragEnd={handleItemDragEnd}
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ pointerEvents: 'none' }}>
-                <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
-                <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
+                <circle cx="9" cy="5" r="2" /><circle cx="9" cy="12" r="2" /><circle cx="9" cy="19" r="2" />
+                <circle cx="15" cy="5" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="15" cy="19" r="2" />
               </svg>
             </span>
-            <button 
-              className="item-delete" 
+            <button
+              className="item-delete"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onItemDelete) onItemDelete(sectionId, index);
@@ -520,7 +554,7 @@ function ResumePreview({
 
   const NestedSpacer = ({ height, onChangeHeight, onDelete }) => {
     const [localHeight, setLocalHeight] = useState(height);
-    
+
     useEffect(() => {
       setLocalHeight(height);
     }, [height]);
@@ -535,9 +569,9 @@ function ResumePreview({
     };
 
     return (
-      <div 
-        className="nested-spacer-interactive" 
-        style={{ 
+      <div
+        className="nested-spacer-interactive"
+        style={{
           height: `${localHeight}px`,
           position: 'relative',
           display: 'flex',
@@ -549,12 +583,12 @@ function ResumePreview({
         <div className="nested-spacer-bg" />
         <div className="nested-spacer-controls">
           <span className="nested-spacer-label">↕ {t('Space') || 'Space'}: {localHeight}px</span>
-          <input 
-            type="range" 
-            min="4" 
-            max="120" 
-            step="4" 
-            value={localHeight} 
+          <input
+            type="range"
+            min="4"
+            max="120"
+            step="4"
+            value={localHeight}
             onChange={handleChange}
             onMouseUp={handleMouseUp}
             onTouchEnd={handleMouseUp}
@@ -583,13 +617,13 @@ function ResumePreview({
 
   const SectionWrapper = ({ sectionId, className, style, children }) => {
     const isDraggable = !printMode && onSectionReorder;
-    
-    const dragClass = isDraggable 
+
+    const dragClass = isDraggable
       ? 'draggable-section preview-interactive-section'
       : (onSectionClick && !printMode ? 'preview-interactive-section' : '');
-      
+
     const combinedClassName = `${dragClass} ${className || ''}`.trim();
-    
+
     const interactiveStyle = onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
     const combinedStyle = { breakInside: 'avoid', pageBreakInside: 'avoid', ...interactiveStyle, ...(style || {}) };
 
@@ -613,25 +647,25 @@ function ResumePreview({
       <div {...wrapProps}>
         {isDraggable && (
           <div className="section-actions" aria-hidden="true">
-            <span 
-              className="drag-handle" 
+            <span
+              className="drag-handle"
               title={t('Drag to reorder')}
               draggable={true}
               onDragStart={(e) => {
-                 if (wrapperRef.current) {
-                    try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch(err) {}
-                 }
-                 handleDragStart(e, sectionId);
+                if (wrapperRef.current) {
+                  try { e.dataTransfer.setDragImage(wrapperRef.current, 0, 0); } catch (err) { }
+                }
+                handleDragStart(e, sectionId);
               }}
               onDragEnd={handleDragEnd}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ pointerEvents: 'none' }}>
-                <circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/>
-                <circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>
+                <circle cx="9" cy="5" r="2" /><circle cx="9" cy="12" r="2" /><circle cx="9" cy="19" r="2" />
+                <circle cx="15" cy="5" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="15" cy="19" r="2" />
               </svg>
             </span>
-            <button 
-              className="section-delete" 
+            <button
+              className="section-delete"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onSectionRemove) onSectionRemove(sectionId);
@@ -673,8 +707,8 @@ function ResumePreview({
                   printMode ? (
                     <div style={{ height: `${exp.height}px` }} />
                   ) : (
-                    <NestedSpacer 
-                      height={exp.height} 
+                    <NestedSpacer
+                      height={exp.height}
                       onChangeHeight={(h) => onItemUpdate('experience', i, { ...exp, height: h })}
                       onDelete={() => onItemDelete('experience', i)}
                     />
@@ -684,7 +718,7 @@ function ResumePreview({
                     <div className="resume-exp-header">
                       {exp.link ? (
                         <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
-                          {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle'}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          {exp.company} <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '3px', display: 'inline-block', verticalAlign: 'middle' }}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
                         </a>
                       ) : (
                         <span className="resume-company">{exp.company}</span>
@@ -696,7 +730,7 @@ function ResumePreview({
                       </span>
                     </div>
                     <div className="resume-title">{parseMarkdown(exp.title)}</div>
-                    <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
+                    <div style={{ marginTop: `${Math.round(itemSpacing / 2)}px`, display: 'flex', flexDirection: 'column', gap: `${Math.round(itemSpacing / 2)}px` }}>
                       {exp.bullets.filter(Boolean).map((b, bi) => (
                         <div key={bi} className="resume-bullet"><span style={{ marginRight: '6px' }}>•</span>{renderBullet(b)}</div>
                       ))}
@@ -729,8 +763,8 @@ function ResumePreview({
                   printMode ? (
                     <div style={{ height: `${edu.height}px` }} />
                   ) : (
-                    <NestedSpacer 
-                      height={edu.height} 
+                    <NestedSpacer
+                      height={edu.height}
                       onChangeHeight={(h) => onItemUpdate('education', i, { ...edu, height: h })}
                       onDelete={() => onItemDelete('education', i)}
                     />
@@ -807,8 +841,8 @@ function ResumePreview({
                   printMode ? (
                     <div style={{ height: `${pr.height}px` }} />
                   ) : (
-                    <NestedSpacer 
-                      height={pr.height} 
+                    <NestedSpacer
+                      height={pr.height}
                       onChangeHeight={(h) => onItemUpdate('projects', i, { ...pr, height: h })}
                       onDelete={() => onItemDelete('projects', i)}
                     />
@@ -852,8 +886,8 @@ function ResumePreview({
                   printMode ? (
                     <div style={{ height: `${c.height}px` }} />
                   ) : (
-                    <NestedSpacer 
-                      height={c.height} 
+                    <NestedSpacer
+                      height={c.height}
                       onChangeHeight={(h) => onItemUpdate('certifications', i, { ...c, height: h })}
                       onDelete={() => onItemDelete('certifications', i)}
                     />
@@ -904,9 +938,9 @@ function ResumePreview({
                       return printMode ? (
                         <div key={item.id || i} style={{ height: `${item.height}px` }} />
                       ) : (
-                        <NestedSpacer 
+                        <NestedSpacer
                           key={item.id || i}
-                          height={item.height} 
+                          height={item.height}
                           onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })}
                           onDelete={() => onItemDelete(sectionId, i)}
                         />
@@ -943,8 +977,8 @@ function ResumePreview({
                     printMode ? (
                       <div style={{ height: `${item.height}px` }} />
                     ) : (
-                      <NestedSpacer 
-                        height={item.height} 
+                      <NestedSpacer
+                        height={item.height}
                         onChangeHeight={(h) => onItemUpdate(sectionId, i, { ...item, height: h })}
                         onDelete={() => onItemDelete(sectionId, i)}
                       />
@@ -956,7 +990,7 @@ function ResumePreview({
                         {item.date && <span className="resume-dates">{item.date}</span>}
                       </div>
                       {item.subtitle && <div className="resume-title">{parseMarkdown(item.subtitle)}</div>}
-                      {item.description && <div style={{ marginTop: `${Math.round(itemSpacing/2)}px`, whiteSpace: 'pre-line' }}>
+                      {item.description && <div style={{ marginTop: `${Math.round(itemSpacing / 2)}px`, whiteSpace: 'pre-line' }}>
                         {parseMarkdown(item.description)}
                       </div>}
                     </div>
@@ -1031,11 +1065,11 @@ function ResumePreview({
             </div>
           ) : template === 'modern' ? (
             <div ref={contentRef} style={{ height: '100%' }}>
-              <ModernTemplate 
-                data={data} 
-                layout={layout} 
-                language={language} 
-                onSectionClick={!printMode ? onSectionClick : undefined} 
+              <ModernTemplate
+                data={data}
+                layout={layout}
+                language={language}
+                onSectionClick={!printMode ? onSectionClick : undefined}
                 SectionWrapper={SectionWrapper}
                 ItemWrapper={ItemWrapper}
                 NestedSpacer={NestedSpacer}
@@ -1051,11 +1085,11 @@ function ResumePreview({
             </div>
           ) : template === 'njm' ? (
             <div ref={contentRef}>
-              <NjmTemplate 
-                data={data} 
-                layout={layout} 
-                language={language} 
-                onSectionClick={!printMode ? onSectionClick : undefined} 
+              <NjmTemplate
+                data={data}
+                layout={layout}
+                language={language}
+                onSectionClick={!printMode ? onSectionClick : undefined}
                 SectionWrapper={SectionWrapper}
                 ItemWrapper={ItemWrapper}
                 NestedSpacer={NestedSpacer}
@@ -1071,11 +1105,11 @@ function ResumePreview({
             </div>
           ) : template === 'minimalist' ? (
             <div ref={contentRef}>
-              <MinimalistTemplate 
-                data={data} 
-                layout={layout} 
-                language={language} 
-                onSectionClick={!printMode ? onSectionClick : undefined} 
+              <MinimalistTemplate
+                data={data}
+                layout={layout}
+                language={language}
+                onSectionClick={!printMode ? onSectionClick : undefined}
                 SectionWrapper={SectionWrapper}
                 ItemWrapper={ItemWrapper}
                 NestedSpacer={NestedSpacer}
@@ -1103,10 +1137,10 @@ function ResumePreview({
                   </div>
                 )}
                 {p.name && <div className="resume-name" style={{ fontSize: `${fontSize * 2}pt`, marginBottom: '1px' }}>{p.name}</div>}
-                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(itemSpacing/2)}px` }}>{parseMarkdown(p.tagline)}</div>}
+                {p.tagline && <div className="resume-tagline" style={{ fontSize: `${fontSize * 1.15}pt`, marginBottom: `${Math.round(itemSpacing / 2)}px` }}>{parseMarkdown(p.tagline)}</div>}
                 {hasContact && (
                   layout.splitLinks !== false ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(itemSpacing/2)}px` }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: `${Math.round(itemSpacing / 2)}px` }}>
                       {(p.email || p.phone || p.location) && (
                         <div className="resume-contact" style={{ margin: 0 }}>
                           {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a>{(p.phone || p.location) && <span className="resume-contact-sep">•</span>}</span>}
@@ -1123,7 +1157,7 @@ function ResumePreview({
                       )}
                     </div>
                   ) : (
-                    <div className="resume-contact" style={{ marginBottom: `${Math.round(itemSpacing/2)}px` }}>
+                    <div className="resume-contact" style={{ marginBottom: `${Math.round(itemSpacing / 2)}px` }}>
                       {p.email && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`mailto:${p.email}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.email}</a><span className="resume-contact-sep">•</span></span>}
                       {p.phone && <span style={{ display: 'flex', alignItems: 'center' }}><a href={`tel:${p.phone.replace(/\s+/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>{p.phone}</a><span className="resume-contact-sep">•</span></span>}
                       {p.location && <span style={{ display: 'flex', alignItems: 'center' }}><span>{p.location}</span>{(p.linkedin || p.github || p.website) && <span className="resume-contact-sep">•</span>}</span>}
