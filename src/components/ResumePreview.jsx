@@ -191,6 +191,83 @@ function ResumePreview({
   const pageWidth = 794; // Standard A4 width at 96 DPI (210mm)
   const pageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
+
+  // ── Editor: simulate page-break-inside:avoid by pushing sections to next page ──
+  useEffect(() => {
+    if (printMode || !contentRef.current) return;
+    const paddingTopPx = paddingY * 96; // convert inches to px
+    const paddingBottomPx = paddingY * 96;
+    const usablePageHeight = pageHeight; // full A4 page height (padding is part of the container)
+
+    // Get all direct child sections of contentRef
+    const sections = contentRef.current.querySelectorAll(
+      '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]'
+    );
+    if (!sections.length) return;
+
+    // Reset any previously injected margin
+    sections.forEach(s => { s.style.marginTop = ''; });
+
+    // After reset, let the browser reflow, then calculate
+    requestAnimationFrame(() => {
+      if (!contentRef.current) return;
+      const containerTop = contentRef.current.getBoundingClientRect().top;
+
+      sections.forEach(section => {
+        const rect = section.getBoundingClientRect();
+        const sectionTop = rect.top - containerTop;
+        const sectionBottom = sectionTop + rect.height;
+
+        // Which page does the top of this section fall on?
+        const pageIndex = Math.floor(sectionTop / usablePageHeight);
+        // Where does that page end (content area)?
+        const pageEnd = (pageIndex + 1) * usablePageHeight - paddingBottomPx;
+
+        // If the section crosses the page boundary...
+        if (sectionTop < pageEnd && sectionBottom > pageEnd) {
+          // Push it to the start of the next page (with top padding)
+          const nextPageStart = (pageIndex + 1) * usablePageHeight + paddingTopPx;
+          const pushAmount = nextPageStart - sectionTop;
+          if (pushAmount > 0 && pushAmount < usablePageHeight) {
+            section.style.marginTop = `${pushAmount}px`;
+          }
+        }
+      });
+    });
+  });
+
+  // ── Print: inject dynamic @page margins matching user padding ──
+  useEffect(() => {
+    const styleId = 'dynamic-page-margins';
+    const handleBeforePrint = () => {
+      // Remove any existing dynamic style
+      document.getElementById(styleId)?.remove();
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @page {
+          size: A4 portrait;
+          margin: ${paddingY}in ${paddingX}in;
+        }
+        @media print {
+          #resume-print .resume-page {
+            padding: 0 !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    };
+    const handleAfterPrint = () => {
+      document.getElementById(styleId)?.remove();
+    };
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+      document.getElementById(styleId)?.remove();
+    };
+  }, [paddingX, paddingY]);
  
   const formatDate = (m, y) => formatResumeDate(m, y, language);
 
