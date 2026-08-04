@@ -109,6 +109,8 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
 
         // If rate-limited (429), place model in 5-minute cooldown!
         if (response.status === 429) {
+          const cooldownEnd = new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString();
+          console.warn(`🚨 [QUOTA ALERT] Model '${modelName}' rate-limited (HTTP 429). Placed in 5-min cooldown until ${cooldownEnd}. Cascading to next fallback tier...`);
           modelCooldownMap.set(modelName, Date.now() + 5 * 60 * 1000); // 5 min cooldown
           lastErr = new Error(errorBody.error?.message || `Rate limit on ${modelName}`);
           continue;
@@ -116,6 +118,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
 
         // If unavailable (404/400), cascade immediately to next tier
         if (response.status === 404 || response.status === 400) {
+          console.warn(`⚠️ [MODEL CASCADE] Model '${modelName}' returned HTTP ${response.status}. Cascading to next tier...`);
           lastErr = new Error(errorBody.error?.message || `Unavailable ${modelName}`);
           continue;
         }
@@ -127,6 +130,7 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
       const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (generatedText) {
+        console.log(`✅ [AI MODEL SUCCESS] Executed successfully using tier model: '${modelName}'`);
         return generatedText;
       }
     } catch (err) {
