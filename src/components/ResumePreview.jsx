@@ -236,22 +236,18 @@ function ResumePreview({
     });
   });
 
-  // ── Print: inject dynamic @page margins matching user padding ──
+  // ── Print: use box-decoration-break:clone so padding repeats on every page ──
   useEffect(() => {
-    const styleId = 'dynamic-page-margins';
+    const styleId = 'dynamic-print-page-clone';
     const handleBeforePrint = () => {
-      // Remove any existing dynamic style
       document.getElementById(styleId)?.remove();
       const style = document.createElement('style');
       style.id = styleId;
       style.textContent = `
-        @page {
-          size: A4 portrait;
-          margin: ${paddingY}in ${paddingX}in;
-        }
         @media print {
           #resume-print .resume-page {
-            padding: 0 !important;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
           }
         }
       `;
