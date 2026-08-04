@@ -179,8 +179,8 @@ function ResumePreview({
 
         const effectivePageHeight = 1122;
         const totalH = template === 'modern' ? naturalH : naturalH + (paddingY * 2 * 96);
-        // Use bottom padding as tolerance — content in the padding zone still counts as same page
-        const padTolerance = paddingY * 96;
+        // Use half the padding as tolerance for minor screen/print rendering differences
+        const padTolerance = Math.round(paddingY * 96 * 0.5);
         const neededPages = Math.max(1, Math.ceil((totalH - padTolerance) / effectivePageHeight));
         setPagesCount(neededPages);
         const lastPageUsage = (totalH % effectivePageHeight) / effectivePageHeight;
@@ -230,44 +230,42 @@ function ResumePreview({
       if (totalH <= pageHeight + P) return;
 
       const containerRect = contentRef.current.getBoundingClientRect();
-      let cumulativeOffset = 0;
 
       // Process sections top-to-bottom
+      // getBoundingClientRect() forces synchronous reflow, so each section's
+      // position already reflects marginTop pushes applied to earlier sections.
+      //
       // Coordinate system: all positions relative to contentRef top
-      // contentRef is at P pixels inside resume-page (due to padding-top)
-      // Page break lines (from resume-page top): N * pageHeight for N=1,2,3...
+      // contentRef has padding-top = P inside resume-page
+      // Page break lines (from resume-page top): N * pageHeight
       // Relative to contentRef: N * pageHeight - P
       //
-      // Dead zone around page break N (relative to contentRef):
-      //   start = N * pageHeight - 2P  (bottom margin of page N)
-      //   end   = N * pageHeight        (after top margin of page N+1)
-      //
-      // Example for N=1, P=72: dead zone from 978px to 1122px
+      // Dead zone = area where content would be split across pages:
+      //   start = N * pageHeight - 2P  (bottom padding of page N)
+      //   end   = N * pageHeight        (top padding of page N+1)
 
       sections.forEach(section => {
         const rect = section.getBoundingClientRect();
-        const originalTop = rect.top - containerRect.top;
-        const effectiveTop = originalTop + cumulativeOffset;
+        const sectionTop = rect.top - containerRect.top;
         const sectionHeight = rect.height;
 
         // Which page is this section on? (0-indexed)
-        const pageIdx = Math.floor(effectiveTop / pageHeight);
+        const pageIdx = Math.floor(sectionTop / pageHeight);
 
         // Dead zone for this page boundary
         const deadZoneStart = (pageIdx + 1) * pageHeight - 2 * P;
         const deadZoneEnd = (pageIdx + 1) * pageHeight;
 
         // Check if section overlaps with dead zone
-        const sectionBottom = effectiveTop + sectionHeight;
-        if (sectionBottom > deadZoneStart && effectiveTop < deadZoneEnd) {
+        const sectionBottom = sectionTop + sectionHeight;
+        if (sectionBottom > deadZoneStart && sectionTop < deadZoneEnd) {
           // Only push if section can fit on a single page
           const usablePerPage = pageHeight - 2 * P;
           if (sectionHeight <= usablePerPage) {
-            const pushAmount = deadZoneEnd - effectiveTop;
+            const pushAmount = deadZoneEnd - sectionTop;
             if (pushAmount > 0 && pushAmount < pageHeight) {
               section.style.marginTop = `${pushAmount}px`;
               section.setAttribute('data-page-push', 'true');
-              cumulativeOffset += pushAmount;
             }
           }
         }
