@@ -91,15 +91,22 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     if (data?.layout?.fontSize) setClFontSize(data.layout.fontSize);
   }, [data?.layout?.fontFamily, data?.layout?.fontSize]);
 
-  useEffect(() => {
-    if (isOpen && data?.targetJobDescription) {
-      setJobDescription(data.targetJobDescription);
-    }
-  }, [isOpen, data?.targetJobDescription]);
-
-  // Sync saved cover letter into editor when modal opens
+  // Sync saved cover letter & settings into editor when modal opens
   useEffect(() => {
     if (isOpen) {
+      if (data?.targetJobDescription) {
+        setJobDescription(data.targetJobDescription);
+      }
+      if (data?.coverLetterSettings) {
+        const s = data.coverLetterSettings;
+        if (s.companyName) setCompanyName(s.companyName);
+        if (s.targetRole) setTargetRole(s.targetRole);
+        if (s.industry) setIndustry(s.industry);
+        if (s.tone) setTone(s.tone);
+        if (s.clLength) setClLength(s.clLength);
+        if (s.referenceLetter) setReferenceLetter(s.referenceLetter);
+      }
+
       let textToLoad = coverLetter;
       try {
         if (typeof data?.coverLetter === 'string' && data.coverLetter) {
@@ -120,7 +127,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
         }
       }, 50);
     }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save cover letter to localStorage safely
   useEffect(() => {

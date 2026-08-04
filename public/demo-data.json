@@ -217,13 +217,36 @@
       ],
       "sectionOrder": ["summary", "experience", "education", "skills", "projects", "certifications", "custom_langues", "custom_loisirs"],
       "sectionSpacers": {},
-      "coverLetter": "Alexandre Martin\nLyon, France\nalexandre.martin@proton.me | +33 6 12 34 56 78\n\nLyon, le 4 août 2025\n\nObjet : Candidature au poste de Lead Full-Stack Engineer\n\nMadame, Monsieur,\n\nPassionné par le développement de produits digitaux à fort impact, je me permets de vous soumettre ma candidature pour le poste de **Lead Full-Stack Engineer** au sein de votre équipe.\n\nAu cours de mes 5 années d'expérience, j'ai eu l'opportunité de concevoir et déployer des **plateformes SaaS** utilisées par des centaines d'entreprises, tout en encadrant des équipes de développeurs. Chez **DataForge**, j'ai piloté la migration d'une architecture monolithique vers des microservices, améliorant la disponibilité à **99.95%** et réduisant le temps de déploiement de **82%**.\n\nMon expertise technique couvre l'ensemble de la stack : de la conception d'interfaces React performantes à l'architecture de systèmes distribués sur **AWS et GCP**. Je suis particulièrement attaché à la qualité du code, aux pratiques DevOps et au partage de connaissances au sein des équipes.\n\nCe qui me motive dans votre entreprise, c'est la combinaison entre **innovation technologique** et **impact concret** sur les utilisateurs. Je suis convaincu que mon expérience en architecture logicielle et en leadership technique me permettrait de contribuer efficacement à vos ambitions de croissance.\n\nJe serais ravi d'échanger avec vous sur la manière dont je pourrais apporter de la valeur à votre équipe.\n\nCordialement,\nAlexandre Martin",
+      "targetJobDescription": "Intitulé du poste : Lead Full-Stack Engineer (H/F)\nEntreprise : TechVision — Lyon (Hybride)\n\nÀ propos de TechVision :\nTechVision développe des solutions SaaS B2B haut de gamme pour l'analyse de données temps réel et l'optimisation décisionnelle d'entreprises du Fortune 500.\n\nMissions principales :\n- Piloter l'architecture web et le développement full-stack d'une plateforme SaaS (React, Node.js, TypeScript).\n- Diriger la migration d'un système monolithique vers une micro-architecture distribuée managée sur AWS (EKS, Lambda, DynamoDB, Redis).\n- Garantir la haute disponibilité (99.95%+), la performance et la sécurité des traitements de données volumineuses.\n- Encadrer et mentorer une équipe d'ingénieurs (4 personnes) dans un cadre Agile / Scrum.\n\nProfil recherché :\n- 5+ ans d'expérience en ingénierie logicielle full-stack (React, Node.js, Python, SQL/NoSQL).\n- Solide maîtrise des pratiques DevOps, CI/CD (GitHub Actions, Docker, Kubernetes, Terraform) et du Cloud AWS.\n- Leadership technique éprouvé, goût pour les code reviews et la transmission de compétences.",
+      "coverLetter": "Alexandre Martin\nLyon, France\nalexandre.martin@proton.me | +33 6 12 34 56 78\n\nLyon, le 4 août 2025\n\nObjet : Candidature au poste de **Lead Full-Stack Engineer** chez **TechVision**\n\nMadame, Monsieur,\n\nPassionné par l'ingénierie logicielle et l'architecture de produits SaaS scalables, je vous présente ma candidature pour le poste de **Lead Full-Stack Engineer** au sein de **TechVision**.\n\nAu cours de mes 5 années d'expérience chez **DataForge**, j'ai orchestré la migration d'un monolithe vers des **microservices (Node.js + gRPC)**, atteignant une disponibilité de **99.95%** tout en réduisant le temps de déploiement CI/CD de **82%** (de 45 min à 8 min).\n\nMon expertise technique couvre l'ensemble du cycle de développement : de la création d'interfaces réactives avec **React** et **TypeScript** à la gestion d'infrastructures Cloud sur **AWS** et **Docker**. En tant que **lead technique**, j'ai encadré 4 ingénieurs avec des méthodes agiles (**Scrum**) et instauré des pratiques exigeantes de **code reviews** et de **pair programming**.\n\nVotre vision technologique chez TechVision s'aligne parfaitement avec mon parcours. Je serais ravi d'échanger avec vous lors d'un entretien pour vous présenter de vive voix mes réalisations.\n\nCordialement,\nAlexandre Martin",
       "coverLetterSettings": {
         "companyName": "TechVision",
         "targetRole": "Lead Full-Stack Engineer",
-        "industry": "SaaS / Cloud",
+        "industry": "Tech & Software",
         "tone": "Professional",
-        "clLength": "Standard"
+        "clLength": "Standard",
+        "referenceLetter": ""
+      },
+      "aiCache": {
+        "atsScore": {
+          "score": 94,
+          "matchPercentage": 94,
+          "matchedKeywords": ["React", "TypeScript", "Node.js", "AWS", "Microservices", "CI/CD", "Docker", "PostgreSQL", "Agile", "Scrum", "Kubernetes", "Leadership"],
+          "missingKeywords": ["GraphQL", "Terraform"],
+          "strengths": [
+            "Excellente correspondance sur la stack principale (React, Node.js, AWS)",
+            "Résultats chiffrés très convaincants (99.95% disponibilité, -82% temps de déploiement)",
+            "Solide leadership technique (encadrement de 4 développeurs)"
+          ],
+          "recommendations": [
+            "Mentionner l'utilisation de Terraform pour la gestion d'infra as code",
+            "Préciser des métriques sur la réduction de bugs en production"
+          ]
+        },
+        "tailoredResult": {
+          "tailoredSummary": "Ingénieur Full-Stack Lead spécialisé en React, Node.js et microservices AWS. 5 ans d'expérience avérée dans l'optimisation SaaS, le déploiement CI/CD automatisé et l'encadrement technique d'équipes agiles.",
+          "keywordHighlights": ["React", "Node.js", "TypeScript", "Microservices", "AWS", "CI/CD", "Scrum"]
+        }
       }
     }
   },
@@ -435,13 +458,36 @@
       ],
       "sectionOrder": ["summary", "experience", "education", "skills", "projects", "certifications", "custom_langues", "custom_loisirs"],
       "sectionSpacers": {},
-      "coverLetter": "Sarah Chen\nSan Francisco, CA\nsarah.chen@proton.me | +1 (415) 555-0147\n\nAugust 4, 2025\n\nRe: Senior Frontend Engineer Position\n\nDear Hiring Manager,\n\nI am writing to express my strong interest in the **Senior Frontend Engineer** position at your company. With 4+ years of experience building scalable web applications and design systems, I believe I can make a meaningful contribution to your product team.\n\nAt **Luminary**, I led the development of a **component design system** adopted by 3 product teams, which reduced UI inconsistencies by 70% and accelerated feature delivery. I also architected a real-time collaborative editing feature using CRDTs and WebSockets that now serves **10K+ concurrent users** with sub-100ms latency.\n\nI am particularly drawn to your company's commitment to **user-centric design** and **engineering excellence**. My experience in performance optimization — including a **40% improvement in LCP** and **35% reduction in TTI** — aligns well with your focus on delivering fast, accessible web experiences.\n\nBeyond code, I am passionate about **mentoring** and building inclusive engineering cultures. I regularly mentor junior engineers and have spoken at ReactConf on scaling design systems.\n\nI would welcome the opportunity to discuss how my skills and experience could benefit your team.\n\nBest regards,\nSarah Chen",
+      "targetJobDescription": "Job Title: Senior Frontend Engineer\nCompany: Vercel — San Francisco, CA (Hybrid)\n\nAbout Vercel:\nVercel is the Frontend Cloud platform for web developers, empowering teams to build and deploy high-performance applications with Next.js and React.\n\nKey Responsibilities:\n- Design, architect, and expand the core component design system (React, TypeScript, Storybook).\n- Optimize Core Web Vitals (LCP, TTI, CLS) and frontend application performance across web platforms.\n- Build real-time collaborative editing features leveraging WebSockets, CRDTs, and state synchronization.\n- Mentor junior and mid-level frontend engineers, conducting code reviews and championing WCAG 2.1 accessibility.\n\nQualifications:\n- 4+ years of professional frontend engineering experience with React, Next.js, TypeScript, and GraphQL.\n- Demonstrated success in optimizing web performance and building scalable design systems.\n- Strong product intuition and dedication to developer experience.",
+      "coverLetter": "Sarah Chen\nSan Francisco, CA\nsarah.chen@proton.me | +1 (415) 555-0147\n\nAugust 4, 2025\n\nRe: Application for **Senior Frontend Engineer** at **Vercel**\n\nDear Hiring Manager,\n\nI am writing to express my strong interest in the **Senior Frontend Engineer** position at **Vercel**. With 4+ years of experience building scalable frontend applications and component design systems, I have long admired Vercel's commitment to developer experience.\n\nAt **Luminary**, I spearheaded the development of a cross-team **design system (50+ components)**, which accelerated feature delivery and reduced UI bugs by **70%**. Additionally, my frontend performance optimizations yielded a **40% improvement in LCP** and a **35% reduction in TTI** across our web platform.\n\nMy technical toolkit — **React, Next.js, TypeScript, and GraphQL** — matches Vercel’s core stack directly. I also architected a real-time collaborative editing feature with **CRDTs and WebSockets** serving **10K+ concurrent users**.\n\nI would welcome the opportunity to discuss how my expertise in component architecture, web performance, and technical mentoring can contribute to Vercel's mission.\n\nBest regards,\nSarah Chen",
       "coverLetterSettings": {
         "companyName": "Vercel",
         "targetRole": "Senior Frontend Engineer",
-        "industry": "Developer Tools / SaaS",
+        "industry": "Tech & Software",
         "tone": "Professional",
-        "clLength": "Standard"
+        "clLength": "Standard",
+        "referenceLetter": ""
+      },
+      "aiCache": {
+        "atsScore": {
+          "score": 96,
+          "matchPercentage": 96,
+          "matchedKeywords": ["React", "Next.js", "TypeScript", "GraphQL", "Design Systems", "Web Vitals", "Mentoring", "Storybook", "Vercel"],
+          "missingKeywords": ["Tailwind"],
+          "strengths": [
+            "Exceptional match for Vercel's frontend tech stack (React, Next.js, TypeScript, GraphQL)",
+            "Proven metrics in performance optimization (40% LCP, 35% TTI reduction)",
+            "Strong leadership experience building component design systems (50+ components)"
+          ],
+          "recommendations": [
+            "Mention experience with CI/CD and automated E2E testing (Playwright)",
+            "Include links to open-source contributions"
+          ]
+        },
+        "tailoredResult": {
+          "tailoredSummary": "Product-minded Senior Frontend Engineer with 4+ years of experience specializing in Next.js, React design systems, and frontend performance optimization. Proven track record of improving Core Web Vitals by 40%.",
+          "keywordHighlights": ["Next.js", "React", "TypeScript", "GraphQL", "Design Systems", "Web Vitals"]
+        }
       }
     }
   }
