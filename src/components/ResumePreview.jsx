@@ -251,8 +251,10 @@ function ResumePreview({
         // Which page slot is this section on? (0-indexed)
         const pageIdx = Math.floor(sectionTop / slot);
 
-        // Dead zone: from (bottom padding of current page) to (start of next page slot)
-        const deadZoneStart = pageIdx * slot + pageHeight - 2 * P;
+        // Dead zone: only push sections that extend into the bottom padding
+        // Start = bottom padding area of current page
+        // End = start of next page slot (content will start P px into the page = top margin)
+        const deadZoneStart = pageIdx * slot + pageHeight - P;
         const deadZoneEnd = (pageIdx + 1) * slot;
 
         const sectionBottom = sectionTop + sectionHeight;
