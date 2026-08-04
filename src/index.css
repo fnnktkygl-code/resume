@@ -1445,8 +1445,8 @@ input[type="range"] {
    ============================================ */
 
 @page {
-  size: letter;
-  margin: 0;
+  size: A4 portrait;
+  margin: 10mm 15mm;
 }
 
 @media print {
@@ -1487,6 +1487,7 @@ input[type="range"] {
     background: #fff !important;
     color: #222 !important;
     background-image: none !important;
+    padding: 0 !important;
     --resume-text-color: #111 !important;
     --resume-text-secondary: #444 !important;
     --resume-border-color: #ddd !important;
@@ -1497,6 +1498,9 @@ input[type="range"] {
   #resume-print .resume-contact { color: #444 !important; }
   #resume-print .resume-section-header { color: #111 !important; border-bottom-color: #222 !important; break-after: avoid !important; page-break-after: avoid !important; }
   #resume-print .resume-exp-header { break-inside: avoid !important; page-break-inside: avoid !important; }
+  #resume-print .preview-interactive-section,
+  #resume-print .draggable-section,
+  #resume-print .resume-section { break-inside: avoid !important; page-break-inside: avoid !important; }
   #resume-print .resume-company { color: #111 !important; }
   #resume-print .resume-title { color: #333 !important; }
   #resume-print .resume-dates { color: #555 !important; }
