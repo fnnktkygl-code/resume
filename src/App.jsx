@@ -336,7 +336,7 @@ export default function App() {
   }, [data, hasContent]);
 
   const calculatedFullscreenScale = useMemo(() => {
-    return Math.min((viewportSize.width - 48) / 816, (viewportSize.height - 110) / 1056);
+    return Math.min((viewportSize.width - 48) / 794, (viewportSize.height - 110) / 1122);
   }, [viewportSize]);
 
   // Theme

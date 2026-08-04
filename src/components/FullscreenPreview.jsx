@@ -102,8 +102,8 @@ export default function FullscreenPreview({
       <div 
         className="fullscreen-preview-content" 
         style={{ 
-          width: `${816 * displayScale}px`, 
-          height: `${1056 * displayScale}px`, 
+          width: `${794 * displayScale}px`, 
+          height: `${1122 * displayScale}px`, 
           overflow: 'hidden', 
           position: 'relative' 
         }}
@@ -112,13 +112,13 @@ export default function FullscreenPreview({
           position: 'absolute',
           top: 0,
           left: 0,
-          width: '816px',
-          height: `${editorPagesCount * 1056}px`,
+          width: '794px',
+          height: `${editorPagesCount * 1122}px`,
           transform: `scale(${displayScale})`,
           transformOrigin: 'top left'
         }}>
           <div style={{
-            transform: `translateY(${-fullscreenPageIndex * 1056}px)`,
+            transform: `translateY(${-fullscreenPageIndex * 1122}px)`,
             transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
           }}>
             <ResumePreview 

@@ -171,11 +171,12 @@ function ResumePreview({
           const main = contentRef.current.querySelector('.modern-main');
           innerH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
         }
-        const totalH = innerH + (paddingY * 2 * 96);
-        const neededPages = Math.max(1, Math.ceil(totalH / 1056));
+        const effectivePageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
+        const totalH = template === 'modern' ? innerH : innerH + (paddingY * 2 * 96);
+        const neededPages = Math.max(1, Math.ceil((totalH - 10) / effectivePageHeight));
         setPagesCount(neededPages);
         // Calculate how much of the last page is used (0-1)
-        const lastPageUsage = (totalH % 1056) / 1056;
+        const lastPageUsage = (totalH % effectivePageHeight) / effectivePageHeight;
         // If content spills onto a new page but uses ≤20% of it, flag as overflow
         setOverflowRatio(neededPages > 1 && lastPageUsage > 0 && lastPageUsage <= 0.2 ? lastPageUsage : 0);
       });
@@ -187,8 +188,8 @@ function ResumePreview({
     };
   }, [hasContent, paddingY, fontSize, lineHeight, paddingX, sectionSpacing, itemSpacing, template]);
 
-  const pageWidth = 816;
-  const pageHeight = 1056;
+  const pageWidth = 794; // Standard A4 width at 96 DPI (210mm)
+  const pageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
  
   const formatDate = (m, y) => formatResumeDate(m, y, language);
