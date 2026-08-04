@@ -260,9 +260,28 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Load demo data when ?demo=fr or ?demo=en is in the URL
   useEffect(() => {
-    // Onboarding modal has been removed based on user feedback
-  }, []);
+    const params = new URLSearchParams(window.location.search);
+    const demoLang = params.get('demo');
+    if (!demoLang) return;
+
+    const demoId = demoLang === 'fr' ? 'demo_fr' : 'demo_en';
+
+    fetch('/demo-data.json')
+      .then(r => r.json())
+      .then(demoList => {
+        const target = demoList.find(cv => cv.id === demoId);
+        if (target && target.data) {
+          handleImportData([target]);
+          // Clean the URL so a refresh doesn't reload demo again
+          const url = new URL(window.location);
+          url.searchParams.delete('demo');
+          window.history.replaceState({}, '', url);
+        }
+      })
+      .catch(() => {}); // silently ignore if demo-data.json is missing
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Dynamic theme accent color sync
   useEffect(() => {

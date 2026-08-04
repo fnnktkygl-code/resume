@@ -1,0 +1,448 @@
+[
+  {
+    "id": "demo_fr",
+    "name": "CV Demo — Alexandre Martin (FR)",
+    "lastModified": 1722700800000,
+    "data": {
+      "personal": {
+        "name": "Alexandre Martin",
+        "tagline": "Ingénieur Full-Stack & Data — 5 ans d'expérience",
+        "email": "alexandre.martin@proton.me",
+        "phone": "+33 6 12 34 56 78",
+        "location": "Lyon, France",
+        "linkedin": "linkedin.com/in/alexandre-martin-dev",
+        "website": "alexmartin.dev",
+        "github": "github.com/alexmartindev"
+      },
+      "headings": {
+        "summary": "Résumé",
+        "experience": "Expérience Professionnelle",
+        "education": "Formation",
+        "skills": "Compétences",
+        "projects": "Projets",
+        "certifications": "Certifications",
+        "technical": "Compétences Techniques",
+        "interpersonal": "Savoir-être",
+        "languages": "Langues",
+        "present": "Présent"
+      },
+      "summary": "Ingénieur logiciel passionné par la création de produits performants et scalables. Expérience approfondie en développement web full-stack (React, Node.js, Python) et en ingénierie de données. Contributeur open-source actif et adepte des méthodologies agiles.",
+      "experience": [
+        {
+          "id": "exp_1",
+          "company": "DataForge",
+          "title": "Lead Full-Stack Engineer",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Mar",
+          "startYear": "2023",
+          "endMonth": "",
+          "endYear": "",
+          "current": true,
+          "bullets": [
+            "Architecture et développement d'une plateforme SaaS de **data analytics** utilisée par +200 entreprises, réduisant le time-to-insight de 60%",
+            "Mise en place d'un pipeline CI/CD complet (GitHub Actions, Docker, Kubernetes) diminuant le temps de déploiement de 45 min à 8 min",
+            "Encadrement technique d'une équipe de 4 développeurs : code reviews, pair programming et mentorat des juniors",
+            "Migration d'une architecture monolithique vers des **microservices** (Node.js + gRPC), améliorant la disponibilité à 99.95%"
+          ],
+          "technologies": "React, TypeScript, Node.js, PostgreSQL, Redis, Docker, Kubernetes, AWS"
+        },
+        {
+          "id": "exp_2",
+          "company": "NovaTech Solutions",
+          "title": "Développeur Full-Stack",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Sep",
+          "startYear": "2021",
+          "endMonth": "Feb",
+          "endYear": "2023",
+          "current": false,
+          "bullets": [
+            "Développement d'un tableau de bord temps réel pour le monitoring de **+500 capteurs IoT** avec React et WebSockets",
+            "Conception et implémentation d'une API RESTful (Express.js, MongoDB) servant 2M+ requêtes/jour avec un temps de réponse < 100ms",
+            "Automatisation de la génération de rapports clients via Python et Pandas, économisant 15h/semaine de travail manuel",
+            "Collaboration avec l'équipe produit pour implémenter un système de notifications intelligent basé sur des seuils configurables"
+          ],
+          "technologies": "React, Express.js, MongoDB, Python, Pandas, WebSocket, Azure"
+        },
+        {
+          "id": "exp_3",
+          "company": "Freelance",
+          "title": "Développeur Web Indépendant",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Jan",
+          "startYear": "2020",
+          "endMonth": "Aug",
+          "endYear": "2021",
+          "current": false,
+          "bullets": [
+            "Conception et livraison de **12 projets web** pour des PME et startups (e-commerce, sites vitrines, applications métier)",
+            "Développement d'un outil de gestion de stocks en temps réel pour un réseau de 8 boutiques, réduisant les ruptures de stock de 35%",
+            "Mise en place de stratégies SEO ayant généré une augmentation de +180% du trafic organique pour 3 clients"
+          ],
+          "technologies": "Next.js, Vue.js, Firebase, Stripe, Tailwind CSS"
+        }
+      ],
+      "education": [
+        {
+          "id": "edu_1",
+          "institution": "INSA Lyon",
+          "degree": "Diplôme d'Ingénieur",
+          "field": "Informatique & Systèmes d'Information",
+          "startYear": "2015",
+          "endYear": "2020",
+          "location": "Lyon, France",
+          "technologies": ""
+        },
+        {
+          "id": "edu_2",
+          "institution": "Université Claude Bernard Lyon 1",
+          "degree": "DUT Informatique",
+          "field": "Génie Logiciel",
+          "startYear": "2015",
+          "endYear": "2017",
+          "location": "Villeurbanne, France",
+          "technologies": ""
+        }
+      ],
+      "skills": {
+        "technical": "JavaScript, TypeScript, Python, SQL, React, Next.js, Node.js, Express, FastAPI, PostgreSQL, MongoDB, Redis, Docker, Kubernetes, AWS, GCP, Git, CI/CD, Terraform",
+        "soft": "Leadership technique, Communication, Résolution de problèmes, Agilité (Scrum/Kanban), Mentorat, Esprit d'équipe",
+        "languages": "",
+        "highlightedSkills": ["React", "TypeScript", "Python", "AWS", "Docker", "Node.js"]
+      },
+      "projects": [
+        {
+          "id": "proj_1",
+          "name": "OpenMetrics Dashboard",
+          "description": "Tableau de bord open-source de monitoring d'infrastructure avec visualisation temps réel et alerting configurable",
+          "techStack": "React, D3.js, Go, InfluxDB",
+          "link": "github.com/alexmartindev/openmetrics",
+          "highlights": [
+            "⭐ 1.2k stars sur GitHub — utilisé en production par 3 entreprises",
+            "Architecture de plugins extensible permettant l'intégration de sources de données custom"
+          ]
+        },
+        {
+          "id": "proj_2",
+          "name": "ResuMe — Générateur de CV ATS",
+          "description": "Application web permettant de créer des CV optimisés pour les systèmes ATS avec export PDF haute fidélité",
+          "techStack": "React, Vite, Vercel",
+          "link": "resume-teal-omega.vercel.app",
+          "highlights": [
+            "Pagination fidèle simulée dans l'éditeur avec correspondance exacte à l'export PDF",
+            "Intégration IA pour la génération de lettres de motivation personnalisées"
+          ]
+        }
+      ],
+      "certifications": [
+        {
+          "id": "cert_1",
+          "name": "AWS Solutions Architect – Associate",
+          "issuer": "Amazon Web Services",
+          "date": "2024",
+          "credentialUrl": ""
+        },
+        {
+          "id": "cert_2",
+          "name": "Google Cloud Professional Data Engineer",
+          "issuer": "Google Cloud",
+          "date": "2023",
+          "credentialUrl": ""
+        }
+      ],
+      "customSections": [
+        {
+          "id": "custom_langues",
+          "label": "Langues",
+          "items": [
+            {
+              "id": "item_langues_1",
+              "title": "Français",
+              "subtitle": "Langue maternelle",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_langues_2",
+              "title": "Anglais",
+              "subtitle": "Courant (C1 — TOEIC 945)",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_langues_3",
+              "title": "Espagnol",
+              "subtitle": "Intermédiaire (B1)",
+              "date": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "id": "custom_atouts",
+          "label": "Atouts",
+          "items": [
+            {
+              "id": "item_atouts_1",
+              "title": "",
+              "subtitle": "",
+              "date": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "id": "custom_loisirs",
+          "label": "Centres d'intérêt",
+          "items": [
+            {
+              "id": "item_loisirs_1",
+              "title": "Trail running",
+              "subtitle": "Ultra Trail du Mont-Blanc 2024 — Finisher",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_loisirs_2",
+              "title": "Open Source",
+              "subtitle": "Contributeur actif sur des projets React et Go",
+              "date": "",
+              "description": ""
+            }
+          ]
+        }
+      ],
+      "sectionOrder": ["summary", "experience", "education", "skills", "projects", "certifications", "custom_langues", "custom_loisirs"],
+      "sectionSpacers": {},
+      "coverLetter": "Alexandre Martin\nLyon, France\nalexandre.martin@proton.me | +33 6 12 34 56 78\n\nLyon, le 4 août 2025\n\nObjet : Candidature au poste de Lead Full-Stack Engineer\n\nMadame, Monsieur,\n\nPassionné par le développement de produits digitaux à fort impact, je me permets de vous soumettre ma candidature pour le poste de **Lead Full-Stack Engineer** au sein de votre équipe.\n\nAu cours de mes 5 années d'expérience, j'ai eu l'opportunité de concevoir et déployer des **plateformes SaaS** utilisées par des centaines d'entreprises, tout en encadrant des équipes de développeurs. Chez **DataForge**, j'ai piloté la migration d'une architecture monolithique vers des microservices, améliorant la disponibilité à **99.95%** et réduisant le temps de déploiement de **82%**.\n\nMon expertise technique couvre l'ensemble de la stack : de la conception d'interfaces React performantes à l'architecture de systèmes distribués sur **AWS et GCP**. Je suis particulièrement attaché à la qualité du code, aux pratiques DevOps et au partage de connaissances au sein des équipes.\n\nCe qui me motive dans votre entreprise, c'est la combinaison entre **innovation technologique** et **impact concret** sur les utilisateurs. Je suis convaincu que mon expérience en architecture logicielle et en leadership technique me permettrait de contribuer efficacement à vos ambitions de croissance.\n\nJe serais ravi d'échanger avec vous sur la manière dont je pourrais apporter de la valeur à votre équipe.\n\nCordialement,\nAlexandre Martin",
+      "coverLetterSettings": {
+        "companyName": "TechVision",
+        "targetRole": "Lead Full-Stack Engineer",
+        "industry": "SaaS / Cloud",
+        "tone": "Professional",
+        "clLength": "Standard"
+      }
+    }
+  },
+  {
+    "id": "demo_en",
+    "name": "CV Demo — Sarah Chen (EN)",
+    "lastModified": 1722700800000,
+    "data": {
+      "personal": {
+        "name": "Sarah Chen",
+        "tagline": "Product-Minded Software Engineer — Building Delightful User Experiences",
+        "email": "sarah.chen@proton.me",
+        "phone": "+1 (415) 555-0147",
+        "location": "San Francisco, CA",
+        "linkedin": "linkedin.com/in/sarahchendev",
+        "website": "sarahchen.io",
+        "github": "github.com/sarahchendev"
+      },
+      "headings": {
+        "summary": "Summary",
+        "experience": "Work Experience",
+        "education": "Education",
+        "skills": "Skills",
+        "projects": "Projects",
+        "certifications": "Certifications",
+        "technical": "Technical Skills",
+        "interpersonal": "Soft Skills",
+        "languages": "Languages",
+        "present": "Present"
+      },
+      "summary": "Product-focused software engineer with 4+ years of experience building scalable web applications and design systems. Strong background in frontend architecture, performance optimization, and cross-functional collaboration. Passionate about bridging the gap between design and engineering to ship pixel-perfect user experiences.",
+      "experience": [
+        {
+          "id": "exp_en_1",
+          "company": "Luminary",
+          "title": "Senior Frontend Engineer",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Jan",
+          "startYear": "2023",
+          "endMonth": "",
+          "endYear": "",
+          "current": true,
+          "bullets": [
+            "Led the development of a **component design system** (50+ components) adopted by 3 product teams, reducing UI inconsistencies by 70%",
+            "Implemented server-side rendering and code splitting strategies that improved **Largest Contentful Paint by 40%** and **Time to Interactive by 35%**",
+            "Architected a real-time collaborative editing feature using **CRDTs and WebSockets**, serving 10K+ concurrent users",
+            "Mentored 3 junior engineers through weekly 1:1s and structured code review processes"
+          ],
+          "technologies": "React, Next.js, TypeScript, GraphQL, Storybook, Playwright, Vercel"
+        },
+        {
+          "id": "exp_en_2",
+          "company": "Meridian Health",
+          "title": "Full-Stack Developer",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Jun",
+          "startYear": "2021",
+          "endMonth": "Dec",
+          "endYear": "2022",
+          "current": false,
+          "bullets": [
+            "Built a HIPAA-compliant telehealth platform from scratch, processing **50K+ video consultations** in the first 6 months",
+            "Designed and implemented a RESTful API layer (Node.js, Express) with comprehensive **OpenAPI documentation** and 95%+ test coverage",
+            "Developed an appointment scheduling engine with timezone-aware conflict resolution, reducing booking errors by 90%",
+            "Collaborated with UX researchers to redesign the patient onboarding flow, increasing completion rates from 62% to 89%"
+          ],
+          "technologies": "React, Node.js, PostgreSQL, AWS Lambda, S3, Twilio, Jest"
+        },
+        {
+          "id": "exp_en_3",
+          "company": "Pixelcraft Studio",
+          "title": "Junior Frontend Developer",
+          "link": "",
+          "icon": "chart",
+          "startMonth": "Aug",
+          "startYear": "2020",
+          "endMonth": "May",
+          "endYear": "2021",
+          "current": false,
+          "bullets": [
+            "Developed interactive data visualizations for a financial analytics dashboard using **D3.js and React**, serving 5K+ daily users",
+            "Implemented responsive layouts and accessibility improvements achieving **WCAG 2.1 AA compliance** across all core features",
+            "Reduced bundle size by 45% through tree-shaking, lazy loading, and dependency auditing"
+          ],
+          "technologies": "React, D3.js, SCSS, Webpack, Figma"
+        }
+      ],
+      "education": [
+        {
+          "id": "edu_en_1",
+          "institution": "University of California, Berkeley",
+          "degree": "B.S. Computer Science",
+          "field": "Human-Computer Interaction Focus",
+          "startYear": "2016",
+          "endYear": "2020",
+          "location": "Berkeley, CA",
+          "technologies": ""
+        }
+      ],
+      "skills": {
+        "technical": "JavaScript, TypeScript, Python, React, Next.js, Vue.js, Node.js, GraphQL, PostgreSQL, MongoDB, Redis, Docker, AWS, GCP, Figma, Storybook, Playwright, Webpack, Vite",
+        "soft": "Technical Leadership, Cross-functional Collaboration, Mentoring, Product Thinking, Agile (Scrum), Technical Writing",
+        "languages": "",
+        "highlightedSkills": ["React", "Next.js", "TypeScript", "GraphQL", "AWS", "Figma"]
+      },
+      "projects": [
+        {
+          "id": "proj_en_1",
+          "name": "Chrono — Time Zone Collaboration Tool",
+          "description": "Open-source tool for distributed teams to find optimal meeting times across time zones with calendar integrations",
+          "techStack": "Next.js, TypeScript, Supabase, Vercel",
+          "link": "github.com/sarahchendev/chrono",
+          "highlights": [
+            "⭐ 800+ GitHub stars — featured in JavaScript Weekly",
+            "Integrated with Google Calendar and Outlook via OAuth2 for seamless scheduling"
+          ]
+        },
+        {
+          "id": "proj_en_2",
+          "name": "a11y-audit — Accessibility Testing CLI",
+          "description": "Command-line tool that audits web pages for accessibility issues and generates actionable fix reports",
+          "techStack": "Node.js, Puppeteer, axe-core",
+          "link": "github.com/sarahchendev/a11y-audit",
+          "highlights": [
+            "Used by 200+ developers to audit 5K+ pages",
+            "Supports CI/CD integration with GitHub Actions and GitLab CI"
+          ]
+        }
+      ],
+      "certifications": [
+        {
+          "id": "cert_en_1",
+          "name": "AWS Certified Developer – Associate",
+          "issuer": "Amazon Web Services",
+          "date": "2023",
+          "credentialUrl": ""
+        },
+        {
+          "id": "cert_en_2",
+          "name": "Meta Frontend Developer Professional Certificate",
+          "issuer": "Meta (Coursera)",
+          "date": "2022",
+          "credentialUrl": ""
+        }
+      ],
+      "customSections": [
+        {
+          "id": "custom_langues",
+          "label": "Languages",
+          "items": [
+            {
+              "id": "item_lang_en_1",
+              "title": "English",
+              "subtitle": "Native",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_lang_en_2",
+              "title": "Mandarin Chinese",
+              "subtitle": "Fluent (Heritage Speaker)",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_lang_en_3",
+              "title": "French",
+              "subtitle": "Intermediate (B2)",
+              "date": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "id": "custom_atouts",
+          "label": "Strengths",
+          "items": [
+            {
+              "id": "item_atouts_en_1",
+              "title": "",
+              "subtitle": "",
+              "date": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "id": "custom_loisirs",
+          "label": "Interests",
+          "items": [
+            {
+              "id": "item_loisirs_en_1",
+              "title": "Design Systems",
+              "subtitle": "Speaker at ReactConf 2024 on \"Scaling Design Systems\"",
+              "date": "",
+              "description": ""
+            },
+            {
+              "id": "item_loisirs_en_2",
+              "title": "Rock Climbing",
+              "subtitle": "V6 indoor / 5.11a outdoor",
+              "date": "",
+              "description": ""
+            }
+          ]
+        }
+      ],
+      "sectionOrder": ["summary", "experience", "education", "skills", "projects", "certifications", "custom_langues", "custom_loisirs"],
+      "sectionSpacers": {},
+      "coverLetter": "Sarah Chen\nSan Francisco, CA\nsarah.chen@proton.me | +1 (415) 555-0147\n\nAugust 4, 2025\n\nRe: Senior Frontend Engineer Position\n\nDear Hiring Manager,\n\nI am writing to express my strong interest in the **Senior Frontend Engineer** position at your company. With 4+ years of experience building scalable web applications and design systems, I believe I can make a meaningful contribution to your product team.\n\nAt **Luminary**, I led the development of a **component design system** adopted by 3 product teams, which reduced UI inconsistencies by 70% and accelerated feature delivery. I also architected a real-time collaborative editing feature using CRDTs and WebSockets that now serves **10K+ concurrent users** with sub-100ms latency.\n\nI am particularly drawn to your company's commitment to **user-centric design** and **engineering excellence**. My experience in performance optimization — including a **40% improvement in LCP** and **35% reduction in TTI** — aligns well with your focus on delivering fast, accessible web experiences.\n\nBeyond code, I am passionate about **mentoring** and building inclusive engineering cultures. I regularly mentor junior engineers and have spoken at ReactConf on scaling design systems.\n\nI would welcome the opportunity to discuss how my skills and experience could benefit your team.\n\nBest regards,\nSarah Chen",
+      "coverLetterSettings": {
+        "companyName": "Vercel",
+        "targetRole": "Senior Frontend Engineer",
+        "industry": "Developer Tools / SaaS",
+        "tone": "Professional",
+        "clLength": "Standard"
+      }
+    }
+  }
+]
