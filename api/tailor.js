@@ -1,4 +1,5 @@
 import { normalizeResumeCasing } from './_normalizeCasing.js';
+import { callGeminiApi } from './_geminiFallback.js';
 
 export default async function handler(req, res) {
   // CORS Configuration

@@ -1,3 +1,5 @@
+import { callGeminiApi } from './_geminiFallback.js';
+
 export default async function handler(req, res) {
   const { checkAndIncrementQuota } = await import('./firebase.js');
 

@@ -1,3 +1,5 @@
+import { callGeminiApi } from './_geminiFallback.js';
+
 export default async function handler(req, res) {
   // CORS Configuration
   res.setHeader('Access-Control-Allow-Credentials', true);
