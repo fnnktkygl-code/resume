@@ -179,7 +179,9 @@ function ResumePreview({
 
         const effectivePageHeight = 1122;
         const totalH = template === 'modern' ? naturalH : naturalH + (paddingY * 2 * 96);
-        const neededPages = Math.max(1, Math.ceil((totalH - 10) / effectivePageHeight));
+        // Use bottom padding as tolerance — content in the padding zone still counts as same page
+        const padTolerance = paddingY * 96;
+        const neededPages = Math.max(1, Math.ceil((totalH - padTolerance) / effectivePageHeight));
         setPagesCount(neededPages);
         const lastPageUsage = (totalH % effectivePageHeight) / effectivePageHeight;
         setOverflowRatio(neededPages > 1 && lastPageUsage > 0 && lastPageUsage <= 0.2 ? lastPageUsage : 0);
@@ -224,8 +226,8 @@ function ResumePreview({
         naturalH = Math.max(sidebar?.offsetHeight || 0, main?.offsetHeight || 0);
       }
       const totalH = template === 'modern' ? naturalH : naturalH + (2 * P);
-      // If content fits on 1 page, don't push anything
-      if (totalH <= pageHeight + 10) return;
+      // If content fits on 1 page (with padding as tolerance), don't push anything
+      if (totalH <= pageHeight + P) return;
 
       const containerRect = contentRef.current.getBoundingClientRect();
       let cumulativeOffset = 0;
