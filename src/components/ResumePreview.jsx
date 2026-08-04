@@ -198,10 +198,11 @@ function ResumePreview({
   const pageHeight = 1122; // Standard A4 height at 96 DPI (297mm)
   const scale = printMode ? 1 : wrapperWidth / pageWidth;
 
-  // ── Editor: simulate page-break-inside:avoid with correct dead-zone margins ──
+  // ── Editor: simulate page-break-inside:avoid with visual page gap ──
   useEffect(() => {
     if (printMode || !contentRef.current) return;
     const P = paddingY * 96; // padding in px (top = bottom)
+    const gap = 32; // must match pageGap
 
     const sections = contentRef.current.querySelectorAll(
       '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]'
@@ -231,39 +232,35 @@ function ResumePreview({
 
       const containerRect = contentRef.current.getBoundingClientRect();
 
-      // Process sections top-to-bottom
-      // getBoundingClientRect() forces synchronous reflow, so each section's
-      // position already reflects marginTop pushes applied to earlier sections.
+      // In the editor, the container is: page1 content | gap | page2 content | gap | ...
+      // Each "slot" has size (pageHeight + gap), except the last which has no trailing gap.
+      // Content for page N starts at: N * (pageHeight + gap) + P
+      // Content for page N ends at:   N * (pageHeight + gap) + pageHeight - P
       //
-      // Coordinate system: all positions relative to contentRef top
-      // contentRef has padding-top = P inside resume-page
-      // Page break lines (from resume-page top): N * pageHeight
-      // Relative to contentRef: N * pageHeight - P
-      //
-      // Dead zone = area where content would be split across pages:
-      //   start = N * pageHeight - 2P  (bottom padding of page N)
-      //   end   = N * pageHeight        (top padding of page N+1)
+      // A section should be pushed if it falls in the "dead zone":
+      //   deadZoneStart = N * (pageHeight + gap) + pageHeight - 2*P  (bottom padding of page N)
+      //   deadZoneEnd   = (N+1) * (pageHeight + gap)                 (start of page N+1 content area, before top padding)
+      // Push target: deadZoneEnd (section will start at top of next page slot)
 
       sections.forEach(section => {
         const rect = section.getBoundingClientRect();
         const sectionTop = rect.top - containerRect.top;
         const sectionHeight = rect.height;
+        const slot = pageHeight + gap;
 
-        // Which page is this section on? (0-indexed)
-        const pageIdx = Math.floor(sectionTop / pageHeight);
+        // Which page slot is this section on? (0-indexed)
+        const pageIdx = Math.floor(sectionTop / slot);
 
-        // Dead zone for this page boundary
-        const deadZoneStart = (pageIdx + 1) * pageHeight - 2 * P;
-        const deadZoneEnd = (pageIdx + 1) * pageHeight;
+        // Dead zone: from (bottom padding of current page) to (start of next page slot)
+        const deadZoneStart = pageIdx * slot + pageHeight - 2 * P;
+        const deadZoneEnd = (pageIdx + 1) * slot;
 
-        // Check if section overlaps with dead zone
         const sectionBottom = sectionTop + sectionHeight;
         if (sectionBottom > deadZoneStart && sectionTop < deadZoneEnd) {
-          // Only push if section can fit on a single page
           const usablePerPage = pageHeight - 2 * P;
           if (sectionHeight <= usablePerPage) {
             const pushAmount = deadZoneEnd - sectionTop;
-            if (pushAmount > 0 && pushAmount < pageHeight) {
+            if (pushAmount > 0 && pushAmount < slot) {
               section.style.marginTop = `${pushAmount}px`;
               section.setAttribute('data-page-push', 'true');
             }
@@ -992,10 +989,12 @@ function ResumePreview({
   const fontFamily = layout.fontFamily || 'Inter';
   const accentRgb = hexToRgb(accentColor);
 
+  const pageGap = 32; // Gap between page sheets in the editor (px, before scaling)
+
   const resumePageStyles = {
     width: `${pageWidth}px`,
-    height: printMode ? 'auto' : `${pagesCount * pageHeight}px`,
-    minHeight: printMode ? 'auto' : `${pagesCount * pageHeight}px`,
+    height: printMode ? 'auto' : `${pagesCount * pageHeight + (pagesCount - 1) * pageGap}px`,
+    minHeight: printMode ? 'auto' : `${pagesCount * pageHeight + (pagesCount - 1) * pageGap}px`,
     transform: printMode ? 'none' : `scale(${scale})`,
     transformOrigin: 'top left',
     fontSize: `${fontSize}pt`,
@@ -1005,13 +1004,18 @@ function ResumePreview({
     '--resume-accent-color': accentColor,
     '--resume-accent-rgb': accentRgb,
     '--resume-font-family': fontFamily,
+    // When multi-page, hide the box-shadow on the main container (each page slice gets its own)
+    ...(pagesCount > 1 && !printMode ? { boxShadow: 'none' } : {}),
   };
 
   const emptyText = t('empty_resume_message');
 
+  // Total height of all pages + gaps between them (in scaled px)
+  const totalWrapperHeight = printMode ? 'auto' : `${(pagesCount * pageHeight + (pagesCount - 1) * pageGap) * scale}px`;
+
   return (
     <div className="resume-wrapper" ref={wrapperRef} style={{ width: '100%', position: 'relative' }}>
-      <div style={{ position: 'relative', minHeight: printMode ? 'auto' : `${pagesCount * pageHeight * scale + (pagesCount - 1) * 24 * scale}px`, transition: 'min-height 0.2s ease-out' }}>
+      <div style={{ position: 'relative', minHeight: totalWrapperHeight, transition: 'min-height 0.2s ease-out' }}>
         <div className="resume-page" style={resumePageStyles}>
           {!hasContent ? (
             <div ref={contentRef} className="resume-empty">
@@ -1167,48 +1171,57 @@ function ResumePreview({
           </div>
         )}
 
-        {/* Page break indicators (clean non-obscuring dashed cut line) */}
-        {!printMode && pagesCount > 1 && Array.from({ length: pagesCount - 1 }).map((_, idx) => {
-          const topPos = (idx + 1) * pageHeight * scale;
-          return (
-            <div
-              key={idx}
-              style={{
-                position: 'absolute',
-                top: `${topPos}px`,
-                left: `-${16 * scale}px`,
-                right: `-${16 * scale}px`,
-                height: '0px',
-                borderTop: '2px dashed var(--color-accent, #10b981)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 10,
-                pointerEvents: 'none'
-              }}
-            >
-              <span style={{
-                backgroundColor: 'var(--color-surface, #ffffff)',
-                border: '1px solid var(--color-accent, #10b981)',
-                borderRadius: '12px',
-                padding: '2px 10px',
-                fontSize: '11px',
-                fontWeight: '700',
-                color: 'var(--color-accent, #10b981)',
-                boxShadow: 'var(--shadow-sm)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                pointerEvents: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transform: 'translateY(-50%)'
-              }}>
-                ✂️ {t('Page')} {idx + 1} / {idx + 2}
-              </span>
-            </div>
-          );
-        })}
+        {/* Multi-page: render page sheet overlays that clip + separate each page visually */}
+        {!printMode && pagesCount > 1 && (() => {
+          const elements = [];
+          for (let i = 0; i < pagesCount; i++) {
+            // Each page slice: a div that clips the resume-page to show only page i
+            // Uses clip-path to reveal only the portion belonging to this page
+            const clipTop = i * pageHeight;
+            const clipBottom = (i + 1) * pageHeight;
+            // Position of this page sheet in the wrapper (accounts for gaps)
+            const sheetTop = (i * pageHeight + i * pageGap) * scale;
+
+            elements.push(
+              <div
+                key={`page-sheet-${i}`}
+                style={{
+                  position: 'absolute',
+                  top: `${sheetTop}px`,
+                  left: 0,
+                  width: `${pageWidth * scale}px`,
+                  height: `${pageHeight * scale}px`,
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.10)',
+                  borderRadius: '2px',
+                  pointerEvents: 'none',
+                  zIndex: 5,
+                }}
+              />
+            );
+
+            // Add a gap cover between pages (hides the continuous content in the gap)
+            if (i < pagesCount - 1) {
+              const gapTop = (sheetTop + pageHeight * scale);
+              elements.push(
+                <div
+                  key={`page-gap-${i}`}
+                  style={{
+                    position: 'absolute',
+                    top: `${gapTop}px`,
+                    left: `-20px`,
+                    right: `-20px`,
+                    height: `${pageGap * scale}px`,
+                    background: 'var(--color-bg, #f0f2f5)',
+                    zIndex: 8,
+                    pointerEvents: 'none',
+                  }}
+                />
+              );
+            }
+          }
+          return elements;
+        })()}
       </div>
     </div>
   );
