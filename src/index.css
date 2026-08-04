@@ -146,12 +146,13 @@ body {
   gap: 12px;
 }
 
-.logo {
+.logo, .logo-btn {
   font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
   font-optical-sizing: auto;
+  color: var(--color-header-text, var(--color-text));
 }
 
 .logo-accent { color: var(--color-accent); }

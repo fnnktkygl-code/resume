@@ -30,7 +30,7 @@ import useResumeHistory from './hooks/useResumeHistory';
 import useResumeDocuments from './hooks/useResumeDocuments';
 import resumeReducer from './reducers/resumeReducer';
 import { translateHeadings, translateCustomSectionLabels } from './utils/languageSwitcher';
-import { getAdaptiveAccentColor, hexToRgbStr } from './utils/colorUtils';
+import { getAdaptiveAccentColor, hexToRgbStr, getContrastTextColor } from './utils/colorUtils';
 const AIPromptModal = lazy(() => import('./components/AIPromptModal'));
 const AIBoldModal = lazy(() => import('./components/AIBoldModal'));
 const AITailorModal = lazy(() => import('./components/ui/AITailorModal'));
@@ -288,7 +288,10 @@ export default function App() {
   useEffect(() => {
     const rawAccent = layout.accentColor || '#1B6B3A';
     const accent = getAdaptiveAccentColor(rawAccent, theme);
+    const contrastText = getContrastTextColor(accent);
+
     document.documentElement.style.setProperty('--color-accent', accent);
+    document.documentElement.style.setProperty('--color-accent-contrast', contrastText);
     
     const rgbStr = hexToRgbStr(accent);
     const [r, g, b] = rgbStr.split(',').map(n => parseInt(n.trim(), 10));

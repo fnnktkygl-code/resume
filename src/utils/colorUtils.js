@@ -94,6 +94,18 @@ export function hexToRgbStr(hex) {
 }
 
 /**
+ * Returns ideal text contrast color (#FFFFFF or #0F0F0E) for a given hex background/accent color
+ */
+export function getContrastTextColor(hex) {
+  try {
+    const { l } = hexToHsl(hex);
+    return l > 0.58 ? '#0F0F0E' : '#FFFFFF';
+  } catch {
+    return '#FFFFFF';
+  }
+}
+
+/**
  * Returns an accent color adapted for the current theme (light or dark).
  * - Light mode: returns the base accent color (e.g. dark rich tone).
  * - Dark mode: returns a bright, high-contrast variant of the accent color.
