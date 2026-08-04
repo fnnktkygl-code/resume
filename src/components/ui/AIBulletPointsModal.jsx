@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateBulletPointsWithProxy } from '../../services/geminiService';
+import AILoadingOverlay from './AILoadingOverlay';
 
 export default function AIBulletPointsModal({ isOpen, onClose, experienceText, onSelectBullet }) {
   const { t, language } = useTranslation();
@@ -36,7 +37,14 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('✨ AI STAR Bullet Points')}>
+    <>
+      <AILoadingOverlay 
+        isGenerating={isGenerating} 
+        title={language === 'fr' ? 'Génération de puces d\'expérience STAR...' : 'Generating STAR Experience Bullet Points...'} 
+        initialStep={language === 'fr' ? '⚡ Analyse de l\'expérience et extraction des métriques...' : '⚡ Analyzing experience & extracting metrics...'}
+        language={language}
+      />
+      <Modal isOpen={isOpen} onClose={onClose} title={t('✨ AI STAR Bullet Points')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
           {t('The AI will transform your description into 3 high-impact bullet points using the Action → Context → Result (STAR) method.')}
@@ -132,5 +140,6 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
         )}
       </div>
     </Modal>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import Modal from './Modal';
 import { boldifyResumeWithProxy } from '../../services/geminiService';
 import VisualDiff from './VisualDiff';
 import { mergeSelected } from '../../utils/mergeSelected';
+import AILoadingOverlay from './AILoadingOverlay';
 
 
 export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess }) {
@@ -49,10 +50,16 @@ export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={!isLoading ? onClose : () => {}}
-      title={`✨ ${t('AI Smart Bolding')}`}
+    <>
+      <AILoadingOverlay 
+        isGenerating={isLoading} 
+        title={t('AI Smart Bolding')}
+        initialStep="⚡ Détection des mots-clés d'impact et mise en valeur..."
+      />
+      <Modal
+        isOpen={isOpen}
+        onClose={!isLoading ? onClose : () => {}}
+        title={`✨ ${t('AI Smart Bolding')}`}
       actions={
         boldedResult ? (
           <>
@@ -120,5 +127,6 @@ export default function AIBoldifyModal({ isOpen, onClose, data, onBoldifySuccess
         )}
       </div>
     </Modal>
+    </>
   );
 }

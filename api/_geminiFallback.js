@@ -57,7 +57,7 @@ async function enforcePacingDelay(delayMs = 150) {
   lastCallTimestamp = Date.now();
 }
 
-export async function callGeminiApi({ apiKey, prompt, contents, generationConfig, systemInstruction }) {
+export async function callGeminiApi({ apiKey, prompt, contents, generationConfig, systemInstruction, tools }) {
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY_MASTER is missing in environment variables');
   }
@@ -91,6 +91,10 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
 
       if (systemInstruction) {
         bodyPayload.systemInstruction = { parts: [{ text: systemInstruction }] };
+      }
+
+      if (tools) {
+        bodyPayload.tools = tools;
       }
 
       const response = await fetch(apiUrl, {

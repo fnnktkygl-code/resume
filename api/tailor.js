@@ -1,5 +1,6 @@
 import { normalizeResumeCasing } from './_normalizeCasing.js';
 import { callGeminiApi } from './_geminiFallback.js';
+import { SCIENTIFIC_HR_RULES } from './_scientificPromptRules.js';
 
 export default async function handler(req, res) {
   // CORS Configuration
@@ -41,6 +42,9 @@ export default async function handler(req, res) {
 Your task is to tailor the provided JSON resume to match the provided Job Description.
 Target Language for the content: ${targetLang}.
 
+${SCIENTIFIC_HR_RULES.atsParsing}
+${SCIENTIFIC_HR_RULES.bulletPoints}
+
 CRITICAL RULE — NO UNNECESSARY REWRITES (PRESERVE ALIGNED SECTIONS):
 - Compare each section of the candidate's resume against the job description.
 - IF a tagline, summary, skill list, or bullet point is ALREADY well-aligned with the target job requirements, DO NOT REWRITE IT. Keep the original text 100% IDENTICAL to the original.
@@ -51,10 +55,11 @@ Rules:
 1. Emphasize hard skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
 2. Update the "tagline" or "summary" ONLY if they lack core alignment with the job description. If already aligned, keep them identical.
 3. CRITICAL - PRESERVE THE CANDIDATE'S UNIQUE DNA: When rewriting a bullet point, you MUST preserve ALL specific technical details, domain terminology, named configurations, and concrete examples from the original text. NEVER replace specific details with generic phrases.
-4. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having.
-5. CRITICAL - ANTI-GENERALIZATION: NEVER replace specific named technologies, configurations, processes, or domain terms with vague/generic equivalents.
-6. CRITICAL - NORMALIZE CASING: ALL bullet points, summaries, and taglines across the ENTIRE resume MUST use consistent normal sentence case.
-7. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
+4. CRITICAL - FRONT-LOAD METRICS: When rewriting bullet points, place key numbers/metrics in the first 3 words.
+5. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having.
+6. CRITICAL - ANTI-GENERALIZATION: NEVER replace specific named technologies, configurations, processes, or domain terms with vague/generic equivalents.
+7. CRITICAL - NORMALIZE CASING: ALL bullet points, summaries, and taglines across the ENTIRE resume MUST use consistent normal sentence case.
+8. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
 
     const { checkAndIncrementQuota } = await import('./firebase.js');
     await checkAndIncrementQuota();

@@ -217,35 +217,32 @@
       ],
       "sectionOrder": ["summary", "experience", "education", "skills", "projects", "certifications", "custom_langues", "custom_loisirs"],
       "sectionSpacers": {},
-      "targetJobDescription": "Intitulé du poste : Lead Full-Stack Engineer (H/F)\nEntreprise : TechVision — Lyon (Hybride)\n\nÀ propos de TechVision :\nTechVision développe des solutions SaaS B2B haut de gamme pour l'analyse de données temps réel et l'optimisation décisionnelle d'entreprises du Fortune 500.\n\nMissions principales :\n- Piloter l'architecture web et le développement full-stack d'une plateforme SaaS (React, Node.js, TypeScript).\n- Diriger la migration d'un système monolithique vers une micro-architecture distribuée managée sur AWS (EKS, Lambda, DynamoDB, Redis).\n- Garantir la haute disponibilité (99.95%+), la performance et la sécurité des traitements de données volumineuses.\n- Encadrer et mentorer une équipe d'ingénieurs (4 personnes) dans un cadre Agile / Scrum.\n\nProfil recherché :\n- 5+ ans d'expérience en ingénierie logicielle full-stack (React, Node.js, Python, SQL/NoSQL).\n- Solide maîtrise des pratiques DevOps, CI/CD (GitHub Actions, Docker, Kubernetes, Terraform) et du Cloud AWS.\n- Leadership technique éprouvé, goût pour les code reviews et la transmission de compétences.",
-      "coverLetter": "Alexandre Martin\nLyon, France\nalexandre.martin@proton.me | +33 6 12 34 56 78\n\nLyon, le 4 août 2025\n\nObjet : Candidature au poste de **Lead Full-Stack Engineer** chez **TechVision**\n\nMadame, Monsieur,\n\nPassionné par l'ingénierie logicielle et l'architecture de produits SaaS scalables, je vous présente ma candidature pour le poste de **Lead Full-Stack Engineer** au sein de **TechVision**.\n\nAu cours de mes 5 années d'expérience chez **DataForge**, j'ai orchestré la migration d'un monolithe vers des **microservices (Node.js + gRPC)**, atteignant une disponibilité de **99.95%** tout en réduisant le temps de déploiement CI/CD de **82%** (de 45 min à 8 min).\n\nMon expertise technique couvre l'ensemble du cycle de développement : de la création d'interfaces réactives avec **React** et **TypeScript** à la gestion d'infrastructures Cloud sur **AWS** et **Docker**. En tant que **lead technique**, j'ai encadré 4 ingénieurs avec des méthodes agiles (**Scrum**) et instauré des pratiques exigeantes de **code reviews** et de **pair programming**.\n\nVotre vision technologique chez TechVision s'aligne parfaitement avec mon parcours. Je serais ravi d'échanger avec vous lors d'un entretien pour vous présenter de vive voix mes réalisations.\n\nCordialement,\nAlexandre Martin",
+      "targetJobDescription": "Intitulé du poste : Senior / Staff Engineer (H/F)\nEntreprise : Walter Learning — Marseille (13008) / Présentiel\n\nÀ propos de Walter Learning :\nWalter Learning conçoit, produit et dispense des formations en ligne à destination des professionnels (Walter Santé, compétences transverses, alternance).\nDepuis 2019 : 130 000 formations dispensées à fin 2025, près de 20 M€ de CA, rentable dès le premier jour et sans levée de fonds.\n\nMissions & Contexte Technique :\n- Prendre l’ownership de systèmes techniques critiques (LMS maison, CRM interne, outils métiers, nombreuses intégrations API).\n- Concevoir des architectures robustes et structurer l'évolution de systèmes existants (pas un rôle \"feature factory\").\n- Encadrer et structurer l’usage de l’IA dans les workflows (code, outils internes, opérations) avec un enjeu fort sur la qualité, la cohérence et la maintenabilité.\n- Stack principale : Python / Django, React / Next.js, PostgreSQL, AWS (ECS, Lambda).\n- Travail en lien direct avec le CTO au sein d'une petite équipe tech à fort impact (6 personnes).\n\nProfil recherché :\n- 5+ ans d’expérience sur des systèmes complexes en production.\n- Solide maîtrise backend (Python/Django) et frontend moderne (React/Next.js), bases SQL.\n- À l’aise avec la gestion des risques techniques, les edge cases et l’intégration pragmatique de l’IA.",
+      "coverLetter": "Alexandre Martin\nMarseille, France\nalexandre.martin@proton.me | +33 6 12 34 56 78\n\nMarseille, le 4 août 2025\n\nObjet : Candidature au poste de **Senior / Staff Engineer** chez **Walter Learning**\n\nMadame, Monsieur,\n\nImpressionné par la trajectoire et le modèle de croissance de **Walter Learning** — rentable dès le premier jour avec près de 20 M€ de chiffre d'affaires — je vous présente ma candidature pour le poste de **Senior / Staff Engineer**.\n\nEn tant que **Lead Full-Stack Engineer** chez **DataForge**, j'ai supervisé l'architecture de systèmes SaaS critiques et dirigé la migration vers des **microservices (Node.js/Python)**, portant la disponibilité à **99.95%** tout en réduisant le temps de déploiement CI/CD de **82%**.\n\nMon profil répond directement à l'exigence d'ownership et d'architecture structurée recherchée par Walter Learning :\n- **Backend & Bases de données** : Expérience solide sur les bases relationnelles (**PostgreSQL**) et le développement d'APIs robustes en **Python** et **Node.js**.\n- **Frontend Moderne** : Conception d'interfaces réactives avec **React**, **Next.js** et **TypeScript**.\n- **Services Cloud & DevOps** : Déploiement et orchestration de conteneurs sur **AWS (ECS, Lambda, Docker)**.\n- **Intégration Rationale de l'IA** : Déploiement pragmatique d'outils d'IA dans les workflows métiers avec un focus sur la qualité du code, la robustesse et la prévention des edge cases.\n\nRejoindre l'équipe tech de 6 personnes chez Walter Learning et collaborer en direct avec le CTO pour faire évoluer votre plateforme LMS et votre CRM interne constitue un défi captivant. Je me tiens à votre disposition pour échanger lors d'un entretien.\n\nCordialement,\nAlexandre Martin",
       "coverLetterSettings": {
-        "companyName": "TechVision",
-        "targetRole": "Lead Full-Stack Engineer",
-        "industry": "Tech & Software",
+        "companyName": "Walter Learning",
+        "targetRole": "Senior / Staff Engineer",
+        "industry": "EdTech & Software",
         "tone": "Professional",
         "clLength": "Standard",
         "referenceLetter": ""
       },
       "aiCache": {
         "atsScore": {
-          "score": 94,
-          "matchPercentage": 94,
-          "matchedKeywords": ["React", "TypeScript", "Node.js", "AWS", "Microservices", "CI/CD", "Docker", "PostgreSQL", "Agile", "Scrum", "Kubernetes", "Leadership"],
-          "missingKeywords": ["GraphQL", "Terraform"],
+          "score": 98,
+          "matchPercentage": 98,
+          "matchedKeywords": ["Python", "Django", "React", "Next.js", "PostgreSQL", "AWS", "ECS", "Lambda", "IA", "Architecture", "Ownership", "System Design"],
+          "missingKeywords": [],
           "strengths": [
-            "Excellente correspondance sur la stack principale (React, Node.js, AWS)",
-            "Résultats chiffrés très convaincants (99.95% disponibilité, -82% temps de déploiement)",
-            "Solide leadership technique (encadrement de 4 développeurs)"
+            "Correspondance directe avec les exigences Walter Learning (Python/Django, React/Next.js, AWS)",
+            "Résultats quantifiables prouvés (99.95% disponibilité, -82% temps de déploiement)",
+            "Culture d'ownership technique et d'architecture pérenne"
           ],
-          "recommendations": [
-            "Mentionner l'utilisation de Terraform pour la gestion d'infra as code",
-            "Préciser des métriques sur la réduction de bugs en production"
-          ]
+          "recommendations": []
         },
         "tailoredResult": {
-          "tailoredSummary": "Ingénieur Full-Stack Lead spécialisé en React, Node.js et microservices AWS. 5 ans d'expérience avérée dans l'optimisation SaaS, le déploiement CI/CD automatisé et l'encadrement technique d'équipes agiles.",
-          "keywordHighlights": ["React", "Node.js", "TypeScript", "Microservices", "AWS", "CI/CD", "Scrum"]
+          "tailoredSummary": "Ingénieur Full-Stack Lead spécialisé en Python, React, Next.js et architectures Cloud AWS. 5 ans d'expérience avérée dans l'optimisation SaaS, l'intégration pragmatique d'outils d'IA et la gestion de workflows critiques.",
+          "keywordHighlights": ["Python", "React", "Next.js", "AWS", "IA", "Ownership"]
         }
       }
     }

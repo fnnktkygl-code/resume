@@ -74,8 +74,6 @@ export default async function handler(req, res) {
                             language === 'es' ? 'Responde en Español.' : 
                             'Respond in English.';
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
-
     const prompt = `
 You are an advanced, domain-agnostic ATS (Applicant Tracking System) Analyzer and Technical Recruiter.
 Your objective is to analyze a Job Description against a Candidate's Resume to evaluate technical and domain fit.

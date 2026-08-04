@@ -43,6 +43,7 @@ const CoverLetterModal = lazy(() => import('./components/ui/CoverLetterModal'));
 const AISectionFillModal = lazy(() => import('./components/ui/AISectionFillModal'));
 const ATSKeywordsModal = lazy(() => import('./components/ui/ATSKeywordsModal'));
 import ImportModal from './components/ui/ImportModal';
+import DailyTipModal from './components/ui/DailyTipModal';
 import { buildResumeContext, checkResumeReadiness } from './utils/buildResumeContext';
 
 const STORAGE_KEY = 'resume-builder-data';
@@ -220,6 +221,21 @@ export default function App() {
   
   const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [isDailyTipOpen, setIsDailyTipOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const lastSeen = localStorage.getItem('resume-builder-daily-tip-seen');
+      if (lastSeen !== todayStr) {
+        const timer = setTimeout(() => {
+          setIsDailyTipOpen(true);
+          localStorage.setItem('resume-builder-daily-tip-seen', todayStr);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
 
   const t = (key) => getTranslation(language, key);
 
@@ -231,6 +247,7 @@ export default function App() {
     handleDuplicateCv,
     handleRenameCv,
     handleDeleteCv,
+    handleLoadDemoCv,
     handleExportData,
     handleImportData
   } = useResumeDocuments({
@@ -527,6 +544,39 @@ export default function App() {
     setDragOverStepId(null);
   };
 
+  const stepButtonRefs = useRef([]);
+
+  const isSectionHidden = useCallback((sectionId) => {
+    if (sectionId === 'personal') return false;
+    return Array.isArray(data.sectionOrder) && !data.sectionOrder.includes(sectionId);
+  }, [data.sectionOrder]);
+
+  const handleStepperKeyDown = (e, currentIndex) => {
+    let targetIndex = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      targetIndex = (currentIndex + 1) % allSteps.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      targetIndex = (currentIndex - 1 + allSteps.length) % allSteps.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      targetIndex = allSteps.length - 1;
+    }
+
+    if (targetIndex !== null) {
+      setStep(targetIndex);
+      setTimeout(() => {
+        if (stepButtonRefs.current[targetIndex]) {
+          stepButtonRefs.current[targetIndex].focus();
+        }
+      }, 0);
+    }
+  };
+
   const addCustomSection = () => {
     dispatch({ type: 'ADD_CUSTOM_SECTION', payload: 'New Section' });
     setStep(allSteps.length); // Navigate to the new step right away
@@ -648,16 +698,19 @@ export default function App() {
 
   const loadDemoData = useCallback((pages) => {
     let demoData;
+    let title = '';
     if (pages === 1) {
       demoData = language === 'fr' ? DEMO_DATA_1_PAGE_FR : language === 'es' ? DEMO_DATA_1_PAGE_ES : DEMO_DATA_1_PAGE;
+      title = language === 'fr' ? 'Démo 1 Page (Marie Dubois)' : 'Demo 1-Page';
     } else {
       demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : language === 'es' ? DEMO_DATA_2_PAGES_ES : DEMO_DATA_2_PAGES;
+      title = language === 'fr' ? 'Démo 2 Pages (Marie Dubois)' : 'Demo 2-Pages';
     }
     const cloned = structuredClone(demoData);
     if (!cloned.sectionOrder) cloned.sectionOrder = [...DEFAULT_SECTION_ORDER];
-    dispatch({ type: 'SET_DATA', payload: cloned });
-    setStep(0);
-  }, [language, dispatch]);
+    
+    handleLoadDemoCv(cloned, title);
+  }, [language, handleLoadDemoCv]);
 
   const handleOnboardingSelect = useCallback((option) => {
     localStorage.setItem('resume-builder-onboarded', 'true');
@@ -693,14 +746,15 @@ export default function App() {
   
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
-    const isDemo1 = data.personal.name === 'Hoshi Fenneko';
-    const isDemo2 = isDemo1 && data.experience.length > 2;
+    const demoNames = ['John Doe', 'Jean Dupont', 'Sarah Chen', 'Alexandre Martin', 'Hoshi Fenneko', 'Jane Smith', 'Marie Dubois'];
+    const isDemo = demoNames.includes(data?.personal?.name);
+    const isDemo2 = isDemo && (data?.experience?.length > 2 || data?.personal?.name === 'Jane Smith' || data?.personal?.name === 'Marie Dubois');
     
     // Pick the right demo dataset if we're on demo data
     const demoMap = {
-      fr: isDemo2 ? DEMO_DATA_2_PAGES_FR : isDemo1 ? DEMO_DATA_1_PAGE_FR : null,
-      es: isDemo2 ? DEMO_DATA_2_PAGES_ES : isDemo1 ? DEMO_DATA_1_PAGE_ES : null,
-      en: isDemo2 ? DEMO_DATA_2_PAGES : isDemo1 ? DEMO_DATA_1_PAGE : null,
+      fr: isDemo2 ? DEMO_DATA_2_PAGES_FR : isDemo ? DEMO_DATA_1_PAGE_FR : null,
+      es: isDemo2 ? DEMO_DATA_2_PAGES_ES : isDemo ? DEMO_DATA_1_PAGE_ES : null,
+      en: isDemo2 ? DEMO_DATA_2_PAGES : isDemo ? DEMO_DATA_1_PAGE : null,
     };
     const nextData = demoMap[lang] || data;
 
@@ -775,6 +829,7 @@ export default function App() {
           setIsCvManagerOpen={setIsCvManagerOpen}
           loadDemoData={loadDemoData}
           setShowClearConfirm={setShowClearConfirm}
+          setIsDailyTipOpen={setIsDailyTipOpen}
         />
 
         {/* Main */}
@@ -783,58 +838,127 @@ export default function App() {
           <div className={`form-panel ${isEditorCollapsed ? 'collapsed' : ''}`}>
             {/* S2: Profile completion bar removed — integrated into ATS Score widget */}
 
-            {/* Stepper */}
-            <nav className="stepper" role="tablist" aria-label="Resume sections">
-              {allSteps.map((s, i) => {
-                const isDraggable = s.id !== 'personal';
-                return (
-                  <button
-                    key={s.id}
-                    className={`step-btn${i === step ? ' active' : ''}${stepHasData(s.id) ? ' completed' : ''}${draggedStepId === s.id ? ' dragging' : ''}${dragOverStepId === s.id ? ' drag-over' : ''}`}
-                    onClick={() => setStep(i)}
-                    role="tab"
-                    aria-selected={i === step}
-                    draggable={isDraggable}
-                    onDragStart={isDraggable ? (e) => handleStepperDragStart(e, s.id) : undefined}
-                    onDragOver={isDraggable ? (e) => handleStepperDragOver(e, s.id) : undefined}
-                    onDrop={isDraggable ? (e) => handleStepperDrop(e, s.id) : undefined}
-                    onDragEnd={() => { setDraggedStepId(null); setDragOverStepId(null); }}
-                  >
-                    <span className="step-icon">{s.icon}</span>
-                    <span className="step-label">{t(s.label)}</span>
-                    {stepHasData(s.id) && <span className="step-check" aria-hidden="true">✓</span>}
-                  </button>
-                );
-              })}
+            {/* Mobile Section Selector (< 769px) */}
+            <div className="stepper-mobile-bar mobile-only">
               <button 
-                className="step-btn step-add-btn" 
-                onClick={addCustomSection}
-                title={t("Add Custom Section")}
-                aria-label={t("Add Custom Section")}
+                className="stepper-mobile-nav-btn"
+                onClick={() => setStep(prev => Math.max(0, prev - 1))}
+                disabled={step === 0}
+                aria-label={language === 'fr' ? 'Rubrique précédente' : 'Previous section'}
               >
-                <span className="step-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
-                <span className="step-label">{t('Add Section')}</span>
+                <i className="fi fi-rr-angle-left"></i>
               </button>
+
+              <div className="stepper-mobile-select-wrapper">
+                <select 
+                  className="stepper-mobile-select"
+                  value={step}
+                  onChange={(e) => setStep(Number(e.target.value))}
+                >
+                  {allSteps.map((s, i) => (
+                    <option key={s.id} value={i}>
+                      {i + 1}/{allSteps.length} — {t(s.label)} {stepHasData(s.id) ? '✓' : ''}
+                    </option>
+                  ))}
+                </select>
+                <i className="fi fi-rr-angle-small-down stepper-mobile-select-icon"></i>
+              </div>
+
               <button 
-                className="step-btn step-add-btn" 
-                onClick={addSpacerSection}
-                title={t("Add Spacer (Page Break)")}
-                aria-label={t("Add Spacer (Page Break)")}
-                style={{ marginTop: '4px', borderStyle: 'dashed', backgroundColor: 'transparent' }}
+                className="stepper-mobile-nav-btn"
+                onClick={() => setStep(prev => Math.min(allSteps.length - 1, prev + 1))}
+                disabled={step === allSteps.length - 1}
+                aria-label={language === 'fr' ? 'Rubrique suivante' : 'Next section'}
               >
-                <span className="step-icon"><i className="fi fi-rr-expand-arrows"></i></span>
-                <span className="step-label">{t('Add Spacer')}</span>
+                <i className="fi fi-rr-angle-right"></i>
               </button>
-              <button 
-                className="step-btn step-add-btn" 
-                onClick={() => setIsReorderModalOpen(true)}
-                title={t("Reorder Sections")}
-                aria-label={t("Reorder Sections")}
-                style={{ marginTop: '8px', borderStyle: 'dashed', backgroundColor: 'transparent' }}
-              >
-                <span className="step-icon"><i className="fi fi-rr-apps-sort"></i></span>
-                <span className="step-label">{t('Reorder Sections')}</span>
-              </button>
+            </div>
+
+            {/* Desktop Stepper Navigation (>= 769px) */}
+            <nav className="stepper desktop-only" role="tablist" aria-label="Resume sections">
+              <div className="stepper-header-meta">
+                <span className="stepper-progress-badge">
+                  📊 {allSteps.filter(s => stepHasData(s.id)).length}/{allSteps.length} {language === 'fr' ? 'rubriques remplies' : 'sections completed'}
+                </span>
+                {allSteps.some(s => isSectionHidden(s.id)) && (
+                  <span className="stepper-hidden-badge" data-tooltip={language === 'fr' ? 'Rubrique(s) masquée(s) sur le CV final' : 'Section(s) hidden from final CV'}>
+                    <i className="fi fi-rr-eye-crossed"></i> {allSteps.filter(s => isSectionHidden(s.id)).length} {language === 'fr' ? 'masquée(s)' : 'hidden'}
+                  </span>
+                )}
+              </div>
+
+              <div className="stepper-nav-list">
+                {allSteps.map((s, i) => {
+                  const isDraggable = s.id !== 'personal';
+                  const hidden = isSectionHidden(s.id);
+                  const hasData = stepHasData(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      ref={el => stepButtonRefs.current[i] = el}
+                      className={`step-btn${i === step ? ' active' : ''}${hasData ? ' completed' : ''}${hidden ? ' step-hidden' : ''}${draggedStepId === s.id ? ' dragging' : ''}${dragOverStepId === s.id ? ' drag-over' : ''}`}
+                      onClick={() => setStep(i)}
+                      onKeyDown={(e) => handleStepperKeyDown(e, i)}
+                      role="tab"
+                      tabIndex={i === step ? 0 : -1}
+                      aria-selected={i === step}
+                      draggable={isDraggable}
+                      onDragStart={isDraggable ? (e) => handleStepperDragStart(e, s.id) : undefined}
+                      onDragOver={isDraggable ? (e) => handleStepperDragOver(e, s.id) : undefined}
+                      onDrop={isDraggable ? (e) => handleStepperDrop(e, s.id) : undefined}
+                      onDragEnd={() => { setDraggedStepId(null); setDragOverStepId(null); }}
+                      data-tooltip={
+                        hidden
+                          ? (language === 'fr' ? `${t(s.label)} (👁️‍🗨️ Masquée sur le CV)` : `${t(s.label)} (👁️‍🗨️ Hidden on CV)`)
+                          : (language === 'fr' ? `Accéder à la rubrique : ${t(s.label)}` : `Go to section: ${t(s.label)}`)
+                      }
+                      data-tooltip-pos="right"
+                    >
+                      <span className="step-icon">{s.icon}</span>
+                      <span className="step-label">{t(s.label)}</span>
+                      {hasData && <span className="step-check" aria-hidden="true">✓</span>}
+                      {hidden && (
+                        <span className="step-hidden-icon" title={language === 'fr' ? 'Rubrique masquée sur le CV' : 'Section hidden on CV'}>
+                          <i className="fi fi-rr-eye-crossed"></i>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="stepper-actions">
+                <button 
+                  className="step-action-chip" 
+                  onClick={addCustomSection}
+                  data-tooltip={language === 'fr' ? 'Créer une nouvelle rubrique personnalisée' : 'Create a new custom section'}
+                  data-tooltip-pos="right"
+                  aria-label={t("Add Custom Section")}
+                >
+                  <span className="step-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
+                  <span>{t('Add Section')}</span>
+                </button>
+                <button 
+                  className="step-action-chip" 
+                  onClick={addSpacerSection}
+                  data-tooltip={language === 'fr' ? 'Insérer un saut de page ou espaceur ajustable' : 'Insert page break or adjustable space'}
+                  data-tooltip-pos="right"
+                  aria-label={t("Add Spacer (Page Break)")}
+                >
+                  <span className="step-icon"><i className="fi fi-rr-expand-arrows" style={{ fontSize: '12px' }}></i></span>
+                  <span>{t('Add Spacer')}</span>
+                </button>
+                <button 
+                  className="step-action-chip" 
+                  onClick={() => setIsReorderModalOpen(true)}
+                  data-tooltip={language === 'fr' ? 'Réorganiser l\'ordre des rubriques du CV' : 'Reorder CV sections display'}
+                  data-tooltip-pos="right"
+                  aria-label={t("Reorder Sections")}
+                >
+                  <span className="step-icon"><i className="fi fi-rr-apps-sort" style={{ fontSize: '12px' }}></i></span>
+                  <span>{t('Reorder Sections')}</span>
+                </button>
+              </div>
             </nav>
 
             {/* Step Content */}
@@ -1134,7 +1258,8 @@ export default function App() {
                           className="control-btn" 
                           onClick={undo} 
                           disabled={past.length === 0}
-                          title={t('Undo (Ctrl+Z)')}
+                          data-tooltip={language === 'fr' ? 'Annuler la dernière action (Ctrl+Z)' : 'Undo last action (Ctrl+Z)'}
+                          data-tooltip-pos="bottom"
                           style={{ opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
                           aria-label="Undo"
                         >
@@ -1144,7 +1269,8 @@ export default function App() {
                           className="control-btn" 
                           onClick={redo} 
                           disabled={future.length === 0}
-                          title={t('Redo (Ctrl+Y)')}
+                          data-tooltip={language === 'fr' ? "Rétablir l'action annulée (Ctrl+Y)" : 'Redo last action (Ctrl+Y)'}
+                          data-tooltip-pos="bottom"
                           style={{ opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
                           aria-label="Redo"
                         >
@@ -1157,7 +1283,8 @@ export default function App() {
                         <button
                           className="control-btn"
                           onClick={() => setIsAtsScoreModalOpen(true)}
-                          title={`${t('ATS Score')}: ${atsScore.score}/100 — ${t('Click for details')}`}
+                          data-tooltip={language === 'fr' ? `Score ATS : ${atsScore.score}/100 — Cliquez pour voir l'analyse détaillée` : `ATS Score: ${atsScore.score}/100 — Click for detailed analysis`}
+                          data-tooltip-pos="bottom"
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -1203,7 +1330,8 @@ export default function App() {
                                onClick={() => setIsTemplateDropdownOpen(o => !o)}
                                aria-haspopup="listbox"
                                aria-expanded={isTemplateDropdownOpen}
-                               title={t('Choose Template')}
+                               data-tooltip={language === 'fr' ? 'Changer le modèle de design du CV' : 'Choose resume design template'}
+                               data-tooltip-pos="bottom"
                              >
                                <span className="tpl-trigger-name">{activeTpl.name}</span>
                                {activeTpl.badgeText && (
@@ -1223,6 +1351,8 @@ export default function App() {
                                        <button
                                          className={`tpl-option${isActive ? ' tpl-option--active' : ''}`}
                                          onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
+                                         data-tooltip={language === 'fr' ? `Activer le modèle ${tpl.name}` : `Activate ${tpl.name} template`}
+                                         data-tooltip-pos="left"
                                        >
                                          <span className="tpl-option-name">{tpl.name}</span>
                                          {tpl.badgeText && (
@@ -1255,6 +1385,8 @@ export default function App() {
                             sectionSpacing: prev.isCompact ? 10 : 4,
                             itemSpacing: prev.isCompact ? 8 : 4
                           }))}
+                          data-tooltip={language === 'fr' ? "Basculer entre l'espacement normal et le mode compact 1 page" : 'Toggle normal spacing vs 1-page compact layout'}
+                          data-tooltip-pos="bottom"
                         >
                           📐 {layout.isCompact ? t('Normal') : t('Compact')}
                         </button>
@@ -1262,6 +1394,8 @@ export default function App() {
                           className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
                           onClick={() => setIsLayoutOpen(!isLayoutOpen)}
                           aria-expanded={isLayoutOpen}
+                          data-tooltip={language === 'fr' ? 'Ouvrir/fermer les réglages de mise en page (police, marges, espaces)' : 'Toggle layout settings panel (font, margins, spacing)'}
+                          data-tooltip-pos="bottom"
                         >
                           <i className="fi fi-rr-settings"></i>
                         </button>
@@ -1277,7 +1411,8 @@ export default function App() {
                           onClick={() => setIsAIToolsDropdownOpen(o => !o)}
                           aria-haspopup="menu"
                           aria-expanded={isAIToolsDropdownOpen}
-                          title={t('AI Tools')}
+                          data-tooltip={language === 'fr' ? "Accéder à la suite d'outils IA (Analyse ATS, Adaptation, Traduction, Gras IA)" : 'Access AI suite (ATS Score, Tailor, Translate, Smart Bolding)'}
+                          data-tooltip-pos="bottom"
                           style={{
                             background: 'linear-gradient(135deg, rgba(var(--color-accent-rgb, 99, 102, 241), 0.1), rgba(var(--color-primary-rgb, 14, 165, 233), 0.1))',
                             border: '1px solid rgba(var(--color-accent-rgb, 99, 102, 241), 0.2)',
@@ -1296,6 +1431,8 @@ export default function App() {
                               className="dropdown-item" 
                               onClick={() => { setIsAtsScoreModalOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
+                              data-tooltip={language === 'fr' ? 'Évaluer la compatibilité ATS avec une offre d\'emploi' : 'Evaluate ATS compatibility with a job posting'}
+                              data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
                               🎯 {t('ATS Score & Matcher')}
@@ -1304,6 +1441,8 @@ export default function App() {
                               className="dropdown-item" 
                               onClick={() => { setIsTailorOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
+                              data-tooltip={language === 'fr' ? 'Optimiser le CV spécifiquement pour une offre d\'emploi' : 'Tailor resume for a specific job offer'}
+                              data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
                               ✨ {t('Tailor to Job')}
@@ -1312,6 +1451,8 @@ export default function App() {
                               className="dropdown-item" 
                               onClick={() => { setIsAIOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
+                              data-tooltip={language === 'fr' ? 'Traduire instantanément le CV dans une autre langue' : 'Instantly translate resume to another language'}
+                              data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
                               <i className="fi fi-rr-magic-wand"></i> {t('AI Translate')}
@@ -1320,6 +1461,8 @@ export default function App() {
                               className="dropdown-item" 
                               onClick={() => { setIsBoldifyOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
+                              data-tooltip={language === 'fr' ? 'Mettre en valeur intelligemment les mots-clés clés' : 'Smartly highlight key keywords in bold'}
+                              data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
                               <b>B</b> {t('AI Smart Bolding')}
@@ -1331,7 +1474,8 @@ export default function App() {
                                 <button
                                   className="dropdown-item"
                                   onClick={() => { restoreSnapshot(); setIsAIToolsDropdownOpen(false); }}
-                                  title={t('Undo AI changes and restore previous version')}
+                                  data-tooltip={language === 'fr' ? 'Annuler les modifications IA et revenir au CV précédent' : 'Undo AI edits and restore previous resume version'}
+                                  data-tooltip-pos="left"
                                   style={{ color: 'var(--color-danger, #ef4444)' }}
                                 >
                                   ↩ {t('Undo AI')}
@@ -1347,7 +1491,8 @@ export default function App() {
                       <button 
                         className="control-btn"
                         onClick={() => setIsPreviewHeaderCollapsed(true)}
-                        title={t('Collapse Header')}
+                        data-tooltip={language === 'fr' ? 'Masquer la barre de contrôle' : 'Collapse controls bar'}
+                        data-tooltip-pos="bottom"
                         aria-label="Collapse Header"
                         style={{ padding: '4px 6px' }}
                       >
@@ -1367,7 +1512,8 @@ export default function App() {
                         type="button"
                         className="btn-export btn-export-primary" 
                         onClick={() => setTimeout(() => window.print(), 100)}
-                        title={t('Print / Save as PDF')}
+                        data-tooltip={language === 'fr' ? 'Générer et sauvegarder le CV en PDF haute définition' : 'Generate & save resume as HD PDF'}
+                        data-tooltip-pos="top"
                         style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                       >
                         <i className="fi fi-rr-print"></i> {t('Export PDF')}
@@ -1376,6 +1522,8 @@ export default function App() {
                         type="button"
                         className="btn-export btn-export-primary"
                         onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                        data-tooltip={language === 'fr' ? 'Autres options d\'exportation (Word, Markdown, JSON)' : 'More export options (Word, Markdown, JSON)'}
+                        data-tooltip-pos="top"
                         style={{ 
                           flex: '0 0 auto',
                           padding: '0 12px', 
@@ -1398,6 +1546,8 @@ export default function App() {
                           type="button"
                           className="dropdown-item" 
                           onClick={() => { try { exportDocx(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                          data-tooltip={language === 'fr' ? 'Télécharger au format Word modifiable (.docx)' : 'Download as editable Word document (.docx)'}
+                          data-tooltip-pos="left"
                         >
                           <i className="fi fi-rr-file-word"></i> {t('Download as Word (DOC)')}
                         </button>
@@ -1405,6 +1555,8 @@ export default function App() {
                           type="button"
                           className="dropdown-item" 
                           onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                          data-tooltip={language === 'fr' ? 'Télécharger au format texte Markdown (.md)' : 'Download raw Markdown file (.md)'}
+                          data-tooltip-pos="left"
                         >
                           <i className="fi fi-rr-file-code"></i> {t('Download as Markdown')}
                         </button>
@@ -1412,6 +1564,8 @@ export default function App() {
                           type="button"
                           className="dropdown-item" 
                           onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
+                          data-tooltip={language === 'fr' ? 'Télécharger la sauvegarde complète JSON' : 'Download full JSON data backup'}
+                          data-tooltip-pos="left"
                         >
                           <i className="fi fi-rr-disk"></i> {t('Download as JSON')}
                         </button>
@@ -1698,6 +1852,7 @@ export default function App() {
               onDeleteCv={handleDeleteCv}
               onExportData={handleExportData}
               onImportData={handleImportData}
+              onLoadDemo={loadDemoData}
               language={language}
             />
           )}
@@ -1828,6 +1983,43 @@ export default function App() {
             {t('All your resume data will be permanently lost.')}
           </p>
         </Modal>
+
+        <DailyTipModal
+          isOpen={isDailyTipOpen}
+          onClose={() => setIsDailyTipOpen(false)}
+          onAppAction={(actionKey) => {
+            if (actionKey === 'GO_TO_PERSONAL') {
+              const idx = allSteps.findIndex(s => s.id === 'personal');
+              if (idx !== -1) setStep(idx);
+            } else if (actionKey === 'GO_TO_EXPERIENCE') {
+              const idx = allSteps.findIndex(s => s.id === 'experience');
+              if (idx !== -1) setStep(idx);
+            } else if (actionKey === 'GO_TO_SKILLS') {
+              const idx = allSteps.findIndex(s => s.id === 'skills');
+              if (idx !== -1) setStep(idx);
+            } else if (actionKey === 'SET_TEMPLATE_NJM') {
+              setTemplate('njm');
+            } else if (actionKey === 'OPEN_BOLDIFY') {
+              setIsBoldifyOpen(true);
+            } else if (actionKey === 'OPEN_ATS_SCORE') {
+              setIsAtsScoreModalOpen(true);
+            } else if (actionKey === 'OPEN_COVER_LETTER') {
+              setIsCoverLetterModalOpen(true);
+            } else if (actionKey === 'TOGGLE_COMPACT') {
+              setLayout(prev => ({
+                ...prev,
+                isCompact: !prev.isCompact,
+                fontSize: prev.isCompact ? 10.5 : 9.5,
+                paddingX: prev.isCompact ? 0.75 : 0.5,
+                paddingY: prev.isCompact ? 0.75 : 0.5,
+                lineHeight: prev.isCompact ? 1.45 : 1.25,
+                sectionSpacing: prev.isCompact ? 10 : 4,
+                itemSpacing: prev.isCompact ? 8 : 4
+              }));
+            }
+          }}
+        />
+
         {/* Print-only resume */}
         <div id="resume-print" style={{ display: 'none' }}>
           <ResumePreview data={data} layout={layout} language={language} template={template} printMode />

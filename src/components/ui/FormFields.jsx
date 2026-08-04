@@ -1,87 +1,245 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
+
+function markdownToHtml(md) {
+  if (!md || typeof md !== 'string') return '';
+  return md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br/>');
+}
+
+function htmlToMarkdown(html) {
+  if (!html || typeof html !== 'string') return '';
+  let text = html
+    .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
+    .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, '**$1**')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<div>/gi, '\n')
+    .replace(/<\/div>/gi, '')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"');
+  return text;
+}
 
 export function Field({ label, children, full }) {
   return (
-    <div className={full ? 'field-full' : undefined}>
+    <div className={full ? 'field-full' : undefined} style={{ minWidth: 0, maxWidth: '100%' }}>
       {label && <label className="field-label">{label}</label>}
       {children}
     </div>
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton }) {
+function WysiwygEditor({
+  value,
+  onChange,
+  placeholder,
+  multiline = true,
+  rows = 3,
+  onAIAssist,
+  onAIBold,
+  onAIRewrite,
+  style,
+  className,
+  showBoldButton = true
+}) {
   const { t } = useTranslation();
+  const editorRef = useRef(null);
+  const lastMarkdownRef = useRef(value || '');
+
+  // Synchronize when value changes externally (e.g. from AI, reset, undo)
+  useEffect(() => {
+    if (editorRef.current) {
+      const currentMd = htmlToMarkdown(editorRef.current.innerHTML);
+      if (value !== currentMd && value !== lastMarkdownRef.current) {
+        editorRef.current.innerHTML = markdownToHtml(value || '');
+        lastMarkdownRef.current = value || '';
+      }
+    }
+  }, [value]);
+
+  // Initial load
+  useEffect(() => {
+    if (editorRef.current && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = markdownToHtml(value || '');
+      lastMarkdownRef.current = value || '';
+    }
+  }, []);
+
+  const handleInput = () => {
+    if (editorRef.current) {
+      const md = htmlToMarkdown(editorRef.current.innerHTML);
+      lastMarkdownRef.current = md;
+      onChange(md);
+    }
+  };
 
   const handleKeyDown = (e) => {
+    if (!multiline && e.key === 'Enter') {
+      e.preventDefault();
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
       e.preventDefault();
-      applyBold(e.target);
+      document.execCommand('bold', false, null);
+      handleInput();
     }
   };
 
-  const applyBold = (input) => {
-    if (!input) return;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    
-    if (start === end) return;
-    
-    const val = value || '';
-    const selectedText = val.substring(start, end);
-    const isBold = val.substring(start - 2, start) === '**' && val.substring(end, end + 2) === '**';
-    
-    let newValue, newCursorPos;
-    if (isBold) {
-      newValue = val.substring(0, start - 2) + selectedText + val.substring(end + 2);
-      newCursorPos = start + selectedText.length - 2;
-    } else {
-      newValue = val.substring(0, start) + '**' + selectedText + '**' + val.substring(end);
-      newCursorPos = start + selectedText.length + 2;
+  const applyBold = (e) => {
+    e.preventDefault();
+    if (editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand('bold', false, null);
+      handleInput();
     }
-    
-    onChange(newValue);
-    
-    setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
   };
 
-  if (showBoldButton) {
+  const hasToolbar = showBoldButton || onAIBold || onAIRewrite || onAIAssist;
+
+  return (
+    <div className="textarea-wrapper" style={{ position: 'relative', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        onKeyDown={handleKeyDown}
+        data-placeholder={placeholder}
+        className={`input wysiwyg-editor ${className || ''}`.trim()}
+        style={{
+          minHeight: multiline ? `${Math.max(rows * 24, 60)}px` : '42px',
+          padding: hasToolbar ? '8px 12px 34px 12px' : '8px 12px',
+          outline: 'none',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          overflowX: 'hidden',
+          overflowY: multiline ? 'auto' : 'hidden',
+          lineHeight: '1.5',
+          fontSize: '13px',
+          color: 'var(--color-text)',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-sm)',
+          cursor: 'text',
+          width: '100%',
+          minWidth: 0,
+          maxWidth: '100%',
+          boxSizing: 'border-box',
+          ...style
+        }}
+      />
+      {hasToolbar && (
+        <div className="textarea-toolbar" style={{
+          position: 'absolute',
+          bottom: '5px',
+          right: '5px',
+          display: 'flex',
+          gap: '5px',
+          alignItems: 'center',
+          backgroundColor: 'var(--color-surface)',
+          padding: '2px 5px',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-sm)',
+          zIndex: 5
+        }}>
+          {showBoldButton && (
+            <button 
+              type="button"
+              onMouseDown={applyBold}
+              className="format-btn"
+              data-tooltip={t("Bold (Cmd+B)")}
+              data-tooltip-pos="top"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+                padding: '2px 6px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                borderRadius: '4px'
+              }}
+            >
+              B
+            </button>
+          )}
+          {onAIBold && (
+            <button 
+              type="button"
+              onClick={onAIBold}
+              className="format-btn ai-btn"
+              data-tooltip={t("AI Smart Bolding for this section")}
+              data-tooltip-pos="top"
+              style={{
+                background: 'rgba(59, 130, 246, 0.12)',
+                border: 'none',
+                color: '#2563eb',
+                cursor: 'pointer',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <b>B</b> {t("Gras IA")}
+            </button>
+          )}
+          {(onAIRewrite || onAIAssist) && (
+            <button 
+              type="button"
+              onClick={onAIRewrite || onAIAssist}
+              className="format-btn ai-btn"
+              data-tooltip={t("AI Suggestions / Reformulation")}
+              data-tooltip-pos="top"
+              style={{
+                background: 'var(--color-accent-light)',
+                border: 'none',
+                color: 'var(--color-accent)',
+                cursor: 'pointer',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              ✨ {t("Suggestion IA")}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton, richText, onAIAssist }) {
+  if (showBoldButton || richText || onAIAssist) {
     return (
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
-        <input
-          type={type}
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className={`input ${className || ''}`.trim()}
-          style={{ paddingRight: '36px', ...style }}
-        />
-        <button
-          type="button"
-          onClick={(e) => applyBold(e.currentTarget.previousSibling)}
-          className="format-btn"
-          title={t("Bold (Cmd+B)")}
-          style={{
-            position: 'absolute',
-            right: '6px',
-            background: 'var(--color-surface, #fff)',
-            border: '1px solid var(--color-border, #ccc)',
-            borderRadius: '4px',
-            color: 'var(--color-text-secondary, #555)',
-            cursor: 'pointer',
-            padding: '1px 6px',
-            fontSize: '11px',
-            fontWeight: 'bold',
-            lineHeight: '1.2'
-          }}
-        >
-          B
-        </button>
-      </div>
+      <WysiwygEditor
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        multiline={true}
+        rows={2}
+        onAIAssist={onAIAssist}
+        style={style}
+        className={className}
+        showBoldButton={showBoldButton !== false}
+      />
     );
   }
 
@@ -92,140 +250,26 @@ export function TextInput({ value, onChange, placeholder, type = 'text', style, 
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       className={`input ${className || ''}`.trim()}
-      style={style}
+      style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     />
   );
 }
 
-export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, onAIBold, onAIRewrite }) {
-  const { t } = useTranslation();
-
-  const handleKeyDown = (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-      e.preventDefault();
-      applyBold(e.target);
-    }
-  };
-
-  const applyBold = (textarea) => {
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
-    if (start === end) return; // Nothing selected
-    
-    const selectedText = value.substring(start, end);
-    // Toggle bold: if already wrapped in **, remove it
-    const isBold = value.substring(start - 2, start) === '**' && value.substring(end, end + 2) === '**';
-    
-    let newValue, newCursorPos;
-    if (isBold) {
-      newValue = value.substring(0, start - 2) + selectedText + value.substring(end + 2);
-      newCursorPos = start + selectedText.length - 2;
-    } else {
-      newValue = value.substring(0, start) + '**' + selectedText + '**' + value.substring(end);
-      newCursorPos = start + selectedText.length + 2;
-    }
-    
-    onChange(newValue);
-    
-    // Restore selection after React render
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
-
+export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, onAIBold, onAIRewrite, style, className }) {
   return (
-    <div className="textarea-wrapper" style={{ position: 'relative' }}>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        rows={rows}
-        className="textarea"
-        style={{ paddingBottom: '36px' }}
-      />
-      <div className="textarea-toolbar" style={{
-        position: 'absolute',
-        bottom: '8px',
-        right: '8px',
-        display: 'flex',
-        gap: '6px',
-        alignItems: 'center',
-        backgroundColor: 'var(--color-surface)',
-        padding: '4px',
-        borderRadius: 'var(--radius-sm)',
-        border: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-sm)'
-      }}>
-        <button 
-          type="button"
-          onClick={(e) => applyBold(e.currentTarget.parentElement.previousSibling)}
-          className="format-btn"
-          title={t("Bold (Cmd+B)")}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-text-secondary)',
-            cursor: 'pointer',
-            padding: '2px 6px',
-            fontSize: '13px',
-            fontWeight: 'bold',
-            borderRadius: '4px'
-          }}
-        >
-          B
-        </button>
-        {onAIBold && (
-          <button 
-            type="button"
-            onClick={onAIBold}
-            className="format-btn ai-btn"
-            title={t("AI Smart Bolding for this section")}
-            style={{
-              background: 'rgba(59, 130, 246, 0.12)',
-              border: 'none',
-              color: '#2563eb',
-              cursor: 'pointer',
-              padding: '2px 8px',
-              fontSize: '11px',
-              fontWeight: '600',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <b>B</b> {t("Gras IA")}
-          </button>
-        )}
-        {(onAIRewrite || onAIAssist) && (
-          <button 
-            type="button"
-            onClick={onAIRewrite || onAIAssist}
-            className="format-btn ai-btn"
-            title={t("AI Reformulation for this section")}
-            style={{
-              background: 'var(--color-accent-light)',
-              border: 'none',
-              color: 'var(--color-accent)',
-              cursor: 'pointer',
-              padding: '2px 8px',
-              fontSize: '11px',
-              fontWeight: '600',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            ✨ {t("Reformuler")}
-          </button>
-        )}
-      </div>
-    </div>
+    <WysiwygEditor
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      multiline={true}
+      rows={rows}
+      onAIAssist={onAIAssist}
+      onAIBold={onAIBold}
+      onAIRewrite={onAIRewrite}
+      style={style}
+      className={className}
+      showBoldButton={true}
+    />
   );
 }
 
@@ -235,6 +279,7 @@ export function Select({ value, onChange, options, placeholder }) {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={`select-input${!value ? ' placeholder' : ''}`}
+      style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((o) => {

@@ -1,4 +1,5 @@
 import { callGeminiApi } from './_geminiFallback.js';
+import { SCIENTIFIC_HR_RULES } from './_scientificPromptRules.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -23,17 +24,19 @@ export default async function handler(req, res) {
 Your task is to take a raw job experience description and generate 3 highly impactful, ATS-optimized bullet points using the STAR method (Situation, Task, Action, Result).
 Target language: ${targetLang}.
 
+${SCIENTIFIC_HR_RULES.bulletPoints}
+
 Rules:
 1. Each bullet point must be concise (max 2 lines).
-2. Start each bullet point with a strong action verb.
-3. Quantify results where possible or frame the impact clearly.
+2. FRONT-LOAD METRICS: Place key numbers/metrics within the FIRST 3 WORDS of each bullet point (e.g. "Increased sales by 40%...", "Automated 25% of manual tests...").
+3. Start each bullet point with a strong action verb (Harvard/NACE standard).
 4. Output EXACTLY a JSON array of 3 strings. Example: ["bullet 1", "bullet 2", "bullet 3"]
 5. Do NOT output markdown, backticks, or any conversational text. Just the raw JSON array.`;
 
     const promptText = `Experience Description:
 ${experienceText}
 
-Generate 3 optimized STAR bullet points:`;
+Generate 3 optimized STAR bullet points with front-loaded metrics:`;
 
     const { checkAndIncrementQuota } = await import('./firebase.js');
     await checkAndIncrementQuota();

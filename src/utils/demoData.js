@@ -82,6 +82,37 @@ export const DEMO_DATA_1_PAGE = {
     },
   ],
   certifications: [],
+  targetJobDescription: `Role Title: Senior Frontend Engineer — Design Systems & AI Platform\nCompany: Vercel — San Francisco, CA (Remote Friendly)\n\nAbout Vercel:\nVercel builds the Developer Experience Platform enabling frontend teams to develop, preview, and ship high-performance web applications.\n\nKey Responsibilities:\n- Architect and maintain enterprise Design System components in React, TypeScript, and Tailwind CSS.\n- Lead frontend performance optimizations (Core Web Vitals, streaming SSR, bundle splitting).\n- Collaborate with product design and backend teams to integrate generative AI features and real-time canvas collaboration tools.\n- Mentor junior engineers and champion accessible (a11y) UI standards across all applications.\n\nRequirements:\n- 4+ years of professional experience with React, TypeScript, Next.js, and modern CSS architecture.\n- Demonstrated expertise in building production component libraries / Design Systems.\n- Deep understanding of Web Performance, WebSockets, and state management at scale.`,
+  coverLetter: `John Doe\nSan Francisco, CA\njohn.doe@email.com | +1 (415) 555-0142\n\nAugust 4, 2025\n\nSubject: Application for **Senior Frontend Engineer** at **Vercel**\n\nDear Hiring Team,\n\nAs a results-driven senior software engineer with a deep passion for web performance and frontend architecture, I am thrilled to apply for the **Senior Frontend Engineer** position at **Vercel**.\n\nAt **Stripe** and **Airbnb**, I architected high-throughput real-time systems processing **50K+ transactions/second** and built machine-learning powered pricing engines that boosted revenue by **18%**. Across these roles, I pioneered frontend performance strategies that significantly improved user conversion and reduced infrastructure costs by **40%**.\n\nMy core stack centers on **React**, **TypeScript**, **Node.js**, **Next.js**, and modern Cloud deployment tools. I am a strong advocate for technical leadership, clean component boundaries, robust **type safety**, and mentor-driven team agility (**Agile / Scrum**).\n\nVercel's vision for elevating developer experience directly aligns with my passion for building high-quality, high-performance web software. I would welcome the opportunity to discuss how my background can contribute to Vercel's growth.\n\nSincerely,\nJohn Doe`,
+  coverLetterSettings: {
+    companyName: "Vercel",
+    targetRole: "Senior Frontend Engineer",
+    industry: "Tech & Software",
+    tone: "Professional",
+    clLength: "Standard",
+    referenceLetter: ""
+  },
+  aiCache: {
+    atsScore: {
+      score: 96,
+      matchPercentage: 96,
+      matchedKeywords: ["React", "TypeScript", "Next.js", "Node.js", "System Design", "Web Performance", "AWS", "Docker", "Agile", "Scrum"],
+      missingKeywords: ["GraphQL"],
+      strengths: [
+        "Exceptional alignment with Vercel's engineering standards (React, TypeScript, Next.js)",
+        "Outstanding quantifiable achievements ($12M savings, +18% host revenue)",
+        "Proven experience with high-scale distributed systems"
+      ],
+      recommendations: [
+        "Include specific CSS/Tailwind architecture examples",
+        "Add accessibility (a11y) compliance testing details"
+      ]
+    },
+    tailoredResult: {
+      tailoredSummary: "Senior Full-Stack Engineer with 7+ years building scalable web applications, real-time pipelines (50K req/sec), and high-performance React/TypeScript platforms.",
+      keywordHighlights: ["React", "TypeScript", "Next.js", "Node.js", "System Design", "Agile"]
+    }
+  }
 };
 
 export const DEMO_DATA_1_PAGE_FR = {
@@ -155,6 +186,37 @@ export const DEMO_DATA_1_PAGE_FR = {
     },
   ],
   certifications: [],
+  targetJobDescription: `Intitulé du poste : Lead Full-Stack Engineer (H/F)\nEntreprise : TechVision — Lyon (Hybride)\n\nÀ propos de TechVision :\nTechVision développe des solutions SaaS B2B haut de gamme pour l'analyse de données temps réel et l'optimisation décisionnelle d'entreprises du Fortune 500.\n\nMissions principales :\n- Piloter l'architecture web et le développement full-stack d'une plateforme SaaS (React, Node.js, TypeScript).\n- Diriger la migration d'un système monolithique vers une micro-architecture distribuée managée sur AWS (EKS, Lambda, DynamoDB, Redis).\n- Garantir la haute disponibilité (99.95%+), la performance et la sécurité des traitements de données volumineuses.\n- Encadrer et mentorer une équipe d'ingénieurs (4 personnes) dans un cadre Agile / Scrum.\n\nProfil recherché :\n- 5+ ans d'expérience en ingénierie logicielle full-stack (React, Node.js, Python, SQL/NoSQL).\n- Solide maîtrise des pratiques DevOps, CI/CD (GitHub Actions, Docker, Kubernetes, Terraform) et du Cloud AWS.\n- Leadership technique éprouvé, goût pour les code reviews et la transmission de compétences.`,
+  coverLetter: `Jean Dupont\nParis, France\njean.dupont@email.fr | +33 6 12 34 56 78\n\nParis, le 4 août 2025\n\nObjet : Candidature au poste de **Lead Full-Stack Engineer** chez **TechVision**\n\nMadame, Monsieur,\n\nPassionné par l'ingénierie logicielle et l'architecture de produits web scalables, je vous présente ma candidature pour le poste de **Lead Full-Stack Engineer** au sein de **TechVision**.\n\nAu cours de mon parcours chez **BlaBlaCar** et **Deezer**, j'ai dirigé la migration vers une **architecture micro-frontends**, réduisant le temps de chargement de **40%** pour plus de 10 millions d'utilisateurs tout en portant la couverture de tests à **90%** sur nos modules les plus critiques.\n\nMa maîtrise technique s'étend sur tout l'écosystème moderne : **React**, **Next.js**, **Node.js**, **TypeScript**, ainsi que les environnements conteneurisés (**Docker**, **AWS**). En tant que référent technique, j'attache une importance capitale aux bonnes pratiques (**Clean Code**, **TDD**), à l'encadrement des équipes en méthodologie **Agile / Scrum**, et aux revues de code exigeantes.\n\nRejoindre TechVision représente pour moi l'opportunité de mettre mon leadership technique au service d'une plateforme SaaS d'analyse de données ambitieuse. Je serais ravi de vous exposer mes projets lors d'un prochain entretien.\n\nBien cordialement,\nJean Dupont`,
+  coverLetterSettings: {
+    companyName: "TechVision",
+    targetRole: "Lead Full-Stack Engineer",
+    industry: "Tech & Software",
+    tone: "Professional",
+    clLength: "Standard",
+    referenceLetter: ""
+  },
+  aiCache: {
+    atsScore: {
+      score: 94,
+      matchPercentage: 94,
+      matchedKeywords: ["React", "TypeScript", "Node.js", "AWS", "Microservices", "CI/CD", "Docker", "PostgreSQL", "Agile", "Scrum", "Kubernetes", "Leadership"],
+      missingKeywords: ["GraphQL", "Terraform"],
+      strengths: [
+        "Excellente correspondance sur la stack principale (React, Node.js, AWS)",
+        "Résultats chiffrés très convaincants (-40% temps de chargement, 90% couverture de tests)",
+        "Solide leadership technique et culture de la qualité"
+      ],
+      recommendations: [
+        "Mentionner Terraform pour la gestion de l'infrastructure as code",
+        "Préciser les outils d'alerting et de suivi de performance"
+      ]
+    },
+    tailoredResult: {
+      tailoredSummary: "Développeur Full-Stack Senior avec 7+ ans d'expérience spécialisé en React, Node.js et architectures micro-services Cloud. Solide leadership technique et expertise éprouvée en performance web.",
+      keywordHighlights: ["React", "Node.js", "TypeScript", "Microservices", "AWS", "CI/CD", "Agile"]
+    }
+  }
 };
 
 export const DEMO_DATA_2_PAGES = {
@@ -310,6 +372,36 @@ export const DEMO_DATA_2_PAGES = {
       credentialUrl: '',
     },
   ],
+  targetJobDescription: `Role Title: Staff Software Engineer & Technical Leader\nCompany: Vercel — San Francisco, CA (Remote Friendly)\n\nAbout Vercel:\nVercel builds the Developer Experience Platform enabling frontend teams to develop, preview, and ship high-performance web applications.\n\nKey Responsibilities:\n- Architect and maintain enterprise Design System components in React, TypeScript, and Tailwind CSS.\n- Lead frontend performance optimizations (Core Web Vitals, streaming SSR, bundle splitting).\n- Collaborate with product design and backend teams to integrate generative AI features and real-time canvas collaboration tools.\n- Mentor junior engineers and champion accessible (a11y) UI standards across all applications.\n\nRequirements:\n- 6+ years of professional experience with React, TypeScript, Next.js, and modern CSS architecture.\n- Demonstrated expertise in building production component libraries / Design Systems.\n- Deep understanding of Web Performance, WebSockets, and state management at scale.`,
+  coverLetter: `Jane Smith\nSan Francisco, CA\njane.smith@email.com | +1 (415) 555-0142\n\nAugust 4, 2025\n\nSubject: Application for **Staff Software Engineer** at **Vercel**\n\nDear Hiring Team,\n\nAs a Staff Software Engineer with 10+ years of technical leadership experience building distributed microservices and real-time platforms, I am excited to apply for the **Staff Software Engineer** position at **Vercel**.\n\nThroughout my career at top tech organizations, I have driven large-scale architectural migrations, mentored dozens of engineers, and engineered systems supporting **10M+ daily active users**. My technical expertise spans **React**, **TypeScript**, **Next.js**, **Node.js**, **AWS**, and distributed system design.\n\nI am deeply aligned with Vercel's mission to shape the future of frontend architecture and developer experience. I look forward to connecting to discuss how my background can help elevate Vercel's platforms.\n\nSincerely,\nJane Smith`,
+  coverLetterSettings: {
+    companyName: "Vercel",
+    targetRole: "Staff Software Engineer",
+    industry: "Tech & Software",
+    tone: "Professional",
+    clLength: "Standard",
+    referenceLetter: ""
+  },
+  aiCache: {
+    atsScore: {
+      score: 98,
+      matchPercentage: 98,
+      matchedKeywords: ["React", "TypeScript", "Next.js", "Node.js", "System Design", "AWS", "Docker", "Kubernetes", "Leadership", "Agile"],
+      missingKeywords: ["GraphQL"],
+      strengths: [
+        "Outstanding technical depth and leadership profile",
+        "Extensive experience scaling platforms to 10M+ DAU",
+        "Strong credentials (AWS Professional, CKA)"
+      ],
+      recommendations: [
+        "Include links to open-source contributions"
+      ]
+    },
+    tailoredResult: {
+      tailoredSummary: "Staff Software Engineer & Technical Leader with 10+ years architecting distributed systems, real-time analytics platforms, and microservices for high-scale enterprise applications.",
+      keywordHighlights: ["React", "TypeScript", "Next.js", "System Design", "Leadership"]
+    }
+  }
 };
 
 export const DEMO_DATA_2_PAGES_FR = {
@@ -324,7 +416,7 @@ export const DEMO_DATA_2_PAGES_FR = {
     github: 'github.com/example',
     website: 'example.dev',
   },
-  summary: 'Architecte et développeur senior avec plus de 10 ans d\'expérience dans l\'écosystème tech français. Expertise pointue dans le passage à l\'échelle de startups (SaaS, FinTech) et la modernisation d\'architectures legacy. Convaincu par l\'excellence opérationnelle et le mentorat, j\'aime résoudre des problèmes complexes avec des solutions simples et maintenables. Co-fondateur du meetup "React Paris" et contributeur actif à plusieurs projets open-source majeurs.',
+  summary: 'Architecte logicielle et Staff Engineer avec plus de 10 ans d\'expérience dans la conception de plateformes web distribuées et d\'infrastructures Cloud haute performance. Experte React, TypeScript et Node.js.',
   experience: [
     {
       id: 1,
@@ -434,6 +526,34 @@ export const DEMO_DATA_2_PAGES_FR = {
       date: 'Mai 2022',
     },
   ],
+  targetJobDescription: `Intitulé du poste : Senior / Staff Engineer (H/F)\nEntreprise : Walter Learning — Marseille (13008) / Présentiel\n\nÀ propos de Walter Learning :\nWalter Learning conçoit, produit et dispense des formations en ligne à destination des professionnels (Walter Santé, compétences transverses, alternance).\nDepuis 2019 : 130 000 formations dispensées à fin 2025, près de 20 M€ de CA, rentable dès le premier jour et sans levée de fonds.\n\nMissions & Contexte Technique :\n- Prendre l’ownership de systèmes techniques critiques (LMS maison, CRM interne, outils métiers, nombreuses intégrations API).\n- Concevoir des architectures robustes et structurer l'évolution de systèmes existants (pas un rôle "feature factory").\n- Encadrer et structurer l’usage de l’IA dans les workflows (code, outils internes, opérations) avec un enjeu fort sur la qualité, la cohérence et la maintenabilité.\n- Stack principale : Python / Django, React / Next.js, PostgreSQL, AWS (ECS, Lambda).\n- Travail en lien direct avec le CTO au sein d'une petite équipe tech à fort impact (6 personnes).\n\nProfil recherché :\n- 5+ ans d’expérience sur des systèmes complexes en production.\n- Solide maîtrise backend (Python/Django) et frontend moderne (React/Next.js), bases SQL.\n- À l’aise avec la gestion des risques techniques, les edge cases et l’intégration pragmatique de l’IA.`,
+  coverLetter: `Marie Dubois\nMarseille, France\nmarie.dubois@email.fr | +33 6 12 34 56 78\n\nMarseille, le 4 août 2025\n\nObjet : Candidature au poste de **Senior / Staff Engineer** chez **Walter Learning**\n\nMadame, Monsieur,\n\nImpressionnée par le modèle de croissance de **Walter Learning** — rentable dès le premier jour, comptabilisant près de 20 M€ de chiffre d'affaires et 130 000 formations dispensées — je vous présente ma candidature pour le poste de **Senior / Staff Engineer**.\n\nForte de plus de 10 ans d'expérience en ingénierie logicielle sur des systèmes complexes en production (notamment chez **Qonto** sur des architectures bancaires temps réel gérant **100K+ transactions/jour**), je me retrouve pleinement dans votre philosophie : concevoir des architectures pérennes, arbitrer les trade-offs techniques et refuser la logique de "feature factory".\n\nMon expertise couvre l'ensemble de vos enjeux techniques :\n- **Backend & Bases de données** : Maîtrise approfondie de **Python / Django** et modélisation complexe sur **PostgreSQL**.\n- **Frontend Moderne** : Conception d'interfaces réactives et modulaires avec **React** et **Next.js**.\n- **Services & Intégrations Cloud** : Orchestration de workflows critiques sur **AWS (ECS, Lambda)** et intégrations robustes d'APIs tierces.\n- **Usage Critique & Maintenable de l'IA** : Intégration pragmatique des outils d'IA dans les workflows métiers, axée sur la qualité du code, la gestion des edge cases et la fiabilité système.\n\nTravailler en lien direct avec le CTO au sein d'une équipe agile de 6 personnes pour faire évoluer votre LMS et votre CRM maison constitue un défi stimulant. Je serais ravie de vous exposer mon parcours lors d'un entretien.\n\nCordialement,\nMarie Dubois`,
+  coverLetterSettings: {
+    companyName: "Walter Learning",
+    targetRole: "Senior / Staff Engineer",
+    industry: "EdTech & Software",
+    tone: "Professional",
+    clLength: "Standard",
+    referenceLetter: ""
+  },
+  aiCache: {
+    atsScore: {
+      score: 98,
+      matchPercentage: 98,
+      matchedKeywords: ["Python", "Django", "React", "Next.js", "PostgreSQL", "AWS", "ECS", "Lambda", "IA", "Architecture", "Ownership", "System Design"],
+      missingKeywords: [],
+      strengths: [
+        "Alignement parfait sur la stack (Python/Django, React/Next.js, PostgreSQL, AWS)",
+        "Expérience avérée sur des systèmes critiques en production (Qonto)",
+        "Positionnement orienté ownership et architecture (hors feature factory)"
+      ],
+      recommendations: []
+    },
+    tailoredResult: {
+      tailoredSummary: "Staff Engineer & Architecte Solutions avec 10+ ans d'expérience sur des systèmes critiques. Spécialisée en Python/Django, React/Next.js, PostgreSQL et architectures AWS, axée sur la fiabilité et l'intégration pragmatique de l'IA.",
+      keywordHighlights: ["Python", "Django", "React", "Next.js", "PostgreSQL", "AWS", "IA", "Ownership"]
+    }
+  }
 };
 
 export const DEMO_DATA_1_PAGE_ES = {

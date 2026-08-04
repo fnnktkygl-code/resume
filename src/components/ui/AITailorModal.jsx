@@ -4,6 +4,7 @@ import Modal from './Modal';
 import { tailorResumeWithProxy } from '../../services/geminiService';
 import VisualDiff from './VisualDiff';
 import { mergeSelected } from '../../utils/mergeSelected';
+import AILoadingOverlay from './AILoadingOverlay';
 
 export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language }) {
   const { t } = useTranslation();
@@ -63,10 +64,17 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={!isLoading ? onClose : () => {}}
-      title={`✨ ${t('Tailor to Job Description')}`}
+    <>
+      <AILoadingOverlay 
+        isGenerating={isLoading} 
+        title={language === 'fr' ? 'Adaptation du CV par l\'IA...' : 'Tailoring Resume with AI...'} 
+        initialStep={language === 'fr' ? '⚡ Analyse de l\'offre et comparaison du profil...' : '⚡ Analyzing job offer & comparing profile...'}
+        language={language}
+      />
+      <Modal
+        isOpen={isOpen}
+        onClose={!isLoading ? onClose : () => {}}
+        title={`✨ ${t('Tailor to Job Description')}`}
       actions={
         tailoredResult ? (
           <>
@@ -165,5 +173,6 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
         )}
       </div>
     </Modal>
+    </>
   );
 }

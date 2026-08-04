@@ -181,13 +181,10 @@ Required JSON Structure:
 Parse and strategically enhance the provided resume, returning ONLY the JSON object IN THE REQUIRED LANGUAGE (${language ? targetLangStr : 'DETECTED LANGUAGE'}).`;
     }
 
-    let parts = [{ text: systemPrompt }];
-      promptText = `You are a resume parser. Extract structured information from the provided resume into a valid JSON object matching the standard schema in ${targetLang}.`;
+    const parts = [{ text: systemPrompt }];
+    if (text) {
+      parts.push({ text: `Resume Content:\n${text}` });
     }
-
-    const parts = [];
-    if (promptText) parts.push({ text: promptText });
-    if (text) parts.push({ text: `Resume Content:\n${text}` });
     if (base64Data && mimeType) {
       parts.push({
         inlineData: {
@@ -206,7 +203,12 @@ Parse and strategically enhance the provided resume, returning ONLY the JSON obj
       }
     });
 
-    const jsonResponse = JSON.parse(generatedText);
+    let cleanJsonStr = generatedText.trim();
+    if (cleanJsonStr.startsWith('```')) {
+      cleanJsonStr = cleanJsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
+    }
+
+    const jsonResponse = JSON.parse(cleanJsonStr);
     res.status(200).json({ parsedResume: jsonResponse });
 
   } catch (error) {

@@ -9,7 +9,7 @@ const COLOR_PALETTES = [
 ];
 
 export default function LayoutControls({ layout, onChange }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const handleUpdate = (field, value) => {
     onChange({ ...layout, [field]: value });
@@ -34,11 +34,19 @@ export default function LayoutControls({ layout, onChange }) {
     <div className="layout-controls-panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div style={{ fontWeight: 600, fontSize: '13px' }}>⚙️ {t('Layout Settings')}</div>
-        <button className="btn-secondary" onClick={resetLayout} style={{ padding: '4px 8px', fontSize: '11px' }}>{t('Reset Layout')}</button>
+        <button 
+          className="btn-secondary" 
+          onClick={resetLayout} 
+          data-tooltip={language === 'fr' ? 'Réinitialiser la mise en page aux valeurs par défaut' : 'Reset layout settings to default'}
+          data-tooltip-pos="top"
+          style={{ padding: '4px 8px', fontSize: '11px' }}
+        >
+          {t('Reset Layout')}
+        </button>
       </div>
 
-      {/* Accent Color, Font Family, Skill Style & Contact Layout Selection */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
+      {/* Accent Color & Font Family */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-secondary)' }}>{t('Accent Color')}</label>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
@@ -47,6 +55,8 @@ export default function LayoutControls({ layout, onChange }) {
                 key={palette.value}
                 type="button"
                 onClick={() => handleUpdate('accentColor', palette.value)}
+                data-tooltip={t(palette.name)}
+                data-tooltip-pos="top"
                 style={{
                   width: '24px',
                   height: '24px',
@@ -58,7 +68,6 @@ export default function LayoutControls({ layout, onChange }) {
                   transition: 'transform 0.15s ease, border 0.15s ease',
                   boxShadow: layout.accentColor === palette.value ? 'var(--shadow-sm)' : 'none'
                 }}
-                title={t(palette.name)}
               />
             ))}
           </div>
@@ -70,6 +79,8 @@ export default function LayoutControls({ layout, onChange }) {
             id="font-select"
             value={layout.fontFamily || 'Inter'}
             onChange={(e) => handleUpdate('fontFamily', e.target.value)}
+            data-tooltip={language === 'fr' ? 'Choisir la typographie du CV' : 'Choose resume font family'}
+            data-tooltip-pos="top"
             style={{
               padding: '6px 12px',
               borderRadius: 'var(--radius-sm)',
@@ -92,38 +103,59 @@ export default function LayoutControls({ layout, onChange }) {
             <option value="JetBrains Mono, monospace">{t('Modern Mono (JetBrains)')}</option>
           </select>
         </div>
-
-
-
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? 'Ajuster la taille globale du texte' : 'Adjust main font size'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Font Size')}: {layout.fontSize}pt</label>
           <input type="range" min="8" max="14" step="0.5" value={layout.fontSize} onChange={(e) => handleUpdate('fontSize', Number(e.target.value))} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? 'Ajuster les marges haut et bas de page' : 'Adjust top and bottom page margins'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Top/Bottom Padding')}: {layout.paddingY}in</label>
           <input type="range" min="0" max="2" step="0.1" value={layout.paddingY} onChange={(e) => handleUpdate('paddingY', Number(e.target.value))} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? 'Ajuster les marges gauche et droite' : 'Adjust left and right side margins'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Side Padding')}: {layout.paddingX}in</label>
           <input type="range" min="0" max="2" step="0.1" value={layout.paddingX} onChange={(e) => handleUpdate('paddingX', Number(e.target.value))} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? "Ajuster l'interligne entre les phrases" : 'Adjust paragraph line spacing'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Line Height')}: {layout.lineHeight}</label>
           <input type="range" min="1" max="2" step="0.05" value={layout.lineHeight} onChange={(e) => handleUpdate('lineHeight', Number(e.target.value))} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? "Ajuster l'espace entre les grandes rubriques" : 'Adjust spacing between sections'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Section Spacing')}: {layout.sectionSpacing}px</label>
           <input type="range" min="0" max="32" step="2" value={layout.sectionSpacing} onChange={(e) => handleUpdate('sectionSpacing', Number(e.target.value))} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div 
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+          data-tooltip={language === 'fr' ? "Ajuster l'espace entre les éléments individuels" : 'Adjust spacing between items'}
+          data-tooltip-pos="top"
+        >
           <label>{t('Item Spacing')}: {layout.itemSpacing}px</label>
           <input type="range" min="0" max="24" step="2" value={layout.itemSpacing} onChange={(e) => handleUpdate('itemSpacing', Number(e.target.value))} />
         </div>

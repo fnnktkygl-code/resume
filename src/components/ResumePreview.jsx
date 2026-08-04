@@ -69,7 +69,7 @@ function ResumePreview({
                   fontWeight: isAccent ? 600 : undefined,
                   transition: 'color 0.2s ease, font-weight 0.2s ease'
                 }}
-                title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+                data-tooltip={!printMode ? (isAccent ? (language === 'fr' ? 'Cliquer pour retirer la mise en valeur' : 'Click to remove highlight') : (language === 'fr' ? 'Cliquer pour mettre en valeur cette compétence' : 'Click to highlight skill')) : undefined}
               >
                 {si > 0 && ' • '}
                 {parseMarkdown(skill)}
@@ -86,7 +86,7 @@ function ResumePreview({
         <span key={si} className={`${cls} skill-toggleable`}
           onClick={() => handleSkillClick(skill)}
           style={{ cursor: printMode ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
-          title={!printMode ? (cls.includes('-accent') ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+          data-tooltip={!printMode ? (cls.includes('-accent') ? (language === 'fr' ? 'Cliquer pour retirer la mise en valeur' : 'Click to remove highlight') : (language === 'fr' ? 'Cliquer pour mettre en valeur cette compétence' : 'Click to highlight skill')) : undefined}
         >
           {parseMarkdown(skill)}
         </span>

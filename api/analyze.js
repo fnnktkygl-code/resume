@@ -40,16 +40,7 @@ export default async function handler(req, res) {
       throw new Error("GEMINI_API_KEY_MASTER is missing in environment variables");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
-
     const targetLang = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
-    const systemPrompt = `You are a senior career coach and ATS optimization specialist who adapts advice to each individual's specific profession and industry.
-
-STEP 1 — PROFILE & JOB IDENTIFICATION:
-Silently analyze the candidate's background and target job description (if provided).
-
-STEP 2 — GENERATE 3 DISTINCT, TAILORED RECOMMENDATIONS:
-Generate exactly 3 DIFFERENT recommendations covering distinct areas of the resume:
 
     const systemPrompt = `You are a world-class ATS Resume Auditor and Career Coach.
 Analyze the provided JSON resume against best ATS practices ${jobDescription ? `and against this Target Job Description:\n"""${jobDescription}"""` : ''}.

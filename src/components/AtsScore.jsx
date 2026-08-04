@@ -4,10 +4,12 @@ import { memo, useState } from 'react';
 import { analyzeResumeWithProxy } from '../services/geminiService';
 import ATSKeywordsModal from './ui/ATSKeywordsModal';
 import { parseMarkdown } from '../utils/formatText';
+import { auditResumeData } from '../utils/scientificAuditor';
 
 function AtsScore({ data, dispatch, onTriggerAction }) {
   const { t, language } = useTranslation();
   const { score, tips, isMatchScore } = computeAtsScore(data);
+  const scientificNudges = auditResumeData(data, language);
   const [aiTips, setAiTips] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
@@ -200,6 +202,26 @@ function AtsScore({ data, dispatch, onTriggerAction }) {
           ))}
         </div>
       </div>
+
+      {/* Real-Time Scientific Nudges (RH Audit) */}
+      {scientificNudges.length > 0 && (
+        <div style={{ marginTop: '14px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '10px 12px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-accent)', letterSpacing: '0.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>🔬 {language === 'en' ? 'Scientific HR Nudges' : language === 'es' ? 'Nudges Científicos RH' : 'Nudges Scientifiques RH'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {scientificNudges.map((nudge) => (
+              <div key={nudge.id} style={{ fontSize: '0.75rem', lineHeight: '1.45', background: 'var(--color-surface)', padding: '8px 10px', borderRadius: '6px', borderLeft: nudge.type === 'warning' ? '3px solid #E53E3E' : '3px solid var(--color-accent)', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '14px', lineHeight: '1' }}>{nudge.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '700', color: 'var(--color-text)', marginBottom: '2px' }}>{nudge.title}</div>
+                  <div style={{ color: 'var(--color-text-secondary)' }}>{nudge.message}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {displayTips.length > 0 && (
         <div className="ats-tips-container" style={{ marginTop: '16px' }}>

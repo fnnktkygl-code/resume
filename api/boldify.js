@@ -1,5 +1,6 @@
 import { normalizeResumeCasing } from './_normalizeCasing.js';
 import { callGeminiApi } from './_geminiFallback.js';
+import { SCIENTIFIC_HR_RULES } from './_scientificPromptRules.js';
 
 // Lightweight skill parser (mirrors src/utils/formatText.jsx parseSkillsToTags)
 function parseSkillsToTags(skillsString) {
@@ -106,6 +107,8 @@ Return ONLY the formatted cover letter text.`;
     }
 
     const systemPrompt = `You are a text formatter. Your ONLY job is to add markdown bold markers (**) around important keywords in a JSON resume, AND to identify which technical/soft skills are most relevant.
+
+${SCIENTIFIC_HR_RULES.boldify}
 
 ABSOLUTE RULES — VIOLATION OF ANY RULE IS A CRITICAL FAILURE:
 

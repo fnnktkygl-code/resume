@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateSectionContentWithProxy } from '../../services/geminiService';
+import AILoadingOverlay from './AILoadingOverlay';
 
 /**
  * Reusable AI Section Fill Modal.
@@ -223,7 +224,14 @@ export default function AISectionFillModal({
   const items = extractItems(suggestions);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
+    <>
+      <AILoadingOverlay 
+        isGenerating={isGenerating} 
+        title={language === 'fr' ? `Génération de la section "${sectionLabel}"...` : `Generating "${sectionLabel}" section...`}
+        initialStep={language === 'fr' ? '⚡ Analyse du contexte et création de suggestions sur-mesure...' : '⚡ Analyzing context & generating tailored suggestions...'}
+        language={language}
+      />
+      <Modal isOpen={isOpen} onClose={onClose} title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* JD Banner info */}
         {/* Job Description Optional Input */}
@@ -410,5 +418,6 @@ export default function AISectionFillModal({
         )}
       </div>
     </Modal>
+    </>
   );
 }

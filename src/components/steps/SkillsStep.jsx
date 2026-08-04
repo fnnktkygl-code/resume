@@ -36,51 +36,64 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
   );
 
   return (
-    <div className="card">
-      <SectionHeader
-        title={headings?.skills}
-        onTitleChange={(v) => updateHeading('skills', v)}
-        titlePlaceholder={t('SKILLS & TOOLS')}
-        styleControls={{
-          label: t('Skills Style'),
-          dropdowns: [
-            {
-              value: layout?.skillStyle || 'pill',
-              onChange: (v) => updateLayout('skillStyle', v),
-              options: [
-                { value: 'outline', label: t('Square Contour') },
-                { value: 'pill-outline', label: t('Rounded Contour') },
-                { value: 'square', label: t('Squares') },
-                { value: 'pill', label: t('Rounded Circles') },
-                { value: 'text', label: t('Simple Text') }
-              ]
-            },
-            {
-              value: layout?.coloredSkillsMode || (layout?.coloredSkills === true ? 'all' : 'highlighted'),
-              onChange: (v) => {
-                updateLayout('coloredSkillsMode', v);
-                updateLayout('coloredSkills', v === 'all');
+    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div>
+        <SectionHeader
+          title={headings?.skills}
+          onTitleChange={(v) => updateHeading('skills', v)}
+          titlePlaceholder={t('SKILLS & TOOLS')}
+          styleControls={{
+            label: t('Skills Style'),
+            dropdowns: [
+              {
+                value: layout?.skillStyle || 'pill',
+                onChange: (v) => updateLayout('skillStyle', v),
+                options: [
+                  { value: 'outline', label: t('Square Contour') },
+                  { value: 'pill-outline', label: t('Rounded Contour') },
+                  { value: 'square', label: t('Squares') },
+                  { value: 'pill', label: t('Rounded Circles') },
+                  { value: 'text', label: t('Simple Text') }
+                ]
               },
-              options: [
-                { value: 'neutral', label: t('Neutral Skills') },
-                { value: 'highlighted', label: t('AI Highlighted') },
-                { value: 'all', label: t('Color All Skills') }
-              ]
-            }
-          ]
-        }}
-      />
-      <div className="card-subtitle">
-        {t('Separate skills with commas. These should also appear naturally in your experience bullets for semantic AI matching.')}
+              {
+                value: layout?.coloredSkillsMode || (layout?.coloredSkills === true ? 'all' : 'highlighted'),
+                onChange: (v) => {
+                  updateLayout('coloredSkillsMode', v);
+                  updateLayout('coloredSkills', v === 'all');
+                },
+                options: [
+                  { value: 'neutral', label: t('Neutral Skills') },
+                  { value: 'highlighted', label: t('AI Highlighted') },
+                  { value: 'all', label: t('Color All Skills') }
+                ]
+              }
+            ]
+          }}
+        />
+        <div className="card-subtitle" style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+          {t('Separate skills with commas. These should also appear naturally in your experience bullets for semantic AI matching.')}
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '12px' }}>
-        <Field label={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {t('Technical Skills')}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {/* Technical Skills Card */}
+        <div style={{
+          background: 'var(--color-surface-alt, rgba(0,0,0,0.02))',
+          border: '1px solid var(--color-border)',
+          borderRadius: '12px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>💻</span> {t('Technical Skills')}
+            </div>
             {onAISectionFill && <AISuggestButton sectionType="skills_technical" />}
-          </span>
-        } full>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
                 value={headings?.technical || ''} 
@@ -94,14 +107,25 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             onChange={(v) => update('technical', v)}
             placeholder="Python, TypeScript, React, Node.js, PostgreSQL, AWS, Docker..."
           />
-        </Field>
-        <Field label={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {t('Soft Skills')}
+        </div>
+
+        {/* Soft Skills Card */}
+        <div style={{
+          background: 'var(--color-surface-alt, rgba(0,0,0,0.02))',
+          border: '1px solid var(--color-border)',
+          borderRadius: '12px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🤝</span> {t('Soft Skills')}
+            </div>
             {onAISectionFill && <AISuggestButton sectionType="skills_soft" />}
-          </span>
-        } full>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
                 value={headings?.interpersonal || ''} 
@@ -111,14 +135,25 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             </div>
           </div>
           <TagInput value={data.soft} onChange={(v) => update('soft', v)} placeholder="Team Leadership, Cross-functional Collaboration, Agile..." />
-        </Field>
-        <Field label={
-          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {t('Languages')}
+        </div>
+
+        {/* Languages Card */}
+        <div style={{
+          background: 'var(--color-surface-alt, rgba(0,0,0,0.02))',
+          border: '1px solid var(--color-border)',
+          borderRadius: '12px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🌐</span> {t('Languages')}
+            </div>
             {onAISectionFill && <AISuggestButton sectionType="skills_languages" />}
-          </span>
-        } full>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>
               <TextInput 
                 value={headings?.languages || ''} 
@@ -128,12 +163,12 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             </div>
           </div>
           <TagInput value={data.languages || ''} onChange={(v) => update('languages', v)} placeholder="English, French, Spanish..." />
-        </Field>
+        </div>
       </div>
-      <div className="tip">
+
+      <div className="tip" style={{ borderRadius: '10px', padding: '12px 16px', background: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid #f59e0b', color: 'var(--color-text)' }}>
         💡 <strong>{t('Keyword Strategy')}:</strong> {t('Mirror the exact phrasing from target job descriptions. Modern AI parsers understand synonyms, but legacy ATS still relies on exact matches.')}
       </div>
     </div>
   );
 }
-

@@ -147,6 +147,100 @@ export default function useResumeDocuments({
     }
   }, [cvList, activeCvId, dispatch, setImportSnapshot, setStep]);
 
+  // Automatic Recovery Scanner: Find any non-demo user data previously saved in localStorage
+  useEffect(() => {
+    const keysToCheck = [
+      'resume-builder-data',
+      'resume-data-v2',
+      'resume-builder-data-backup',
+      'resume-builder-last-user-cv'
+    ];
+
+    const isDemoData = (resumeObj) => {
+      if (!resumeObj || !resumeObj.personal) return false;
+      const name = (resumeObj.personal.name || '').toLowerCase();
+      return name.includes('marie dubois') || name.includes('alexandre martin') || name.includes('sarah chen') || name.includes('hoshi fenneko') || name.includes('jean dupont');
+    };
+
+    keysToCheck.forEach(key => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        const userName = parsed?.personal?.name;
+        if (userName && !isDemoData(parsed)) {
+          setCvList(prev => {
+            const alreadyExists = prev.some(c => c.id === `recovered_${key}` || (c.data?.personal?.name === userName && !c.isDemo));
+            if (!alreadyExists) {
+              const recoveredCv = {
+                id: `recovered_${key}`,
+                name: `⚠️ ${userName} (CV Restauré)`,
+                lastModified: Date.now(),
+                data: parsed
+              };
+              const updated = [recoveredCv, ...prev];
+              try {
+                localStorage.setItem('resume-builder-cv-list', JSON.stringify(updated));
+              } catch {}
+              return updated;
+            }
+            return prev;
+          });
+        }
+      } catch {}
+    });
+  }, []);
+
+  const handleLoadDemoCv = useCallback((demoData, demoTitle) => {
+    // 1. Check if current active CV has user content
+    const currentName = data?.personal?.name || '';
+    const isCurrentDemo = currentName.includes('Marie Dubois') || currentName.includes('Alexandre Martin') || currentName.includes('Sarah Chen') || currentName.includes('Hoshi Fenneko') || currentName.includes('Jean Dupont');
+
+    // 2. If current CV is user work, save a backup of it in cvList before creating demo entry
+    if (data && !isCurrentDemo && currentName.trim().length > 0) {
+      const backupId = 'user_backup_' + Date.now();
+      const backupCv = {
+        id: backupId,
+        name: `${currentName} (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
+        lastModified: Date.now(),
+        data: structuredClone(data),
+        importSnapshot: importSnapshot ? structuredClone(importSnapshot) : null
+      };
+      
+      setCvList(prev => {
+        const next = [backupCv, ...prev];
+        try {
+          localStorage.setItem('resume-builder-cv-list', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }
+
+    // 3. Create a NEW document entry for this Demo CV in cvList
+    const demoId = 'demo_doc_' + Date.now();
+    const newDemoCv = {
+      id: demoId,
+      name: demoTitle || (language === 'fr' ? 'CV Démo' : 'Demo Resume'),
+      lastModified: Date.now(),
+      data: structuredClone(demoData),
+      isDemo: true
+    };
+
+    setCvList(prev => {
+      const updatedList = [...prev, newDemoCv];
+      try {
+        localStorage.setItem('resume-builder-cv-list', JSON.stringify(updatedList));
+        localStorage.setItem('resume-builder-active-cv-id', demoId);
+      } catch {}
+      return updatedList;
+    });
+
+    setActiveCvId(demoId);
+    dispatch({ type: 'SET_DATA', payload: newDemoCv.data });
+    setImportSnapshot(null);
+    setStep(0);
+  }, [data, importSnapshot, language, dispatch, setImportSnapshot, setStep]);
+
   const handleExportData = useCallback(() => {
     const dataStr = JSON.stringify(cvList, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -185,6 +279,7 @@ export default function useResumeDocuments({
     handleDuplicateCv,
     handleRenameCv,
     handleDeleteCv,
+    handleLoadDemoCv,
     handleExportData,
     handleImportData
   };

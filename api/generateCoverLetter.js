@@ -1,4 +1,5 @@
 import { callGeminiApi } from './_geminiFallback.js';
+import { SCIENTIFIC_HR_RULES } from './_scientificPromptRules.js';
 
 export default async function handler(req, res) {
   const { checkAndIncrementQuota } = await import('./firebase.js');
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
 
     await checkAndIncrementQuota();
 
-    const { data, jobDescription, language = 'en' } = req.body;
+    const { data, jobDescription, language = 'en', useSearchGrounding = false, companyName = '' } = req.body;
 
     if (!data || !jobDescription) {
       return res.status(400).json({ error: 'Resume data and job description are required' });
@@ -65,15 +66,17 @@ export default async function handler(req, res) {
                             language === 'es' ? 'Escribe la carta de presentación en Español.' : 
                             'Write the cover letter in English.';
 
-    const prompt = `
-You are an expert career coach and professional copywriter.
+    let prompt = `
+You are an expert career coach and elite professional copywriter.
 I will provide you with a Job Description and the parsed text of a candidate's Resume.
 Your task is to write a highly professional, tailored, and persuasive Cover Letter for the candidate applying to this job.
 
-Instructions:
+${SCIENTIFIC_HR_RULES.coverLetter}
+
+Core Instructions:
 1. Make sure to map the candidate's actual experience from their Resume to the requirements in the Job Description.
 2. SENDER HEADER & DATE: Start the letter with the candidate's ACTUAL personal contact information provided below and TODAY'S DATE (${formattedDate}). NEVER use generic placeholders like '[Your Name]', '[Your Address]', '[City, State]', '[Phone Number]', '[Email Address]', or '[Date]'. Insert candidate details directly into the header block.
-3. Do not invent fake experience. If the candidate lacks a specific skill, focus on their transferable skills.
+3. STRICT WORD COUNT: Keep the cover letter concise, punchy, and UNDER 300 WORDS across 3-4 paragraphs.
 4. Output ONLY the cover letter text, properly formatted using Markdown. Do not include any meta-commentary.
 5. ${langInstruction}
 
@@ -88,9 +91,16 @@ ${resumeText}
 """
 `;
 
+    if (useSearchGrounding) {
+      prompt += `\nSEARCH GROUNDING INSTRUCTION: Use Google Search Grounding to research real-time facts about the target company (${companyName || 'specified in the job description'}), such as recent company developments, core products, mission, or culture, and subtly weave these real insights into the letter.`;
+    }
+
+    const tools = useSearchGrounding ? [{ googleSearch: {} }] : undefined;
+
     const generatedText = await callGeminiApi({
       apiKey,
       prompt,
+      tools,
       generationConfig: {
         temperature: 0.7
       }
