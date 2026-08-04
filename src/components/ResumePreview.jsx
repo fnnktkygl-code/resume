@@ -219,7 +219,7 @@ function ResumePreview({
     const usablePerPage = pageHeight - 2 * P;
     const slot = pageHeight + gap;
 
-    const SELECTOR = '.draggable-section, .preview-interactive-section, .resume-section, [style*="breakInside"]';
+    const SELECTOR = '.draggable-section, .preview-interactive-section, .resume-section, .resume-fragment';
     const getCandidates = () =>
       contentRef.current ? Array.from(contentRef.current.querySelectorAll(SELECTOR)) : [];
 
@@ -257,7 +257,15 @@ function ResumePreview({
         };
       };
 
-      const resolved = new Set();
+      // `settled`  -> this exact node has been decided, never re-target it.
+      // `boundary` -> this node's decision covers its whole subtree, so we
+      //               stop descending into its children (only added when the
+      //               node itself was successfully placed on a page — fit as-is
+      //               or fit after a push). A too-tall node is added to
+      //               `settled` only, so its children stay eligible below,
+      //               matching the strategy described above.
+      const settled = new Set();
+      const boundary = new Set();
       let guard = 0;
       const MAX_ITERATIONS = 300;
 
@@ -265,17 +273,17 @@ function ResumePreview({
         const candidates = getCandidates();
 
         // Find the first (document-order) candidate that hasn't been
-        // resolved yet, and isn't nested inside an already-resolved block
-        // (a resolved ancestor "owns" the page-break decision for its
-        // whole subtree — we never split further inside it).
+        // settled yet, and isn't nested inside a node whose subtree is
+        // already closed off (a boundary ancestor "owns" the page-break
+        // decision for its whole subtree — we never split further inside it).
         let target = null;
         for (const el of candidates) {
-          if (resolved.has(el)) continue;
-          let insideResolved = false;
-          for (const r of resolved) {
-            if (r !== el && r.contains(el)) { insideResolved = true; break; }
+          if (settled.has(el)) continue;
+          let insideBoundary = false;
+          for (const b of boundary) {
+            if (b !== el && b.contains(el)) { insideBoundary = true; break; }
           }
-          if (insideResolved) continue;
+          if (insideBoundary) continue;
           target = el;
           break;
         }
@@ -284,10 +292,10 @@ function ResumePreview({
         const { top, height } = measure(target);
 
         // Too tall to ever fit as one atomic block, even on a blank page:
-        // leave it unpushed and mark it resolved so we don't reconsider
-        // this exact node again — its children remain eligible below.
+        // leave it unpushed, settle only this node (NOT its subtree) so its
+        // children keep getting individually evaluated below.
         if (height > usablePerPage) {
-          resolved.add(target);
+          settled.add(target);
           continue;
         }
 
@@ -304,7 +312,10 @@ function ResumePreview({
             target.setAttribute('data-page-push', 'true');
           }
         }
-        resolved.add(target);
+        // This node fit on a page (possibly after a push): its whole
+        // subtree is now safely inside page boundaries, so close it off.
+        settled.add(target);
+        boundary.add(target);
         // Loop again from scratch: this push may have shifted every
         // sibling below it, so the next candidate must be re-measured
         // fresh rather than trusted from this pass.
@@ -714,7 +725,7 @@ function ResumePreview({
                     />
                   )
                 ) : (
-                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-fragment" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div className="resume-exp-header">
                       {exp.link ? (
                         <a href={formatUrl(exp.link)} target="_blank" rel="noopener noreferrer" className="resume-company" style={{ textDecoration: 'none', color: 'inherit' }} onClick={(e) => e.stopPropagation()}>
@@ -770,7 +781,7 @@ function ResumePreview({
                     />
                   )
                 ) : (
-                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-fragment" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div className="resume-exp-header">
                       <span className="resume-company">{edu.institution}</span>
                       <span className="resume-dates">
@@ -848,7 +859,7 @@ function ResumePreview({
                     />
                   )
                 ) : (
-                  <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                  <div className="resume-fragment" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                     <div className="resume-exp-header">
                       <span className="resume-company">{pr.name}</span>
                       {pr.link && <span className="resume-dates">{pr.link}</span>}
@@ -984,7 +995,7 @@ function ResumePreview({
                       />
                     )
                   ) : (
-                    <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="resume-fragment" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                       <div className="resume-exp-header">
                         {item.title && <span className="resume-company">{parseMarkdown(item.title)}</span>}
                         {item.date && <span className="resume-dates">{item.date}</span>}
