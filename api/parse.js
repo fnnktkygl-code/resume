@@ -46,7 +46,8 @@ export default async function handler(req, res) {
   "netSocial": double, (Montant Net Social)
   "netPayable": double, (STRICTEMENT le Salaire Net VERSÉ sur le compte bancaire APRÈS IMPÔT SUR LE REVENU / Prélèvement à la source. NE PRENDS PAS le Net avant impôt !)
   "hasExplicitBonus": boolean, (true uniquement si une ligne de PRIME DE VACANCES, 13EME MOIS, BONUS ou PRIME EXCEPTIONNELLE est présente)
-  "bonusDescription": String (Intitulé exact de la prime si présente, sinon null)
+  "bonusDescription": String, (Intitulé exact de la prime si présente, sinon null)
+  "bonusAmount": double (Montant net en euros de la prime ou du bonus exceptionnel si présent, sinon 0.0)
 }`;
 
       const parts = [{ text: payslipPrompt }];
