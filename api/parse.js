@@ -32,13 +32,49 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY_MASTER;
+    const apiKey = process.env.GEMINI_API_KEY_MASTER || process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY_MASTER is missing in environment variables");
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
+    if (enhanceMode === 'payslip') {
+      const payslipPrompt = `Tu es un expert comptable spécialisé dans la paie française. Analyse ce bulletin et renvoie STRICTEMENT un JSON valide :
+{
+  "period": "YYYY-MM", (ex: "2026-07" ou "2026-03")
+  "grossSalary": double, (Total salaire brut)
+  "netSocial": double, (Montant Net Social)
+  "netPayable": double, (STRICTEMENT le Salaire Net VERSÉ sur le compte bancaire APRÈS IMPÔT SUR LE REVENU / Prélèvement à la source. NE PRENDS PAS le Net avant impôt !)
+  "hasExplicitBonus": boolean, (true uniquement si une ligne de PRIME DE VACANCES, 13EME MOIS, BONUS ou PRIME EXCEPTIONNELLE est présente)
+  "bonusDescription": String (Intitulé exact de la prime si présente, sinon null)
+}`;
+
+      const parts = [{ text: payslipPrompt }];
+      if (text) parts.push({ text: `Texte extrait du document PDF :\n${text}` });
+      if (base64Data && mimeType) {
+        parts.push({
+          inline_data: {
+            mime_type: mimeType,
+            data: base64Data,
+          },
+        });
+      }
+
+      const aiResultText = await callGeminiApi({
+        apiKey,
+        prompt: payslipPrompt,
+        contents: [{ parts }],
+        generationConfig: {
+          response_mime_type: 'application/json',
+        },
+      });
+
+      if (aiResultText) {
+        const jsonMap = JSON.parse(aiResultText);
+        res.status(200).json(jsonMap);
+        return;
+      }
+    }
 
     let systemPrompt;
 
@@ -59,160 +95,91 @@ CRITICAL RULES:
 
 Required JSON Structure:
 {
-  "detectedLanguage": "fr or en or es",
-  "personal": { "name": "", "tagline": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": "" },
+  "detectedLanguage": "fr",
+  "personal": {
+    "name": "",
+    "tagline": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "website": "",
+    "github": ""
+  },
   "summary": "",
   "experience": [
     {
-      "company": "",
       "title": "",
-      "startMonth": "",
-      "startYear": "",
-      "endMonth": "",
-      "endYear": "",
+      "company": "",
+      "location": "",
+      "startDate": "",
+      "endDate": "",
       "current": false,
-      "bullets": ["exact bullet text as written"],
-      "technologies": ""
+      "bullets": [""]
     }
   ],
   "education": [
     {
-      "institution": "",
       "degree": "",
-      "field": "",
-      "startYear": "",
-      "endYear": "",
+      "school": "",
       "location": "",
-      "technologies": ""
+      "startDate": "",
+      "endDate": "",
+      "current": false,
+      "bullets": [""]
     }
   ],
-  "skills": { "technical": "", "soft": "", "languages": "" },
+  "skills": {
+    "technical": "",
+    "soft": "",
+    "languages": ""
+  },
   "projects": [
     {
       "name": "",
       "description": "",
-      "techStack": "",
-      "link": "",
-      "highlights": ["exact highlight text"]
+      "technologies": "",
+      "bullets": [""]
     }
   ],
   "certifications": [
     {
       "name": "",
       "issuer": "",
-      "date": "",
-      "credentialUrl": ""
+      "date": ""
     }
   ]
-}
-
-Parse the provided resume FAITHFULLY without any modifications, returning ONLY the JSON object.`;
-    } else {
-      systemPrompt = `You are an expert HR Assistant and CV Enhancer.
-Your job is to read the raw text or the provided document of a user's resume and extract all information into a very specific strict JSON format. 
-IMPORTANT: You are not just a parser, you are an ENHANCER.
-
-CRITICAL LANGUAGE RULE:
-- ALL enhanced text MUST be written in ${language ? targetLangStr : 'the EXACT SAME language as the original resume'}.
-- NEVER translate to a different language unless specified. Preserve the target language.
-- Add a "detectedLanguage" field at the root of the JSON with the ISO code (e.g. "fr", "en", "es").
-
-CRITICAL ENHANCEMENT RULES:
-1. ENHANCE DESCRIPTIONS: If a job's bullet points are too brief, vague, or weak, you MUST rewrite and expand them professionally based on the job title. Use strong action verbs. Keep it realistic, credible, and maintain a natural human tone (do not sound like a robotic AI). ALWAYS OUTPUT IN ${language ? targetLangStr : 'THE ORIGINAL LANGUAGE'}.
-2. INFER SKILLS (TAGS): If the user does not explicitly list their skills, you MUST deduce them from their job descriptions and add them to the appropriate skills category (e.g., if they worked in retail, add "Customer Service", "Inventory Management", "Sales"). Write skills in ${language ? targetLangStr : 'the original language'}.
-3. SKILLS CATEGORIZATION: 
-   - 'technical' is strictly for IT/Programming/Software/Tools (e.g. Python, Excel, React). 
-   - If the user is in customer service, sales, retail, or management, put their skills under 'soft', NOT 'technical'.
-4. ZÉRO HALLUCINATIONS FOR TITLES: DO NOT invent a 'tagline' (like "PERFORMANCE ENGINEER" or "SALES ASSOCIATE") if it is not explicitly written as a title in the original resume. Leave 'tagline' empty "" if there isn't one. Do not hallucinate job roles they didn't have.
-5. BULLET POINTS CLEANUP: Remove any leading bullet characters like '>', '-', or '•' from the start of the 'bullets' text. We will render our own bullets.
-6. MISSING INFO: If a piece of information is missing, use an empty string "" or empty array.
-7. JSON ONLY: DO NOT include markdown formatting like \`\`\`json in your response. Respond ONLY with valid JSON.
-8. DATES: For 'startMonth' and 'endMonth', use the 3-letter abbreviation (e.g., 'Jan', 'Feb', 'Mar') or empty string if not found. If an experience is currently ongoing, set 'current': true.
-
-Required JSON Structure:
-{
-  "detectedLanguage": "fr or en or es",
-  "personal": { "name": "", "tagline": "", "email": "", "phone": "", "location": "", "linkedin": "", "website": "", "github": "" },
-  "summary": "A brief summary of the profile. Enhance this professionally if it's too short. IN THE REQUIRED LANGUAGE.",
-  "experience": [
-    {
-      "company": "",
-      "title": "",
-      "startMonth": "",
-      "startYear": "",
-      "endMonth": "",
-      "endYear": "",
-      "current": false,
-      "bullets": ["Professionally enhanced bullet 1 IN REQUIRED LANGUAGE", "Professionally enhanced bullet 2 IN REQUIRED LANGUAGE"],
-      "technologies": ""
-    }
-  ],
-  "education": [
-    {
-      "institution": "",
-      "degree": "",
-      "field": "",
-      "startYear": "",
-      "endYear": "",
-      "location": "",
-      "technologies": ""
-    }
-  ],
-  "skills": { "technical": "", "soft": "", "languages": "" },
-  "projects": [
-    {
-      "name": "",
-      "description": "",
-      "techStack": "",
-      "link": "",
-      "highlights": ["highlight 1"]
-    }
-  ],
-  "certifications": [
-    {
-      "name": "",
-      "issuer": "",
-      "date": "",
-      "credentialUrl": ""
-    }
-  ]
-}
-
-Parse and strategically enhance the provided resume, returning ONLY the JSON object IN THE REQUIRED LANGUAGE (${language ? targetLangStr : 'DETECTED LANGUAGE'}).`;
+}`;
     }
 
     const parts = [{ text: systemPrompt }];
-    if (text) {
-      parts.push({ text: `Resume Content:\n${text}` });
-    }
+    if (text) parts.push({ text: `Resume Text:\n${text}` });
     if (base64Data && mimeType) {
       parts.push({
-        inlineData: {
-          mimeType,
-          data: base64Data
-        }
+        inline_data: {
+          mime_type: mimeType,
+          data: base64Data,
+        },
       });
     }
 
-    const generatedText = await callGeminiApi({
+    const resultText = await callGeminiApi({
       apiKey,
+      prompt: systemPrompt,
       contents: [{ parts }],
       generationConfig: {
-        temperature: 0.2,
-        responseMimeType: "application/json"
-      }
+        response_mime_type: 'application/json',
+      },
     });
 
-    let cleanJsonStr = generatedText.trim();
-    if (cleanJsonStr.startsWith('```')) {
-      cleanJsonStr = cleanJsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
+    if (resultText) {
+      const parsed = JSON.parse(resultText);
+      res.status(200).json({ parsedResume: parsed });
+    } else {
+      res.status(500).json({ error: 'Failed to parse resume via AI' });
     }
-
-    const jsonResponse = JSON.parse(cleanJsonStr);
-    res.status(200).json({ parsedResume: jsonResponse });
-
-  } catch (error) {
-    console.error('Parse function error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+  } catch (err) {
+    console.error('API parse error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 }
