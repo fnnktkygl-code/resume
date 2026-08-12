@@ -352,7 +352,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
     <>
       <AILoadingOverlay 
         isGenerating={isProcessing} 
-        title={language === 'fr' ? 'Traitement du CV par l\\'IA...' : 'Processing Resume with AI...'} 
+        title={language === 'fr' ? "Traitement du CV par l'IA..." : "Processing Resume with AI..."}
         initialStep={step === 'upload' || step === 'summary' 
           ? (language === 'fr' ? '⚡ Lecture et structuration...' : '⚡ Reading and structuring...')
           : (language === 'fr' ? '✨ Amélioration et polissage...' : '✨ Enhancing and polishing...')}
