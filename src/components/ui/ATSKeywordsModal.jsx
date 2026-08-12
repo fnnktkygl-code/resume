@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { matchKeywordsWithProxy } from '../../services/geminiService';
+import AILoadingOverlay from './AILoadingOverlay';
 
 export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onApplied }) {
   const { t, language } = useTranslation();
@@ -50,12 +51,19 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
                      'var(--color-danger, #dc3545)';
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('ATS Keyword Matcher')}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <>
+      <AILoadingOverlay 
+        isGenerating={isAnalyzing} 
+        title={language === 'fr' ? 'Analyse ATS en cours...' : 'Analyzing ATS Match...'} 
+        initialStep={language === 'fr' ? '⚡ Comparaison des mots-clés...' : '⚡ Comparing keywords...'}
+        language={language}
+      />
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={t('ATS Keyword Matcher')}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
           {t('Paste the job description below to see how well your resume matches it.')}
         </p>
@@ -241,5 +249,6 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
         )}
       </div>
     </Modal>
+    </>
   );
 }

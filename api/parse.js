@@ -87,12 +87,12 @@ IMPORTANT: You are ONLY a parser. Extract the data EXACTLY as written. Do NOT re
 CRITICAL RULES:
 1. EXTRACT FAITHFULLY: Copy all text exactly as it appears. Do NOT improve bullet points, rewrite descriptions, or add action verbs.
 2. LANGUAGE: Ensure all the extracted text translates exactly to ${language ? targetLangStr : 'the detected language of the resume'} if it is not already. Add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
-3. SKILLS: Extract skills exactly as written. Do NOT infer or add skills that are not explicitly listed.
+3. SKILLS: Extract skills exactly as written in a single string per category. Do NOT infer or add skills that are not explicitly listed. Preserve existing categories with semicolons if present (e.g. "Programming: Python, Java; Data: SQL").
 4. TAGLINE: Only extract a tagline if it is explicitly written in the resume. Otherwise leave it as "".
 5. BULLET POINTS: Remove leading bullet characters ('>', '-', '•') but keep the text identical.
 6. MISSING INFO: If information is missing, use "" or [].
 7. JSON ONLY: Return ONLY valid JSON.
-8. DATES: Use 3-letter abbreviations for months (Jan, Feb, Mar). Set 'current': true for ongoing positions.
+8. DATES: Extract startYear, endYear, startMonth, endMonth separately. Use 3-letter abbreviations for months (Jan, Feb, Mar). Set 'current': true for ongoing positions.
 
 Required JSON Structure:
 {
@@ -113,21 +113,26 @@ Required JSON Structure:
       "title": "",
       "company": "",
       "location": "",
-      "startDate": "",
-      "endDate": "",
+      "startMonth": "",
+      "startYear": "",
+      "endMonth": "",
+      "endYear": "",
       "current": false,
-      "bullets": [""]
+      "bullets": [""],
+      "technologies": ""
     }
   ],
   "education": [
     {
       "degree": "",
-      "school": "",
+      "field": "",
+      "institution": "",
       "location": "",
-      "startDate": "",
-      "endDate": "",
+      "startYear": "",
+      "endYear": "",
       "current": false,
-      "bullets": [""]
+      "bullets": [""],
+      "technologies": ""
     }
   ],
   "skills": {
@@ -139,15 +144,17 @@ Required JSON Structure:
     {
       "name": "",
       "description": "",
-      "technologies": "",
-      "bullets": [""]
+      "techStack": "",
+      "link": "",
+      "highlights": [""]
     }
   ],
   "certifications": [
     {
       "name": "",
       "issuer": "",
-      "date": ""
+      "date": "",
+      "credentialUrl": ""
     }
   ]
 }`;

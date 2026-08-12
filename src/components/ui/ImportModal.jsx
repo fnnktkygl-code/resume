@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { importResumeWithProxy, enhanceResumeWithProxy } from '../../services/geminiService';
 import { useTranslation } from '../../utils/TranslationContext';
+import AILoadingOverlay from './AILoadingOverlay';
 
 // Lightweight inline VisualDiff for the import modal
 function ImportDiff({ original, modified, selectedChanges, onToggleChange }) {
@@ -348,11 +349,20 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '540px' }}>
-        <button className="modal-close" onClick={onClose} disabled={isProcessing}>
-          <i className="fi fi-rr-cross"></i>
-        </button>
+    <>
+      <AILoadingOverlay 
+        isGenerating={isProcessing} 
+        title={language === 'fr' ? 'Traitement du CV par l\\'IA...' : 'Processing Resume with AI...'} 
+        initialStep={step === 'upload' || step === 'summary' 
+          ? (language === 'fr' ? '⚡ Lecture et structuration...' : '⚡ Reading and structuring...')
+          : (language === 'fr' ? '✨ Amélioration et polissage...' : '✨ Enhancing and polishing...')}
+        language={language}
+      />
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '540px' }}>
+          <button className="modal-close" onClick={onClose} disabled={isProcessing}>
+            <i className="fi fi-rr-cross"></i>
+          </button>
         
         <h2 className="modal-title">{t('Import Resume')} 🪄</h2>
         
@@ -562,5 +572,6 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
         )}
       </div>
     </div>
+    </>
   );
 }
