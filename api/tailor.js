@@ -74,7 +74,11 @@ Rules:
       }
     });
 
-    let tailoredResume = JSON.parse(jsonText);
+    let cleanedText = jsonText;
+    if (jsonText.startsWith('```')) {
+      cleanedText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+    }
+    let tailoredResume = JSON.parse(cleanedText);
     tailoredResume = normalizeResumeCasing(tailoredResume);
     
     if (resumeData.headings) {

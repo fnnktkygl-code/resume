@@ -97,11 +97,16 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
         bodyPayload.tools = tools;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout per model
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload)
+        body: JSON.stringify(bodyPayload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
@@ -132,6 +137,8 @@ export async function callGeminiApi({ apiKey, prompt, contents, generationConfig
       if (generatedText) {
         console.log(`✅ [AI MODEL SUCCESS] Executed successfully using tier model: '${modelName}'`);
         return generatedText;
+      } else {
+        throw new Error(`Empty response from ${modelName}`);
       }
     } catch (err) {
       console.warn(`[Gemini Rotator] Call to ${modelName} failed:`, err.message);
