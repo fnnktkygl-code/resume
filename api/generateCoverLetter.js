@@ -92,7 +92,7 @@ ${SCIENTIFIC_HR_RULES.coverLetter}
 
 Core Instructions:
 1. Make sure to map the candidate's actual experience from their Resume to the requirements in the Job Description.
-2. SENDER HEADER & DATE: Start the letter directly with the candidate's ACTUAL personal contact information provided below and TODAY'S DATE (${formattedDate}). NEVER write a title like "Cover Letter:" or "Lettre de motivation:" at the top. NEVER use generic placeholders like '[Your Name]', '[Your Address]', '[City, State]', '[Phone Number]', '[Email Address]', or '[Date]'. Insert candidate details directly into the header block.
+2. SENDER HEADER, DATE & SUBJECT: Start the letter directly with the candidate's ACTUAL personal contact information provided below. Then, include TODAY'S DATE (${formattedDate}). Then, you MUST include a formal 'Subject' or 'Objet' line stating the position applied for (e.g., "Objet : Candidature au poste de [Job Title]"). NEVER write a generic title like "Cover Letter:" or "Lettre de motivation:" at the top. NEVER use generic placeholders like '[Your Name]', '[Your Address]', '[City, State]', '[Phone Number]', '[Email Address]', or '[Date]'. Insert candidate details directly into the header block.
 ${lengthInstruction}
 4. Output ONLY the cover letter text, properly formatted using Markdown. Do not include any meta-commentary.
 5. NO PLACEHOLDERS: NEVER use placeholders like "[cite: votre CV]", "[Insert Company Name]", or any other brackets. You must weave the candidate's actual details seamlessly into the text. If you don't have specific data, rephrase the sentence naturally instead of leaving a placeholder.
