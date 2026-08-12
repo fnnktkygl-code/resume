@@ -712,7 +712,7 @@ function NjmTemplate({
     let langTitle = displayHeading('languages', 'Languages', 'Languages');
     let langSectionId = 'skills';
     if (langSec && langSec.items?.length > 0) {
-      const parsedItems = langSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+      const parsedItems = langSec.items.map(item => [item.title, item.subtitle, item.description].map(x => typeof x === 'string' ? x.trim() : x).filter(Boolean).join(' : ')).filter(Boolean);
       if (parsedItems.length > 0) {
         langTitle = langSec.label;
         langItems = parsedItems;
@@ -741,7 +741,7 @@ function NjmTemplate({
     let atoutsTitle = atoutsSec ? atoutsSec.label : (language === 'fr' ? 'Atouts' : language === 'es' ? 'Fortalezas' : 'Strengths');
     let atoutsSectionId = atoutsSec ? atoutsSec.id : 'custom_atouts';
     if (atoutsSec) {
-      atoutsItems = atoutsSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+      atoutsItems = atoutsSec.items.map(item => [item.title, item.subtitle, item.description].map(x => typeof x === 'string' ? x.trim() : x).filter(Boolean).join(' : ')).filter(Boolean);
     }
     const isAtoutsEmpty = atoutsItems.length === 0;
     if (!isAtoutsEmpty || onSectionClick) {
@@ -759,7 +759,7 @@ function NjmTemplate({
     let loisirsTitle = loisirsSec ? loisirsSec.label : (language === 'fr' ? 'Loisirs' : language === 'es' ? 'Aficiones' : 'Hobbies');
     let loisirsSectionId = loisirsSec ? loisirsSec.id : 'custom_loisirs';
     if (loisirsSec) {
-      loisirsItems = loisirsSec.items.map(item => [item.title, item.subtitle, item.description].filter(Boolean).join(' : ')).filter(Boolean);
+      loisirsItems = loisirsSec.items.map(item => [item.title, item.subtitle, item.description].map(x => typeof x === 'string' ? x.trim() : x).filter(Boolean).join(' : ')).filter(Boolean);
     }
     const isLoisirsEmpty = loisirsItems.length === 0;
     if (!isLoisirsEmpty || onSectionClick) {
