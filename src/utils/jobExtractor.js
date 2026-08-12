@@ -70,11 +70,11 @@ export function extractJobDetails(text) {
 
   // 1. Company Name Extraction Patterns
   const companyPatterns = [
-    /logo\s+de\s+l'entreprise,?\s*([A-Z0-9\s\-_]{2,35})/i,
+    /logo\s+de\s+l'entreprise,?\s*([^\n\r,.;]{2,35})/i,
     /(?:entreprise|company|société|organization)\s*:\s*([^\n\r,.;]{2,40})/i,
-    /(?:à\s+propos\s+de|about)\s+([A-Z][A-Za-z0-9\s\-_]{2,30})/i,
-    /(?:rejoindre|join)\s+([A-Z][A-Za-z0-9\s\-_]{2,30})/i,
-    /chez\s+([A-Z][A-Za-z0-9\s\-_]{2,30})/i
+    /(?:à\s+propos\s+de|about)\s+([^\n\r,.;]{2,40})/i,
+    /(?:rejoindre|join)\s+([^\n\r,.;]{2,40})/i,
+    /chez\s+([^\n\r,.;]{2,40})/i
   ];
 
   for (const pattern of companyPatterns) {
