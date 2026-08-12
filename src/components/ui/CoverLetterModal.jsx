@@ -326,8 +326,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       dispatch({ type: 'UPDATE_COVER_LETTER', payload: formatted });
     }
 
-    // Synchronize HTML into contentEditable editor if external
-    if (editorRef.current && !isInternalChangeRef.current) {
+    // Synchronize HTML into contentEditable editor
+    if (editorRef.current) {
       editorRef.current.innerHTML = textToHtml(formatted);
     }
     isInternalChangeRef.current = false;
