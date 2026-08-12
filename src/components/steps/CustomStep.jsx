@@ -166,7 +166,7 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
               </div>
               
               <div className="field-grid">
-                <Field label={fields.titleLabel} full={!fields.showSubtitle && !fields.showDate}>
+                <Field label={fields.titleLabel} full={!(fields.showSubtitle || item.subtitle) && !(fields.showDate || item.date)}>
                   <TextInput 
                     value={item.title} 
                     onChange={(v) => updateItem(realIdx, 'title', v)} 
@@ -174,8 +174,8 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                     showBoldButton
                   />
                 </Field>
-                {fields.showSubtitle && (
-                  <Field label={fields.subtitleLabel}>
+                {(fields.showSubtitle || item.subtitle) && (
+                  <Field label={fields.subtitleLabel || t('Subtitle')}>
                     <TextInput 
                       value={item.subtitle} 
                       onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
@@ -184,8 +184,8 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                     />
                   </Field>
                 )}
-                {fields.showDate && (
-                  <Field label={fields.dateLabel}>
+                {(fields.showDate || item.date) && (
+                  <Field label={fields.dateLabel || t('Date')}>
                     <TextInput 
                       value={item.date} 
                       onChange={(v) => updateItem(realIdx, 'date', v)} 
@@ -195,9 +195,9 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                 )}
               </div>
               
-              {fields.showDescription && (
+              {(fields.showDescription || item.description) && (
                 <div style={{ marginTop: '16px' }}>
-                  <Field label={fields.descLabel} full>
+                  <Field label={fields.descLabel || t('Details (Optional)')} full>
                     <TextArea 
                       value={item.description} 
                       onChange={(v) => updateItem(realIdx, 'description', v)} 
