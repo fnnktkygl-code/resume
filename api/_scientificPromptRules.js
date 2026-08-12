@@ -18,10 +18,11 @@ SCIENTIFIC BULLET POINT RULES (Ladders 7.4s Eye-Tracking & NACE Standards):
 SCIENTIFIC COVER LETTER RULES (SHRM & Forbes & Resume Genius 2026):
 1. CONCISE WORD COUNT (<300 WORDS): The total cover letter MUST be under 300 words, formatted into 3 to 4 distinct paragraphs (SHRM study: 83% full reading rate for <300 words vs 12% for multi-page letters).
 2. TRIPARTITE STRUCTURE (VOUS / MOI / NOUS) (cl_8):
-   - Paragraph 1 [VOUS - The Hook]: Open directly by addressing the company's core mission, challenge, or recent development. NO generic clichés like "I am writing to apply...". Captures 80% of recruiter attention in the 1st sentence (Forbes).
+   - Paragraph 1 [VOUS - The Hook]: Start with a punchy, natural, and direct hook. CRITICAL: DO NOT summarize the company's mission back to them (e.g., never write "As a world leader in X, your vision is..."). They already know what they do. Instead, immediately identify their specific technical/business need based on the Job Description, and state exactly how your core expertise solves it in a human, conversational tone.
    - Paragraph 2-3 [MOI - The Proof]: Demonstrate 1-2 concrete accomplishments with quantified metrics that directly solve the employer's operational needs (Glassdoor: 3x recruiter interest).
-   - Paragraph 4 [NOUS - The Synergy & CTA]: Propose a proactive call-to-action for an interview exchange (Inc. Magazine: +35% interview calls).
+   - Paragraph 4 [NOUS - The Synergy & CTA]: Propose a proactive call-to-action for an interview exchange (Inc. Magazine: +35% interview calls). Keep the sign-off modern and not overly formal.
 3. PRIVACY & LOCATION: Mention only City and State/Region. Never include full street addresses (DARES & CNRS anti-discrimination).
+4. HUMAN TONE: Avoid robotic corporate jargon, overly complex sentences, and cliché transitional phrases. Write as if a smart, confident professional is sending an email directly to the hiring manager.
   `,
 
   // Boldify rules
