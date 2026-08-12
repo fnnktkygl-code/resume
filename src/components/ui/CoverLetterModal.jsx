@@ -321,6 +321,10 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
   const updateLetterContent = useCallback((newText, clearHistory = false) => {
     const formatted = autoInjectHeaderInfo(newText);
     setCoverLetter(formatted);
+    
+    if (dispatch) {
+      dispatch({ type: 'UPDATE_COVER_LETTER', payload: formatted });
+    }
 
     // Synchronize HTML into contentEditable editor if external
     if (editorRef.current && !isInternalChangeRef.current) {
@@ -339,7 +343,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       });
       setHistoryIndex(prev => prev + 1);
     }
-  }, [autoInjectHeaderInfo, historyIndex, textToHtml]);
+  }, [autoInjectHeaderInfo, historyIndex, textToHtml, dispatch]);
 
   const debounceDispatchRef = useRef(null);
   const debounceHistoryRef = useRef(null);
@@ -483,7 +487,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
         data, 
         combinedPrompt, 
         language, 
-        { tone, clLength, companyName, targetRole, useSearchGrounding }
+        { tone, clLength, companyName, targetRole, useSearchGrounding, forceRegenerate: true }
       );
 
       clearInterval(progressInterval);

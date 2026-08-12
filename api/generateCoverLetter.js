@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
     await checkAndIncrementQuota();
 
-    const { data, jobDescription, language = 'en', useSearchGrounding = false, companyName = '' } = req.body;
+    const { data, jobDescription, language = 'en', useSearchGrounding = false, companyName = '', tone = 'Professional', clLength = 'Standard', targetRole = '' } = req.body;
 
     if (!data || !jobDescription) {
       return res.status(400).json({ error: 'Resume data and job description are required' });
@@ -66,6 +66,23 @@ export default async function handler(req, res) {
                             language === 'es' ? 'Escribe la carta de presentación en Español.' : 
                             'Write the cover letter in English.';
 
+    let lengthInstruction = '3. STRICT WORD COUNT: Keep the cover letter concise, punchy, and UNDER 300 WORDS across 3-4 paragraphs.';
+    if (clLength === 'Concise') {
+      lengthInstruction = '3. STRICT WORD COUNT: Keep it extremely concise and punchy (under 150 words). Get straight to the point.';
+    } else if (clLength === 'Detailed') {
+      lengthInstruction = '3. STRICT WORD COUNT: Provide a detailed and comprehensive cover letter (around 350-450 words) that deeply explores the alignment between the candidate\'s experience and the company\'s needs.';
+    }
+
+    let toneInstruction = '';
+    if (tone && tone !== 'Professional') {
+      toneInstruction = `7. TONE AND STYLE: You must write this cover letter using the following tone/style: "${tone}". Adopt this persona completely, but still weave in the candidate's actual skills.`;
+    }
+
+    let targetRoleInstruction = '';
+    if (targetRole) {
+      targetRoleInstruction = `Target Role: ${targetRole}\n`;
+    }
+
     let prompt = `
 You are an expert career coach and elite professional copywriter.
 I will provide you with a Job Description and the parsed text of a candidate's Resume.
@@ -76,14 +93,15 @@ ${SCIENTIFIC_HR_RULES.coverLetter}
 Core Instructions:
 1. Make sure to map the candidate's actual experience from their Resume to the requirements in the Job Description.
 2. SENDER HEADER & DATE: Start the letter directly with the candidate's ACTUAL personal contact information provided below and TODAY'S DATE (${formattedDate}). NEVER write a title like "Cover Letter:" or "Lettre de motivation:" at the top. NEVER use generic placeholders like '[Your Name]', '[Your Address]', '[City, State]', '[Phone Number]', '[Email Address]', or '[Date]'. Insert candidate details directly into the header block.
-3. STRICT WORD COUNT: Keep the cover letter concise, punchy, and UNDER 300 WORDS across 3-4 paragraphs.
+${lengthInstruction}
 4. Output ONLY the cover letter text, properly formatted using Markdown. Do not include any meta-commentary.
 5. NO PLACEHOLDERS: NEVER use placeholders like "[cite: votre CV]", "[Insert Company Name]", or any other brackets. You must weave the candidate's actual details seamlessly into the text. If you don't have specific data, rephrase the sentence naturally instead of leaving a placeholder.
 6. ${langInstruction}
+${toneInstruction}
 
 Job Description:
 """
-${jobDescription}
+${targetRoleInstruction}${jobDescription}
 """
 
 Resume Content & Candidate Details:
