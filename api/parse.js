@@ -158,6 +158,83 @@ Required JSON Structure:
     }
   ]
 }`;
+} else if (enhanceMode === 'parse_and_enhance') {
+      systemPrompt = `You are an expert Resume Writer and Career Coach.
+Your job is to read the raw text or provided document of a user's resume and extract ALL information into a strict JSON format while ENHANCING the content to meet elite Silicon Valley standards.
+
+CRITICAL RULES:
+1. ENHANCE AND REWRITE: Rewrite bullet points to be highly impactful, starting with strong action verbs. Ensure they focus on achievements and metrics rather than just responsibilities.
+2. GENERATE SUMMARY: If the resume lacks a strong professional summary, GENERATE a compelling 2-4 sentence summary based on the candidate's overall experience, skills, and implied trajectory. Do not leave the summary empty.
+3. GENERATE TAGLINE: If the resume lacks a tagline/title, GENERATE an appropriate one (e.g., "Senior Software Engineer" or "Marketing Executive") based on their most recent roles.
+4. LANGUAGE: Ensure all the extracted and enhanced text translates exactly to ${language ? targetLangStr : 'the detected language of the resume'}. Add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
+5. SKILLS: Extract and categorize skills cleanly.
+6. JSON ONLY: Return ONLY valid JSON matching the exact structure below.
+7. DATES: Extract startYear, endYear, startMonth, endMonth separately. Use 3-letter abbreviations for months (Jan, Feb, Mar). Set 'current': true for ongoing positions.
+
+Required JSON Structure:
+{
+  "detectedLanguage": "fr",
+  "personal": {
+    "name": "",
+    "tagline": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "linkedin": "",
+    "website": "",
+    "github": ""
+  },
+  "summary": "",
+  "experience": [
+    {
+      "title": "",
+      "company": "",
+      "location": "",
+      "startMonth": "",
+      "startYear": "",
+      "endMonth": "",
+      "endYear": "",
+      "current": false,
+      "bullets": [""],
+      "technologies": ""
+    }
+  ],
+  "education": [
+    {
+      "degree": "",
+      "field": "",
+      "institution": "",
+      "location": "",
+      "startYear": "",
+      "endYear": "",
+      "current": false,
+      "bullets": [""],
+      "technologies": ""
+    }
+  ],
+  "skills": {
+    "technical": "",
+    "soft": "",
+    "languages": ""
+  },
+  "projects": [
+    {
+      "name": "",
+      "description": "",
+      "techStack": "",
+      "link": "",
+      "highlights": [""]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "",
+      "issuer": "",
+      "date": "",
+      "credentialUrl": ""
+    }
+  ]
+}`;
     }
 
     const parts = [{ text: systemPrompt }];

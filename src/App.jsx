@@ -1019,7 +1019,25 @@ export default function App() {
                   onChange={(v) => dispatch({ type: 'UPDATE_SUMMARY', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
-                  onAIAssist={(text) => setAiBoldConfig({ 
+                  onAIAssist={(text) => {
+                    setAiSectionFillConfig({
+                      isOpen: true,
+                      sectionType: 'summary',
+                      resumeContext: buildResumeContext(data),
+                      targetJobDescription: data.targetJobDescription || null,
+                      onApply: (suggestions) => {
+                        saveSnapshot();
+                        if (suggestions && suggestions.length > 0) {
+                          const firstSelected = suggestions[0];
+                          const summaryText = typeof firstSelected === 'string' ? firstSelected : (firstSelected.description || firstSelected.name || '');
+                          if (summaryText) {
+                            dispatch({ type: 'UPDATE_SUMMARY', payload: summaryText });
+                          }
+                        }
+                      }
+                    });
+                  }}
+                  onAIBold={(text) => setAiBoldConfig({ 
                     isOpen: true, 
                     text, 
                     contextType: 'summary', 
