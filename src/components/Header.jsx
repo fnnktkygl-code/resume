@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Header({
   t,
@@ -16,6 +16,33 @@ export default function Header({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const langRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <header className="header">
@@ -80,7 +107,7 @@ export default function Header({
         </button>
 
         {/* Overflow Menu */}
-        <div className="header-overflow-menu">
+        <div className="header-overflow-menu" ref={menuRef}>
           <button
             className="mobile-menu-btn header-more-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -162,7 +189,7 @@ export default function Header({
           </div>
         </div>
 
-        <div className="header-language-menu" style={{ position: 'relative' }}>
+        <div className="header-language-menu" ref={langRef} style={{ position: 'relative' }}>
           <button 
             className="btn-demo" 
             onClick={() => setLangMenuOpen(!langMenuOpen)}

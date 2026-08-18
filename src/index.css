@@ -1851,7 +1851,7 @@ input[type="range"] {
 }
 
 /* ============================================
-   Utility Classes for Mobile/Desktop
+   Utility Classes & Mobile Ergonomics
    ============================================ */
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
@@ -1862,32 +1862,87 @@ input[type="range"] {
 
 @media (max-width: 1024px) {
   .preview-panel { display: none; }
-  .main { padding: 16px; padding-bottom: 80px; }
-  .mobile-bottom-nav { display: block; }
-  .form-panel { min-width: 0; flex: 1; }
+  .main { 
+    padding: 16px; 
+    padding-bottom: max(84px, calc(72px + env(safe-area-inset-bottom, 0px))); 
+  }
+  .mobile-bottom-nav { 
+    display: block; 
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .form-panel { min-width: 0; flex: 1; width: 100%; }
 }
 
 @media (max-width: 768px) {
-  .header { padding: 12px 16px; position: relative; }
+  .header { padding: 12px 14px; position: relative; }
   .privacy-note { display: none; }
   .mobile-menu-btn { display: flex; }
-  .main { padding: 14px; padding-bottom: 80px; }
-  .form-panel { min-width: 0; }
+  .main { 
+    padding: 12px; 
+    padding-bottom: max(84px, calc(72px + env(safe-area-inset-bottom, 0px))); 
+  }
+  .form-panel { min-width: 0; width: 100%; }
+  .field-grid { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 16px 14px; border-radius: var(--radius-md); }
 }
 
 @media (max-width: 600px) {
-  .header { padding: 10px 14px; flex-wrap: nowrap; gap: 8px; }
-  .main { padding: 12px; gap: 16px; padding-bottom: 80px; }
-  .card { padding: 18px; }
-  .field-grid { grid-template-columns: 1fr; }
+  .header { padding: 10px 12px; flex-wrap: nowrap; gap: 8px; }
+  .main { padding: 10px; gap: 14px; padding-bottom: max(84px, calc(72px + env(safe-area-inset-bottom, 0px))); }
+  .card { padding: 14px 12px; }
   .stepper { gap: 2px; padding: 4px; }
   .step-btn { padding: 8px 6px; font-size: 11px; }
   .export-buttons { flex-direction: column; }
   .export-buttons .btn-primary,
   .export-buttons .btn-secondary { width: 100%; justify-content: center; }
-  .card-title { font-size: 18px; }
-  .card-subtitle { font-size: 13px; }
+  .card-title { font-size: 17px; }
+  .card-subtitle { font-size: 12.5px; }
   .btn-primary, .btn-secondary, .btn-export, .cl-generate-btn { min-height: 44px; }
+  .modal-overlay { padding: 12px; }
+  .modal-content { 
+    padding: 20px 16px; 
+    max-height: 90dvh; 
+    border-radius: var(--radius-md); 
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Stepper Mobile Quick Action Bar */
+.stepper-mobile-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.stepper-mobile-actions::-webkit-scrollbar {
+  display: none;
+}
+.stepper-mobile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 34px;
+}
+.stepper-mobile-chip:active {
+  transform: scale(0.96);
+  background: var(--color-surface-alt);
+}
+.stepper-mobile-chip i {
+  font-size: 11px;
 }
 
 /* ============================================
@@ -3478,34 +3533,121 @@ input[type="range"] {
 /* ============================================
    Mobile Responsiveness for Cover Letter
    ============================================ */
+.cl-mobile-tabs {
+  display: none;
+  background: var(--color-surface-alt);
+  padding: 4px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.cl-mobile-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 38px;
+}
+
+.cl-mobile-tab-btn.active {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.cl-mobile-footer-bar {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-border);
+  padding: 10px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  gap: 8px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+}
+
 @media (max-width: 768px) {
+  .cl-workspace-overlay {
+    padding: 0;
+  }
+  .cl-mobile-tabs {
+    display: flex;
+  }
+  .cl-mobile-footer-bar {
+    display: flex;
+  }
   .cl-workspace-main {
     flex-direction: column;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100dvh - 58px);
   }
   .cl-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: none;
     overflow-y: visible;
-    padding: 16px;
+    padding: 14px;
+    padding-bottom: 80px;
+  }
+  .cl-sidebar.mobile-hidden {
+    display: none !important;
+  }
+  .cl-sidebar-scroll {
+    overflow-y: visible;
+    padding-right: 0;
   }
   .cl-preview-area {
-    padding: 16px 8px;
+    padding: 12px 10px;
     overflow-y: visible;
+    padding-bottom: 80px;
+  }
+  .cl-preview-area.mobile-hidden {
+    display: none !important;
   }
   .cl-a4-paper {
     width: 100%;
     min-height: auto;
-    padding: 20px 16px;
+    padding: 24px 16px;
     font-size: 10pt;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-sm);
   }
   .cl-toolbar {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .cl-toolbar .btn-secondary {
+    padding: 6px 10px;
+    font-size: 12px;
   }
   .cl-header {
-    padding: 12px 16px;
+    padding: 10px 14px;
+  }
+  .cl-header h2 {
+    font-size: 15px;
   }
 }
 

@@ -9,21 +9,26 @@ export function cleanJobTitle(role) {
 
   let cleaned = role.trim();
 
-  // 1. Remove leading gender artifacts like "(e) ", "e ", ".e ", "- "
+  // 1. Remove leading articles and prepositions ("candidature au poste de", "au poste de", "le poste de", "un", "une")
+  cleaned = cleaned.replace(/^(?:candidature\s+au\s+poste\s+de|au\s+poste\s+de|le\s+poste\s+de|poste\s+de|un|une|le|la|du|de|au|pour)\s+/i, '');
+
+  // 2. Remove leading gender artifacts like "(e) ", "e ", ".e ", "- "
   cleaned = cleaned.replace(/^[\(\.\-]*\b(e|H\/F|F\/H|m\/f|m\/f\/d)\b[\)\.\-]*\s*/i, '');
   cleaned = cleaned.replace(/^\(e\)\s*/i, '');
 
-  // 2. Remove inline parenthetical gender markers e.g. "Ingénieur(e)" -> "Ingénieur", "Consultant(e)" -> "Consultant"
+  // 3. Remove inline parenthetical gender markers e.g. "Ingénieur(e)" -> "Ingénieur", "Consultant(e)" -> "Consultant"
   cleaned = cleaned.replace(/(\w+)\(e\)/gi, '$1');
   cleaned = cleaned.replace(/(\w+)\(se\)/gi, '$1');
   cleaned = cleaned.replace(/(\w+)\(euse\)/gi, '$1');
   cleaned = cleaned.replace(/(\w+)\.e\b/gi, '$1');
 
-  // 3. Remove trailing gender & contract tags: "(H/F)", "(F/H)", "H/F", "F/H", "(M/F/D)", "[H/F]", "(CDI)"
-  cleaned = cleaned.replace(/\s*[\(\[\{]?(?:H\/F|F\/H|M\/F|M\/F\/D|H-F|F-H|CDI|CDD|Freelance)[\)\]\}]?\s*$/i, '');
-
-  // 4. Remove leading articles and prepositions ("un ", "une ", "le poste de ", "au poste de ")
-  cleaned = cleaned.replace(/^(?:un|une|le|la|du|de|au|pour|poste\s+de|au\s+poste\s+de|candidature\s+au\s+poste\s+de)\s+/i, '');
+  // 4. Repeatedly remove trailing gender & contract tags: "(H/F)", "(F/H)", "H/F", "F/H", "(M/F/D)", "[H/F]", "(CDI)", "- CDI"
+  let prev;
+  do {
+    prev = cleaned;
+    cleaned = cleaned.replace(/\s*[\(\[\{]?(?:H\/F|F\/H|M\/F|M\/F\/D|H-F|F-H|CDI|CDD|Freelance|Stage|Alternance)[\)\]\}]?\s*$/i, '');
+    cleaned = cleaned.replace(/\s*[-–—]\s*$/i, '');
+  } while (cleaned !== prev && cleaned.length > 0);
 
   // 5. Trim leftover punctuation at start and end
   cleaned = cleaned.replace(/^[^a-zA-Z0-9À-ÿ]+|[^a-zA-Z0-9À-ÿ\)\%]+$/g, '').trim();

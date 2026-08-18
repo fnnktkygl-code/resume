@@ -874,6 +874,34 @@ export default function App() {
               </button>
             </div>
 
+            {/* Mobile Stepper Quick Actions */}
+            <div className="stepper-mobile-actions mobile-only" role="toolbar" aria-label="Section shortcuts">
+              <button
+                type="button"
+                className="stepper-mobile-chip"
+                onClick={addCustomSection}
+                aria-label={language === 'fr' ? 'Ajouter une rubrique personnalisée' : 'Add custom section'}
+              >
+                <span>➕</span> {language === 'fr' ? 'Rubrique' : 'Section'}
+              </button>
+              <button
+                type="button"
+                className="stepper-mobile-chip"
+                onClick={addSpacerSection}
+                aria-label={language === 'fr' ? 'Ajouter un espaceur ou saut de page' : 'Add spacer or page break'}
+              >
+                <span>📐</span> {language === 'fr' ? 'Espaceur' : 'Spacer'}
+              </button>
+              <button
+                type="button"
+                className="stepper-mobile-chip"
+                onClick={() => setIsReorderModalOpen(true)}
+                aria-label={language === 'fr' ? 'Réorganiser les rubriques' : 'Reorder sections'}
+              >
+                <span>⇅</span> {language === 'fr' ? 'Réorganiser' : 'Reorder'}
+              </button>
+            </div>
+
             {/* Desktop Stepper Navigation (>= 769px) */}
             <nav className="stepper desktop-only" role="tablist" aria-label="Resume sections">
               <div className="stepper-header-meta">

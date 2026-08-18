@@ -61,6 +61,8 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     return '';
   });
 
+  const [mobileTab, setMobileTab] = useState(() => (coverLetter ? 'preview' : 'form'));
+
   const [error, setError] = useState(null);
   const [isBoldifying, setIsBoldifying] = useState(false);
   const [extractionNotice, setExtractionNotice] = useState(null);
@@ -497,6 +499,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       // Smooth 300ms pause to let user see 100% progress
       await new Promise(r => setTimeout(r, 300));
       updateLetterContent(result, true);
+      setMobileTab('preview');
       
       if (window.innerWidth <= 768 && previewRef.current) {
         setTimeout(() => {
@@ -702,9 +705,30 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
         </div>
       </div>
 
+      {/* Mobile Workspace Tabs (<= 768px) */}
+      <div className="cl-mobile-tabs">
+        <button 
+          type="button"
+          className={`cl-mobile-tab-btn ${mobileTab === 'form' ? 'active' : ''}`}
+          onClick={() => setMobileTab('form')}
+        >
+          <i className="fi fi-rr-settings-sliders"></i>
+          {language === 'fr' ? '1. Paramètres & Offre' : '1. Settings & Job'}
+        </button>
+        <button 
+          type="button"
+          className={`cl-mobile-tab-btn ${mobileTab === 'preview' ? 'active' : ''}`}
+          onClick={() => setMobileTab('preview')}
+        >
+          <i className="fi fi-rr-document"></i>
+          {language === 'fr' ? '2. Aperçu & Édition A4' : '2. Preview & A4 Edit'}
+          {coverLetter && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-accent)' }} />}
+        </button>
+      </div>
+
       <div className="cl-workspace-main">
         {/* Left Panel: Settings */}
-        <div className="cl-sidebar">
+        <div className={`cl-sidebar ${mobileTab === 'preview' ? 'mobile-hidden' : ''}`}>
           {/* Top Scrollable Content */}
           <div className="cl-sidebar-scroll">
             <div className="cl-sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -1067,7 +1091,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
         </div>
 
         {/* Right Panel: Clean WYSIWYG Live Editor */}
-        <div className="cl-preview-area" style={{ position: 'relative' }} ref={previewRef}>
+        <div className={`cl-preview-area ${mobileTab === 'form' ? 'mobile-hidden' : ''}`} style={{ position: 'relative' }} ref={previewRef}>
           {(isGenerating || isBoldifying) && (
             <div className="cl-loading-overlay">
               <div className="cl-loading-card">
@@ -1280,6 +1304,49 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
             }}
           />
         </div>
+      </div>
+      {/* Mobile Sticky Action Bar */}
+      <div className="cl-mobile-footer-bar">
+        {mobileTab === 'form' ? (
+          <button 
+            type="button"
+            className="cl-generate-btn-primary"
+            onClick={handleGenerate}
+            disabled={!jobDescription.trim() || isGenerating || isResumeEmpty}
+            style={{ flex: 1, minHeight: '44px', width: '100%', justifyContent: 'center' }}
+          >
+            {isGenerating ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fi fi-rr-spinner cl-spin"></i>
+                {language === 'fr' ? 'Génération IA...' : 'Generating AI...'}
+              </span>
+            ) : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                ✨ {coverLetter ? (language === 'fr' ? 'Régénérer la Lettre' : 'Regenerate Letter') : (language === 'fr' ? 'Générer avec IA' : 'Generate with AI')}
+              </span>
+            )}
+          </button>
+        ) : (
+          <div style={{ display: 'flex', width: '100%', gap: '8px' }}>
+            <button 
+              type="button"
+              className="btn-secondary"
+              onClick={() => setMobileTab('form')}
+              style={{ flex: 1, minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <i className="fi fi-rr-edit"></i> {language === 'fr' ? 'Paramètres' : 'Settings'}
+            </button>
+            <button 
+              type="button"
+              className="btn-primary"
+              onClick={handlePrint}
+              disabled={!coverLetter}
+              style={{ flex: 1, minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <i className="fi fi-rr-print"></i> {t('Print / PDF')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
