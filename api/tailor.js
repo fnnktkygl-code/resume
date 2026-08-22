@@ -61,7 +61,7 @@ Rules:
 7. CRITICAL - NORMALIZE CASING: ALL bullet points, summaries, and taglines across the ENTIRE resume MUST use consistent normal sentence case.
 8. The output MUST be a valid JSON object matching the EXACT SAME SCHEMA as the input resume JSON.`;
 
-    const { checkAndIncrementQuota } = await import('./firebase.js');
+    const { checkAndIncrementQuota } = await import('./_firebase.js');
     await checkAndIncrementQuota();
 
     const jsonText = await callGeminiApi({

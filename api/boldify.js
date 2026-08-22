@@ -20,7 +20,7 @@ function parseSkillsToTags(skillsString) {
 }
 
 export default async function handler(req, res) {
-  const { checkAndIncrementQuota } = await import('./firebase.js');
+  const { checkAndIncrementQuota } = await import('./_firebase.js');
 
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     const systemInstruction = buildSystemPrompt(sectionType, targetLang, !!targetJobDescription);
     const promptText = buildUserPrompt(sectionType, resumeContext, targetJobDescription);
 
-    const { checkAndIncrementQuota } = await import('./firebase.js');
+    const { checkAndIncrementQuota } = await import('./_firebase.js');
     await checkAndIncrementQuota();
 
     const generatedText = await callGeminiApi({

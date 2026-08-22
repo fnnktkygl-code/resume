@@ -2,7 +2,7 @@ import { callGeminiApi } from './_geminiFallback.js';
 import { SCIENTIFIC_HR_RULES } from './_scientificPromptRules.js';
 
 export default async function handler(req, res) {
-  const { checkAndIncrementQuota } = await import('./firebase.js');
+  const { checkAndIncrementQuota } = await import('./_firebase.js');
 
   // CORS Configuration
   res.setHeader('Access-Control-Allow-Credentials', true);

@@ -38,7 +38,7 @@ ${experienceText}
 
 Generate 3 optimized STAR bullet points with front-loaded metrics:`;
 
-    const { checkAndIncrementQuota } = await import('./firebase.js');
+    const { checkAndIncrementQuota } = await import('./_firebase.js');
     await checkAndIncrementQuota();
 
     const generatedText = await callGeminiApi({
