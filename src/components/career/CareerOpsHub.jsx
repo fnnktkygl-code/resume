@@ -13,15 +13,17 @@ import {
   deleteApplication
 } from '../../services/careerOpsService';
 
-const SECTOR_SUGGESTIONS = [
-  { label: 'Boulangerie & Pâtisserie', query: 'Boulanger', icon: '🥖' },
-  { label: 'Santé & Soins', query: 'Infirmier', icon: '🏥' },
-  { label: 'Commerce & Vente', query: 'Vente', icon: '🛍️' },
-  { label: 'BTP & Électricité', query: 'Électricien', icon: '🏗️' },
-  { label: 'Comptabilité & RH', query: 'Comptable', icon: '💼' },
-  { label: 'Logistique & Transport', query: 'Chauffeur', icon: '🚚' },
-  { label: 'Restauration & Cuisine', query: 'Cuisinier', icon: '🍽️' },
-  { label: 'Tech & Informatique', query: 'Développeur', icon: '💻' }
+const STANDARD_INDUSTRY_DOMAINS = [
+  { nameFr: 'Tous les secteurs', nameEn: 'All Industries', nameEs: 'Todos los sectores', value: 'all', icon: '🌐' },
+  { nameFr: 'Artisanat & Métiers de bouche', nameEn: 'Crafts & Food Trades', nameEs: 'Artesanía y Alimentación', value: 'Artisanat', query: 'Artisanat', icon: '🥖' },
+  { nameFr: 'Santé, Soins & Paramédical', nameEn: 'Healthcare & Nursing', nameEs: 'Salud y Cuidados', value: 'Santé', query: 'Santé', icon: '🏥' },
+  { nameFr: 'Commerce, Vente & Distribution', nameEn: 'Retail & Sales', nameEs: 'Comercio y Ventas', value: 'Commerce', query: 'Vente', icon: '🛍️' },
+  { nameFr: 'BTP, Bâtiment & Énergie', nameEn: 'Construction & Energy', nameEs: 'Construcción y Energía', value: 'BTP', query: 'BTP', icon: '🏗️' },
+  { nameFr: 'Gestion, Comptabilité & RH', nameEn: 'Finance, HR & Admin', nameEs: 'Gestión, Finanzas y RRHH', value: 'Comptabilité', query: 'Comptabilité', icon: '💼' },
+  { nameFr: 'Transport, Logistique & Achat', nameEn: 'Logistics & Supply Chain', nameEs: 'Transporte y Logística', value: 'Logistique', query: 'Logistique', icon: '🚚' },
+  { nameFr: 'Hôtellerie & Restauration', nameEn: 'Hospitality & Catering', nameEs: 'Hostelería y Restauración', value: 'Restauration', query: 'Restauration', icon: '🍽️' },
+  { nameFr: 'Informatique, Digital & Télécoms', nameEn: 'Tech, IT & Software', nameEs: 'Informática y Tecnología', value: 'Tech', query: 'Informatique', icon: '💻' },
+  { nameFr: 'Industrie & Ingénierie', nameEn: 'Manufacturing & Engineering', nameEs: 'Industria e Ingeniería', value: 'Industrie', query: 'Industrie', icon: '⚙️' }
 ];
 
 export default function CareerOpsHub({
@@ -39,6 +41,7 @@ export default function CareerOpsHub({
   // Search & Filter state
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('');
+  const [selectedSector, setSelectedSector] = useState('all');
   const [radiusKm, setRadiusKm] = useState(50);
   const [contractType, setContractType] = useState('all');
   const [remoteOnly, setRemoteOnly] = useState(false);
@@ -56,13 +59,12 @@ export default function CareerOpsHub({
   const [pendingReview, setPendingReview] = useState(null); // { job, tailoredResume, coverLetter }
   const [viewingCoverLetter, setViewingCoverLetter] = useState(null);
 
-  // Check if candidate has profile data (role, skills, or experience)
+  // Candidate CV context
   const candidateTagline = resumeData?.personal?.tagline?.trim() || '';
   const candidateLocation = resumeData?.personal?.location?.trim() || '';
-  const hasCandidateProfile = Boolean(candidateTagline || (resumeData?.skills && resumeData.skills.length > 0) || (resumeData?.experiences && resumeData.experiences.length > 0));
 
   // Search execution
-  const executeSearch = useCallback(async (searchQuery = query, searchLocation = location) => {
+  const executeSearch = useCallback(async (searchQuery = query, searchLocation = location, sector = selectedSector) => {
     setIsLoadingJobs(true);
     setErrorMessage('');
     setHasSearched(true);
@@ -70,6 +72,7 @@ export default function CareerOpsHub({
       const fetchedJobs = await searchCareerJobs({
         query: searchQuery,
         location: searchLocation,
+        sector,
         contractType,
         remoteOnly,
         radius: radiusKm
@@ -80,7 +83,7 @@ export default function CareerOpsHub({
     } finally {
       setIsLoadingJobs(false);
     }
-  }, [query, location, contractType, remoteOnly, radiusKm, t]);
+  }, [query, location, selectedSector, contractType, remoteOnly, radiusKm, t]);
 
   // Initialize search criteria from user resume data
   useEffect(() => {
@@ -94,10 +97,10 @@ export default function CareerOpsHub({
 
       // If user has a specific tagline or trade in their CV, auto-search for THEIR trade
       if (candidateTagline && !hasSearched) {
-        executeSearch(candidateTagline, candidateLocation || location);
+        executeSearch(candidateTagline, candidateLocation || location, selectedSector);
       }
     }
-  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location, hasSearched, executeSearch]);
+  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location, selectedSector, hasSearched, executeSearch]);
 
   // Load saved applications
   const loadApps = useCallback(() => {
@@ -115,10 +118,16 @@ export default function CareerOpsHub({
     }
   }, [isOpen, loadApps]);
 
-  // Quick-select a sector suggestion
-  const handleSelectSector = (sector) => {
-    setQuery(sector.query);
-    executeSearch(sector.query, location);
+  // Quick-select an industry domain
+  const handleSelectDomain = (domain) => {
+    if (domain.value === 'all') {
+      setSelectedSector('all');
+      executeSearch('', location, 'all');
+    } else {
+      setSelectedSector(domain.value);
+      setQuery(domain.query || domain.nameFr);
+      executeSearch(domain.query || domain.nameFr, location, domain.value);
+    }
   };
 
   // Computed matching details for all jobs
@@ -359,9 +368,27 @@ export default function CareerOpsHub({
                 </div>
               </div>
 
-              {/* Sub-filters: Radius, Contract, Remote */}
+              {/* Sub-filters: Industry Domain, Radius, Contract, Remote */}
               <div className="career-filter-row">
                 <div className="career-filter-options">
+                  <div className="career-filter-option-item">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>🏢 {t('Secteur :')}</span>
+                    <select
+                      value={selectedSector}
+                      onChange={(e) => {
+                        setSelectedSector(e.target.value);
+                        executeSearch(query, location, e.target.value);
+                      }}
+                      aria-label="Secteur d'activité"
+                    >
+                      {STANDARD_INDUSTRY_DOMAINS.map((dom) => (
+                        <option key={dom.value} value={dom.value}>
+                          {dom.icon} {language === 'fr' ? dom.nameFr : language === 'es' ? dom.nameEs : dom.nameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="career-filter-option-item">
                     <span style={{ color: 'var(--color-text-secondary)' }}>📏 {t('Rayon :')}</span>
                     <select
@@ -402,44 +429,6 @@ export default function CareerOpsHub({
                   </label>
                 </div>
               </div>
-            </div>
-
-            {/* Quick Sector Suggestions */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              flexWrap: 'wrap',
-              fontSize: '12px',
-              padding: '4px 0'
-            }}>
-              <span style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                💡 {t('Suggestions par métier :')}
-              </span>
-              {SECTOR_SUGGESTIONS.map((sec, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectSector(sec)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '11.5px',
-                    fontWeight: 500,
-                    border: '1px solid var(--color-border)',
-                    background: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent-light)' : 'var(--color-surface)',
-                    color: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent)' : 'var(--color-text)',
-                    borderColor: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent)' : 'var(--color-border)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <span>{sec.icon}</span>
-                  <span>{sec.label}</span>
-                </button>
-              ))}
             </div>
 
             {/* Adaptation Progress Overlay Modal/Banner */}
@@ -487,7 +476,7 @@ export default function CareerOpsHub({
                     margin: '0 auto 12px'
                   }} />
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {t('Recherche des offres multi-sources et calcul de compatibilité en direct...')}
+                    {t('Recherche des offres réelles et calcul de compatibilité ATS en direct...')}
                   </p>
                 </div>
               ) : !hasSearched && jobs.length === 0 ? (
@@ -506,25 +495,25 @@ export default function CareerOpsHub({
                   <div style={{ fontSize: '36px' }}>🎯</div>
                   <div>
                     <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700 }}>
-                      {t('Trouvez des offres correspondant exactement à votre métier')}
+                      {t('Recherchez des offres dans n\'importe quel domaine d\'activité')}
                     </h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '520px' }}>
-                      {t('Que vous soyez boulanger, soignant, commercial, électricien, comptable ou ingénieur, saisissez votre métier et votre ville ci-dessus pour lancer la recherche.')}
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '560px' }}>
+                      {t('Saisissez votre métier et votre ville ci-dessus ou choisissez un secteur d\'activité standard pour accéder aux offres en direct (France Travail, Indeed, LinkedIn, etc.).')}
                     </p>
                   </div>
 
-                  {/* 1-click discovery sectors grid */}
+                  {/* Standard Industry Sector Grid */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '10px',
                     width: '100%',
                     marginTop: '8px'
                   }}>
-                    {SECTOR_SUGGESTIONS.map((sec, idx) => (
+                    {STANDARD_INDUSTRY_DOMAINS.filter(d => d.value !== 'all').map((dom, idx) => (
                       <button
                         key={idx}
-                        onClick={() => handleSelectSector(sec)}
+                        onClick={() => handleSelectDomain(dom)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -549,8 +538,8 @@ export default function CareerOpsHub({
                           e.currentTarget.style.transform = 'none';
                         }}
                       >
-                        <span style={{ fontSize: '20px' }}>{sec.icon}</span>
-                        <span>{sec.label}</span>
+                        <span style={{ fontSize: '20px' }}>{dom.icon}</span>
+                        <span>{language === 'fr' ? dom.nameFr : language === 'es' ? dom.nameEs : dom.nameEn}</span>
                       </button>
                     ))}
                   </div>
