@@ -181,6 +181,9 @@ export function evaluateJobWithCareerOpsRubric(resumeData, jobOffer, userPrefere
       scoreAts: 0,
       verdict: 'Profil vierge',
       advice: 'Complétez votre profil pour lancer l\'évaluation CareerOps.',
+      matchedSkills: [],
+      missingSkills: requiredSkills,
+      locationDistanceKm: null,
       blocks: {
         blockA: {
           title: jobOffer.title,
@@ -304,16 +307,18 @@ export function evaluateJobWithCareerOpsRubric(resumeData, jobOffer, userPrefere
  */
 export function matchResumeWithJob(resumeData, jobOffer, userPreferences = {}) {
   const evalResult = evaluateJobWithCareerOpsRubric(resumeData, jobOffer, userPreferences);
+  const matched = Array.isArray(evalResult?.matchedSkills) ? evalResult.matchedSkills : [];
+  const missing = Array.isArray(evalResult?.missingSkills) ? evalResult.missingSkills : [];
   return {
-    score: evalResult.scoreAts,
-    scoreRating: evalResult.score,
-    verdict: evalResult.verdict,
-    matchedSkills: evalResult.matchedSkills,
-    missingSkills: evalResult.missingSkills,
-    locationDistanceKm: evalResult.locationDistanceKm,
-    locationMatch: evalResult.locationDistanceKm == null || evalResult.locationDistanceKm <= 80,
-    strengths: evalResult.matchedSkills.map(s => `Maîtrise validée : ${s}`),
-    advice: evalResult.advice || (evalResult.score >= 4.0 ? 'Excellente opportunité : postulez sans hésiter.' : 'Ajustez votre CV avec les mots-clés manquants avant d\'envoyer.'),
-    careerOpsBlocks: evalResult.blocks
+    score: evalResult?.scoreAts ?? 0,
+    scoreRating: evalResult?.score ?? 1.0,
+    verdict: evalResult?.verdict || 'À évaluer',
+    matchedSkills: matched,
+    missingSkills: missing,
+    locationDistanceKm: evalResult?.locationDistanceKm ?? null,
+    locationMatch: evalResult?.locationDistanceKm == null || evalResult.locationDistanceKm <= 80,
+    strengths: matched.map(s => `Maîtrise validée : ${typeof s === 'string' ? s : s?.name || String(s)}`),
+    advice: evalResult?.advice || (evalResult?.score >= 4.0 ? 'Excellente opportunité : postulez sans hésiter.' : 'Ajustez votre CV avec les mots-clés manquants avant d\'envoyer.'),
+    careerOpsBlocks: evalResult?.blocks || {}
   };
 }

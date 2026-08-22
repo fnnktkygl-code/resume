@@ -110,37 +110,75 @@ export default function CareerOpsHub({
 
     try {
       const textInput = inputUrlOrJd.trim();
-      const isUrl = /^https?:\/\//i.test(textInput);
+      const lines = textInput.split('\n').map(l => l.trim()).filter(Boolean);
 
       let parsedTitle = 'Poste Ciblé';
       let parsedCompany = 'Entreprise';
-      let parsedDescription = textInput;
-      let parsedUrl = isUrl ? textInput : '#';
+      let parsedLocation = candidateLocation || 'France';
+      let parsedSalary = 'Selon profil / marché';
+      let parsedContract = 'CDI';
+      let parsedUrl = '#';
 
-      if (isUrl) {
-        // Extract basic host & title from URL
+      // 1. Detect if an URL is present in the text
+      const urlMatch = textInput.match(/https?:\/\/[^\s]+/i);
+      if (urlMatch) {
+        parsedUrl = urlMatch[0];
         try {
-          const u = new URL(textInput);
+          const u = new URL(parsedUrl);
           parsedCompany = u.hostname.replace(/^www\./, '').split('.')[0].toUpperCase();
-          const pathSegments = u.pathname.split('/').filter(Boolean);
+          const cleanPath = u.pathname.replace(/\.(html|php|aspx)$/, '');
+          const pathSegments = cleanPath.split('/').filter(Boolean);
           if (pathSegments.length > 0) {
-            parsedTitle = decodeURIComponent(pathSegments[pathSegments.length - 1]).replace(/[-_]/g, ' ');
+            const rawSlug = decodeURIComponent(pathSegments[pathSegments.length - 1])
+              .replace(/^(q-|job-|offre-)/i, '')
+              .replace(/[-_]/g, ' ');
+            if (rawSlug.length > 3) {
+              parsedTitle = rawSlug.charAt(0).toUpperCase() + rawSlug.slice(1);
+            }
           }
         } catch {
-          // Ignored
-        }
-      } else {
-        // First line as title if short
-        const lines = textInput.split('\n').map(l => l.trim()).filter(Boolean);
-        if (lines.length > 0 && lines[0].length < 80) {
-          parsedTitle = lines[0];
-          parsedDescription = lines.slice(1).join('\n');
+          // Fallback ignored
         }
       }
 
-      // Extract skills tokens
+      // 2. Parse multi-line structured snippet if pasted from Indeed/LinkedIn/WTTJ
+      for (const line of lines) {
+        if (/https?:\/\//i.test(line)) {
+          // Line with URL and possible title attached
+          const withoutUrl = line.replace(/https?:\/\/[^\s]+/i, '').replace(/[-–—]/g, ' ').trim();
+          if (withoutUrl.length > 3 && withoutUrl.length < 80) {
+            parsedTitle = withoutUrl.replace(/\bjob\s+post\b/i, '').trim();
+          }
+        } else if (!parsedCompany || parsedCompany === 'Entreprise' || parsedCompany === 'FR') {
+          if (/^[A-Z0-9\s&.-]{2,40}$/.test(line) && !/CDI|CDD|Stage|PAR AN|PAR MOIS/i.test(line)) {
+            parsedCompany = line;
+          }
+        }
+        
+        // Location detection (e.g. 34000 Montpellier or Paris)
+        if (/\b\d{5}\s+[A-Za-zÀ-ÿ-]+/i.test(line) || /^(Paris|Lyon|Marseille|Toulouse|Bordeaux|Nantes|Montpellier|Lille|Rennes|Strasbourg|Nice)/i.test(line)) {
+          parsedLocation = line;
+        }
+
+        // Salary detection
+        if (/\d+[\s\d]*\s*€/i.test(line) || /\d+k€/i.test(line)) {
+          parsedSalary = line;
+        }
+
+        // Contract detection
+        if (/\b(CDI|CDD|Freelance|Alternance|Stage|Intérim)\b/i.test(line)) {
+          const match = line.match(/\b(CDI|CDD|Freelance|Alternance|Stage|Intérim)\b/i);
+          if (match) parsedContract = match[0].toUpperCase();
+        }
+      }
+
+      // 3. Extract skills tokens from whole text
       const skillMatches = [];
-      const commonTerms = ['react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'management', 'vente', 'commerce', 'finance', 'comptabilité', 'rh', 'recrutement', 'marketing', 'gestion de projet', 'agile', 'scrum', 'anglais'];
+      const commonTerms = [
+        'react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'data analyst', 'power bi',
+        'tableau', 'excel', 'aws', 'docker', 'kubernetes', 'management', 'vente', 'commerce', 'finance',
+        'comptabilité', 'rh', 'recrutement', 'marketing', 'seo', 'gestion de projet', 'agile', 'scrum', 'anglais'
+      ];
       commonTerms.forEach(term => {
         if (textInput.toLowerCase().includes(term)) {
           skillMatches.push(term.charAt(0).toUpperCase() + term.slice(1));
@@ -151,17 +189,17 @@ export default function CareerOpsHub({
         id: `pipeline-${Date.now()}`,
         title: parsedTitle,
         company: parsedCompany,
-        location: candidateLocation || 'France',
-        contractType: 'CDI',
-        salary: 'Selon profil / marché',
+        location: parsedLocation,
+        contractType: parsedContract,
+        salary: parsedSalary,
         skills: skillMatches.length > 0 ? skillMatches : ['Compétences clés du poste', 'Expérience requise', 'Rigueur'],
-        description: parsedDescription.slice(0, 600) + '...',
+        description: lines.join('\n').slice(0, 800) + '...',
         url: parsedUrl,
-        source: isUrl ? 'URL Import' : 'Texte JD'
+        source: urlMatch ? 'Auto-Pipeline URL' : 'Fiche de Poste (JD)'
       };
 
       const match = matchResumeWithJob(resumeData, syntheticJob, {
-        userCity: candidateLocation,
+        userCity: candidateLocation || parsedLocation,
         maxRadiusKm: radiusKm
       });
 
