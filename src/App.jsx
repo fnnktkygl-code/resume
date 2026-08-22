@@ -42,6 +42,7 @@ const ReorderSectionsModal = lazy(() => import('./components/ui/ReorderSectionsM
 const CoverLetterModal = lazy(() => import('./components/ui/CoverLetterModal'));
 const AISectionFillModal = lazy(() => import('./components/ui/AISectionFillModal'));
 const ATSKeywordsModal = lazy(() => import('./components/ui/ATSKeywordsModal'));
+const CareerOpsHub = lazy(() => import('./components/career/CareerOpsHub'));
 import ImportModal from './components/ui/ImportModal';
 import DailyTipModal from './components/ui/DailyTipModal';
 import { buildResumeContext, checkResumeReadiness } from './utils/buildResumeContext';
@@ -222,6 +223,7 @@ export default function App() {
   const [isCvManagerOpen, setIsCvManagerOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isDailyTipOpen, setIsDailyTipOpen] = useState(false);
+  const [isCareerOpsOpen, setIsCareerOpsOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -825,6 +827,7 @@ export default function App() {
           handleLanguageChange={handleLanguageChange}
           hasContent={hasContent}
           setIsCoverLetterModalOpen={setIsCoverLetterModalOpen}
+          setIsCareerOpsOpen={setIsCareerOpsOpen}
           setShowImportModal={setShowImportModal}
           setIsCvManagerOpen={setIsCvManagerOpen}
           loadDemoData={loadDemoData}
@@ -1935,6 +1938,20 @@ export default function App() {
               onClose={() => setIsKeywordsModalOpen(false)}
               data={data}
               dispatch={dispatch}
+            />
+          )}
+          {isCareerOpsOpen && (
+            <CareerOpsHub
+              isOpen={isCareerOpsOpen}
+              onClose={() => setIsCareerOpsOpen(false)}
+              resumeData={data}
+              onApplyTailoredResume={(tailored) => {
+                dispatch({ type: 'SET_ENTIRE_DATA', payload: tailored });
+              }}
+              onOpenCoverLetter={(letter) => {
+                setIsCoverLetterModalOpen(true);
+              }}
+              language={language}
             />
           )}
           {aiSectionFillConfig?.isOpen && (

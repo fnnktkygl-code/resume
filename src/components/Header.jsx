@@ -8,6 +8,7 @@ export default function Header({
   handleLanguageChange,
   hasContent,
   setIsCoverLetterModalOpen,
+  setIsCareerOpsOpen,
   setShowImportModal,
   setIsCvManagerOpen,
   loadDemoData,
@@ -68,6 +69,23 @@ export default function Header({
           <i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}
         </span>
 
+        {/* Big CareerOps Button */}
+        <button
+          className="btn-demo desktop-only"
+          style={{ 
+            marginRight: '8px', 
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            background: 'rgba(16, 185, 129, 0.1)',
+            color: '#10B981',
+            fontWeight: '600'
+          }}
+          onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
+          data-tooltip={language === 'fr' ? '🎯 Recherche d\'offres géolocalisées, matching ATS & adaptation 1-clic' : '🎯 Smart Job Search, ATS Matcher & 1-Click Apply'}
+          data-tooltip-pos="bottom"
+        >
+          🎯 {t('Big CareerOps')}
+        </button>
+
         {/* Daily Tip Button */}
         <button
           className="btn-demo desktop-only"
@@ -121,6 +139,14 @@ export default function Header({
           
           <div className={`mobile-menu-dropdown header-dropdown${mobileMenuOpen ? ' open' : ''}`}>
             <div className="dropdown-section-label">{t('My Documents')}</div>
+            <button 
+              className="btn-demo dropdown-item" 
+              onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
+              data-tooltip={language === 'fr' ? 'Recherche d\'offres géolocalisées & matching ATS' : 'Smart Job Search & ATS Matcher'}
+              data-tooltip-pos="left"
+            >
+              🎯 {t('Big CareerOps')}
+            </button>
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}

@@ -8,6 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:audit": "node harnesses/run_e2e_audit.mjs",
+    "test:careerops": "node harnesses/test_career_ops_orchestrator.mjs",
+    "test:contrast": "node harnesses/audit_contrast_and_ux.mjs",
+    "test:api": "node harnesses/test_api_resilience.mjs",
     "lint": "eslint src"
   },
   "dependencies": {
