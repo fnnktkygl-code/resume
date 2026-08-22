@@ -15,15 +15,17 @@ import {
 
 const STANDARD_INDUSTRY_DOMAINS = [
   { nameFr: 'Tous les secteurs', nameEn: 'All Industries', nameEs: 'Todos los sectores', value: 'all', icon: '🌐' },
-  { nameFr: 'Artisanat & Métiers de bouche', nameEn: 'Crafts & Food Trades', nameEs: 'Artesanía y Alimentación', value: 'Artisanat', icon: '🥖' },
-  { nameFr: 'Santé, Soins & Paramédical', nameEn: 'Healthcare & Nursing', nameEs: 'Salud y Cuidados', value: 'Santé', icon: '🏥' },
-  { nameFr: 'Commerce, Vente & Distribution', nameEn: 'Retail & Sales', nameEs: 'Comercio y Ventas', value: 'Commerce', icon: '🛍️' },
-  { nameFr: 'BTP, Bâtiment & Énergie', nameEn: 'Construction & Energy', nameEs: 'Construcción y Energía', value: 'BTP', icon: '🏗️' },
-  { nameFr: 'Gestion, Comptabilité & RH', nameEn: 'Finance, HR & Admin', nameEs: 'Gestión, Finanzas y RRHH', value: 'Comptabilité', icon: '💼' },
-  { nameFr: 'Transport, Logistique & Achat', nameEn: 'Logistics & Supply Chain', nameEs: 'Transporte y Logística', value: 'Logistique', icon: '🚚' },
-  { nameFr: 'Hôtellerie & Restauration', nameEn: 'Hospitality & Catering', nameEs: 'Hostelería y Restauración', value: 'Restauration', icon: '🍽️' },
-  { nameFr: 'Informatique, Digital & Télécoms', nameEn: 'Tech, IT & Software', nameEs: 'Informática y Tecnología', value: 'Tech', icon: '💻' },
-  { nameFr: 'Industrie & Ingénierie', nameEn: 'Manufacturing & Engineering', nameEs: 'Industria e Ingeniería', value: 'Industrie', icon: '⚙️' }
+  { nameFr: 'Informatique & Télécoms', nameEn: 'IT & Software', nameEs: 'Informática y Tecnología', value: 'Informatique', icon: '💻' },
+  { nameFr: 'Ingénierie & Industrie', nameEn: 'Engineering & Manufacturing', nameEs: 'Ingeniería e Industria', value: 'Ingénierie', icon: '⚙️' },
+  { nameFr: 'Finance, Banque & Assurance', nameEn: 'Finance & Banking', nameEs: 'Finanzas y Banca', value: 'Finance', icon: '💼' },
+  { nameFr: 'Commerce & Distribution', nameEn: 'Sales & Retail', nameEs: 'Ventas y Comercio', value: 'Commerce', icon: '🛍️' },
+  { nameFr: 'Santé & Social', nameEn: 'Healthcare & Social Care', nameEs: 'Salud y Social', value: 'Santé', icon: '🏥' },
+  { nameFr: 'BTP & Construction', nameEn: 'Construction & Real Estate', nameEs: 'Construcción e Inmobiliaria', value: 'BTP', icon: '🏗️' },
+  { nameFr: 'Transport & Logistique', nameEn: 'Transport & Logistics', nameEs: 'Transporte y Logística', value: 'Logistique', icon: '🚚' },
+  { nameFr: 'Marketing & Communication', nameEn: 'Marketing & Media', nameEs: 'Marketing y Medios', value: 'Marketing', icon: '📢' },
+  { nameFr: 'Ressources Humaines & Juridique', nameEn: 'HR & Legal', nameEs: 'Recursos Humanos y Legal', value: 'RH', icon: '👥' },
+  { nameFr: 'Hôtellerie & Restauration', nameEn: 'Hospitality & Food Service', nameEs: 'Hostelería y Restauración', value: 'Hôtellerie', icon: '🏨' },
+  { nameFr: 'Enseignement & Formation', nameEn: 'Education & Training', nameEs: 'Educación y Formación', value: 'Enseignement', icon: '🎓' }
 ];
 
 export default function CareerOpsHub({
@@ -138,7 +140,7 @@ export default function CareerOpsHub({
 
       // Extract skills tokens
       const skillMatches = [];
-      const commonTerms = ['react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'boulangerie', 'cuisine', 'vente', 'commerce', 'soins', 'haccp', 'gestion', 'comptabilité', 'rh', 'anglais', 'gestion de projet'];
+      const commonTerms = ['react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'management', 'vente', 'commerce', 'finance', 'comptabilité', 'rh', 'recrutement', 'marketing', 'gestion de projet', 'agile', 'scrum', 'anglais'];
       commonTerms.forEach(term => {
         if (textInput.toLowerCase().includes(term)) {
           skillMatches.push(term.charAt(0).toUpperCase() + term.slice(1));

@@ -38,20 +38,20 @@ export async function searchCareerJobs(params = {}) {
     console.warn('[CareerOps Service] API unavailable, using built-in catalog fallback:', err.message);
   }
 
-  // Built-in multi-sector fallback catalog
+  // Built-in standard fallback catalog
   const fallbackJobs = [
     {
       id: 'job-fb-001',
-      title: 'Boulanger Artisanal Traditionnel (H/F)',
-      company: 'Maison Kayser',
+      title: 'Ingénieur Développement Logiciel (H/F)',
+      company: 'Doctolib',
       location: 'Paris, France',
       city: 'Paris',
       contractType: 'CDI',
-      remoteMode: 'onsite',
+      remoteMode: 'hybrid',
       isRemote: false,
-      salary: '26k€ - 34k€',
-      skills: ['Boulangerie', 'Pétrissage', 'Levain naturel', 'Cuisson au four', 'HACCP'],
-      description: 'Confection des pains traditionnels, gestion du four à sole et respect des normes d\'hygiène.',
+      salary: '55k€ - 70k€',
+      skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'Docker'],
+      description: 'Développement d\'applications web et d\'architectures scalables en équipe agile.',
       postedAt: new Date().toISOString(),
       source: 'France Travail',
       url: '#'
