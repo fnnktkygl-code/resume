@@ -13,6 +13,56 @@ function getViewFromHash() {
   return VALID_VIEWS.has(hash) ? hash : 'landing';
 }
 
+function AppLoadingFallback() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'var(--color-bg, #F7F6F3)',
+      color: 'var(--color-text, #1A1917)',
+      fontFamily: 'var(--font-body, system-ui, sans-serif)',
+      gap: '16px'
+    }}>
+      <div style={{
+        fontSize: '32px',
+        fontWeight: '800',
+        letterSpacing: '-0.03em',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '2px'
+      }}>
+        <span>Resu</span>
+        <span style={{ color: 'var(--color-accent, #1B6B3A)' }}>Me</span>
+      </div>
+      <div style={{
+        width: '32px',
+        height: '32px',
+        border: '3px solid rgba(27, 107, 58, 0.2)',
+        borderTopColor: 'var(--color-accent, #1B6B3A)',
+        borderRadius: '50%',
+        animation: 'spinLoader 0.8s linear infinite'
+      }} />
+      <p style={{
+        fontSize: '13px',
+        fontWeight: '500',
+        color: 'var(--color-text-secondary, #6B6860)',
+        letterSpacing: '0.01em',
+        margin: 0
+      }}>
+        Chargement de l'atelier...
+      </p>
+      <style>{`
+        @keyframes spinLoader {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function Root() {
   const [view, setView] = useState(getViewFromHash);
 
@@ -26,7 +76,7 @@ export default function Root() {
     window.location.hash = target === 'landing' ? '' : target;
   };
 
-  if (view === 'app') return <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>Loading Editor...</div>}><App /></Suspense>;
+  if (view === 'app') return <Suspense fallback={<AppLoadingFallback />}><App /></Suspense>;
 
   const lazyPage = (() => {
     switch (view) {

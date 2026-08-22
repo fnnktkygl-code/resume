@@ -1,164 +1,193 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
-import { updateApplicationStatus, deleteApplication } from '../../services/careerOpsService';
 
 const STATUS_COLUMNS = [
-  { key: 'saved', label: '★ Sauvegardées', color: '#64748B' },
-  { key: 'tailored', label: '⚡ CV & Lettre Prêts', color: '#3B82F6' },
-  { key: 'applied', label: '📨 Candidatures Envoyées', color: '#F59E0B' },
-  { key: 'interview', label: '🤝 Entretiens', color: '#8B5CF6' },
-  { key: 'offer', label: '🎉 Offres Reçues', color: '#10B981' }
+  { key: 'saved', labelFr: 'Sauvegardée', labelEn: 'Saved', labelEs: 'Guardada', icon: '📂', color: 'slate' },
+  { key: 'tailored', labelFr: 'Adaptée', labelEn: 'Tailored', labelEs: 'Adaptada', icon: '⚡', color: 'emerald' },
+  { key: 'applied', labelFr: 'Candidatée', labelEn: 'Applied', labelEs: 'Enviada', icon: '📨', color: 'blue' },
+  { key: 'interview', labelFr: 'Entretien', labelEn: 'Interview', labelEs: 'Entrevista', icon: '🎯', color: 'purple' },
+  { key: 'offer', labelFr: 'Offre reçue', labelEn: 'Offer', labelEs: 'Oferta', icon: '🎉', color: 'amber' }
 ];
 
 export default function JobApplicationTracker({
   applications = [],
-  onUpdateApplications,
+  onUpdateStatus,
+  onDeleteApplication,
   onLoadTailoredResume,
-  onOpenLetter
+  onViewCoverLetter
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const handleStatusChange = (appId, newStatus) => {
-    const updated = updateApplicationStatus(appId, newStatus);
-    onUpdateApplications(updated);
-  };
+  const filteredApps = filterStatus === 'all' 
+    ? applications 
+    : applications.filter((app) => app.status === filterStatus);
 
-  const handleDelete = (appId) => {
-    if (window.confirm(t('Voulez-vous supprimer cette candidature de votre suivi ?'))) {
-      const updated = deleteApplication(appId);
-      onUpdateApplications(updated);
-    }
+  const getStatusLabel = (statusKey) => {
+    const col = STATUS_COLUMNS.find((c) => c.key === statusKey);
+    if (!col) return statusKey;
+    if (language === 'fr') return col.labelFr;
+    if (language === 'es') return col.labelEs;
+    return col.labelEn;
   };
 
   return (
-    <div className="career-tracker flex flex-col gap-6">
-      {/* Header & Stats */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-        <div>
-          <h3 className="font-bold text-base" style={{ color: 'var(--color-text)' }}>
-            📊 {t('Suivi de Candidatures (Pipeline Kanban)')}
+    <div className="career-tracker-container">
+      {/* Top filter bar */}
+      <div className="career-tracker-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📊</span>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>
+            {t('Pipeline Kanban des Candidatures')}
           </h3>
-          <p className="text-xs opacity-75 mt-0.5">
-            {applications.length} {t('candidature(s) suivie(s) en mémoire locale')}
-          </p>
+          <span style={{
+            fontSize: '11px',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            fontWeight: 600
+          }}>
+            {applications.length} {t('au total')}
+          </span>
         </div>
 
-        {/* Quick Filter Buttons */}
-        <div className="flex flex-wrap gap-1.5 text-xs">
+        {/* Status filter buttons */}
+        <div className="career-tracker-filters">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-              filterStatus === 'all'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
-            }`}
+            className={`career-tracker-pill-btn ${filterStatus === 'all' ? 'active' : ''}`}
           >
-            {t('Toutes')} ({applications.length})
+            {t('Tout')} ({applications.length})
           </button>
           {STATUS_COLUMNS.map((col) => {
             const count = applications.filter((a) => a.status === col.key).length;
+            const label = language === 'fr' ? col.labelFr : language === 'es' ? col.labelEs : col.labelEn;
             return (
               <button
                 key={col.key}
                 onClick={() => setFilterStatus(col.key)}
-                className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                  filterStatus === col.key
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
-                }`}
+                className={`career-tracker-pill-btn ${filterStatus === col.key ? 'active' : ''}`}
               >
-                {col.label.split(' ')[0]} {count}
+                {col.icon} {label} ({count})
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Grid of Columns / Cards */}
-      {applications.length === 0 ? (
-        <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
-          <p className="text-3xl mb-2">📋</p>
-          <p className="font-semibold text-sm mb-1">{t('Aucune candidature en cours')}</p>
-          <p className="text-xs opacity-75 max-w-md mx-auto">
-            {t('Recherchez des offres d\'emploi dans l\'onglet "Recherche & Matching IA", puis cliquez sur "Adapter" ou "Sauvegarder" pour les suivre ici.')}
+      {/* Applications Grid */}
+      {filteredApps.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '48px 20px',
+          background: 'var(--color-surface-alt)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px dashed var(--color-border)'
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+          <p style={{ margin: '0 0 4px 0', fontWeight: 600, fontSize: '14px' }}>
+            {t('Aucune candidature dans cette colonne')}
+          </p>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            {t('Recherchez des offres et cliquez sur « Adapter » pour démarrer votre pipeline.')}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {applications
-            .filter((a) => filterStatus === 'all' || a.status === filterStatus)
-            .map((app) => (
-              <div
-                key={app.id}
-                className="p-4 rounded-2xl border bg-white dark:bg-slate-800/80 shadow-sm flex flex-col justify-between gap-3 transition-all hover:border-slate-400"
-                style={{ borderColor: 'var(--color-border)' }}
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="font-bold text-sm leading-tight" style={{ color: 'var(--color-text)' }}>
-                      {app.jobTitle || app.title}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(app.id)}
-                      className="text-xs text-red-500 hover:text-red-700 p-1 opacity-70 hover:opacity-100"
-                      title={t('Supprimer')}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <p className="text-xs font-medium opacity-80 mb-2">
-                    🏢 {app.company} {app.location ? `• 📍 ${app.location}` : ''}
-                  </p>
+        <div className="career-tracker-grid">
+          {filteredApps.map((app) => {
+            const dateStr = new Date(app.updatedAt || app.createdAt || Date.now()).toLocaleDateString(
+              language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US',
+              { day: 'numeric', month: 'short' }
+            );
 
-                  {/* Status Dropdown */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-[11px] opacity-70 font-semibold">{t('Statut :')}</label>
-                    <select
-                      value={app.status || 'saved'}
-                      onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                      className="text-xs px-2 py-1 rounded-lg border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 font-medium"
-                    >
-                      {STATUS_COLUMNS.map((col) => (
-                        <option key={col.key} value={col.key}>
-                          {col.label}
-                        </option>
-                      ))}
-                    </select>
+            return (
+              <div key={app.id} className="career-tracker-card">
+                <div>
+                  <div className="career-tracker-card-header">
+                    <div>
+                      <div className="career-tracker-title">{app.jobTitle}</div>
+                      <div className="career-tracker-company">
+                        🏢 {app.company} • 📍 {app.location}
+                      </div>
+                    </div>
+
+                    <div className="career-tracker-status-select">
+                      <select
+                        value={app.status || 'saved'}
+                        onChange={(e) => onUpdateStatus(app.id, e.target.value)}
+                        aria-label="Statut de la candidature"
+                      >
+                        {STATUS_COLUMNS.map((col) => (
+                          <option key={col.key} value={col.key}>
+                            {col.icon} {language === 'fr' ? col.labelFr : language === 'es' ? col.labelEs : col.labelEn}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: '12px',
+                    fontSize: '11px',
+                    color: 'var(--color-text-muted)'
+                  }}>
+                    <span>🕒 {dateStr}</span>
+                    {app.matchScore && (
+                      <span style={{
+                        fontWeight: 700,
+                        color: 'var(--color-accent)',
+                        background: 'var(--color-accent-light)',
+                        padding: '2px 6px',
+                        borderRadius: '6px'
+                      }}>
+                        🎯 {app.matchScore}% ATS
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Quick actions for tailored resume / cover letter */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs">
+                {/* Card Actions */}
+                <div className="career-tracker-actions">
                   {app.tailoredResume && (
                     <button
                       onClick={() => onLoadTailoredResume(app.tailoredResume)}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium hover:bg-emerald-500/20"
+                      className="career-icon-btn"
+                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, justifyContent: 'center' }}
+                      title={t('Charger ce CV personnalisé dans l\'éditeur')}
                     >
-                      📄 {t('Charger CV')}
+                      <span>📝</span>
+                      <span>{t('Ouvrir CV')}</span>
                     </button>
                   )}
+
                   {app.coverLetter && (
                     <button
-                      onClick={() => onOpenLetter(app.coverLetter)}
-                      className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium hover:bg-blue-500/20"
+                      onClick={() => onViewCoverLetter(app.coverLetter)}
+                      className="career-icon-btn"
+                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, justifyContent: 'center' }}
+                      title={t('Afficher la lettre de motivation')}
                     >
-                      ✉️ {t('Voir Lettre')}
+                      <span>✉️</span>
+                      <span>{t('Voir Lettre')}</span>
                     </button>
                   )}
-                  {app.url && app.url !== '#' && (
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 ml-auto"
-                    >
-                      ↗
-                    </a>
-                  )}
+
+                  <button
+                    onClick={() => onDeleteApplication(app.id)}
+                    className="career-icon-btn"
+                    style={{ padding: '6px 10px', color: 'var(--color-danger)' }}
+                    title={t('Supprimer de mon suivi')}
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
-            ))}
+            );
+          })}
         </div>
       )}
     </div>

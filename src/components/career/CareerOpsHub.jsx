@@ -2,404 +2,360 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../ui/Modal';
 import JobCard from './JobCard';
 import JobApplicationTracker from './JobApplicationTracker';
-import VisualDiff from '../ui/VisualDiff';
 import { useTranslation } from '../../utils/TranslationContext';
-import { searchCareerJobs, batchAdaptForJob, getSavedApplications, saveApplication } from '../../services/careerOpsService';
 import { matchResumeWithJob } from '../../utils/careerOpsMatcher';
-import { mergeSelected } from '../../utils/mergeSelected';
-
-const PREFS_STORAGE_KEY = 'resume-career-ops-prefs';
+import {
+  searchCareerJobs,
+  batchAdaptForJob,
+  getSavedApplications,
+  saveApplication,
+  updateApplicationStatus,
+  deleteApplication
+} from '../../services/careerOpsService';
 
 export default function CareerOpsHub({
   isOpen,
   onClose,
   resumeData,
   onApplyTailoredResume,
-  onOpenCoverLetter,
   language = 'fr'
 }) {
   const { t } = useTranslation();
 
-  // Active Tab: 'search' | 'tracker'
+  // Navigation tabs: 'search' | 'tracker' | 'review'
   const [activeTab, setActiveTab] = useState('search');
 
-  // Search parameters
+  // Search & Filter state
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('');
   const [radiusKm, setRadiusKm] = useState(50);
   const [contractType, setContractType] = useState('all');
   const [remoteOnly, setRemoteOnly] = useState(false);
 
-  // Results & Loading state
+  // Data state
   const [jobs, setJobs] = useState([]);
-  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
-  const [error, setError] = useState('');
-
-  // 1-Click Batch Pipeline State
-  const [adaptingJobId, setAdaptingJobId] = useState(null);
-  const [adaptationProgress, setAdaptationProgress] = useState('');
-  const [reviewData, setReviewData] = useState(null); // { job, tailoredResume, coverLetter, matchDetails }
-  const [selectedDiffIds, setSelectedDiffIds] = useState(new Set());
-
-  // Tracker saved applications
   const [applications, setApplications] = useState([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Load saved preferences and initial jobs on mount / open
+  // Adaptation & Review state
+  const [adaptingJobId, setAdaptingJobId] = useState(null);
+  const [adaptationProgress, setAdaptationProgress] = useState(null);
+  const [pendingReview, setPendingReview] = useState(null); // { job, tailoredResume, coverLetter }
+  const [viewingCoverLetter, setViewingCoverLetter] = useState(null);
+
+  // Initialize search criteria from user resume data
+  useEffect(() => {
+    if (resumeData && isOpen) {
+      if (!query && resumeData.personal?.tagline) {
+        setQuery(resumeData.personal.tagline);
+      }
+      if (!location && resumeData.personal?.location) {
+        setLocation(resumeData.personal.location);
+      }
+    }
+  }, [isOpen, resumeData]);
+
+  // Load saved applications
+  const loadApps = useCallback(() => {
+    try {
+      const list = getSavedApplications();
+      setApplications(list);
+    } catch {
+      // Ignored
+    }
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
-      setApplications(getSavedApplications());
-
-      // Auto-detect default query from user tagline or skills
-      try {
-        const savedPrefs = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (savedPrefs) {
-          const parsed = JSON.parse(savedPrefs);
-          if (parsed.query) setQuery(parsed.query);
-          if (parsed.location) setLocation(parsed.location);
-          if (parsed.radiusKm) setRadiusKm(parsed.radiusKm);
-          if (parsed.contractType) setContractType(parsed.contractType);
-          if (parsed.remoteOnly != null) setRemoteOnly(parsed.remoteOnly);
-        } else {
-          // Prefill with resume tagline and location
-          const defaultQuery = resumeData?.personal?.tagline || '';
-          const defaultLoc = resumeData?.personal?.location || 'Paris';
-          setQuery(defaultQuery);
-          setLocation(defaultLoc);
-        }
-      } catch {}
-
-      handleSearch();
+      loadApps();
     }
-  }, [isOpen]);
+  }, [isOpen, loadApps]);
 
-  const handleSearch = async (overrideParams = {}) => {
+  // Search execution
+  const handleSearch = useCallback(async () => {
     setIsLoadingJobs(true);
-    setError('');
-
-    const searchParams = {
-      query: overrideParams.query ?? query,
-      location: overrideParams.location ?? location,
-      radiusKm: overrideParams.radiusKm ?? radiusKm,
-      contractType: overrideParams.contractType ?? contractType,
-      remoteOnly: overrideParams.remoteOnly ?? remoteOnly
-    };
-
-    // Save preferences
+    setErrorMessage('');
     try {
-      localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(searchParams));
-    } catch {}
-
-    try {
-      const results = await searchCareerJobs(searchParams);
-      setJobs(results);
+      const fetchedJobs = await searchCareerJobs({
+        query,
+        location,
+        contractType,
+        remoteOnly,
+        radius: radiusKm
+      });
+      setJobs(fetchedJobs);
     } catch (err) {
-      setError(t('Impossible de charger les offres.'));
+      setErrorMessage(err.message || t('Une erreur est survenue lors de la recherche'));
     } finally {
       setIsLoadingJobs(false);
     }
-  };
+  }, [query, location, contractType, remoteOnly, radiusKm, t]);
 
-  // Calculate ATS match for all fetched jobs in real-time
-  const matchedJobs = useMemo(() => {
-    if (!jobs || jobs.length === 0) return [];
+  // Initial search on modal opening
+  useEffect(() => {
+    if (isOpen && jobs.length === 0) {
+      handleSearch();
+    }
+  }, [isOpen, handleSearch, jobs.length]);
 
-    const userPrefs = { location, radiusKm };
-    const withScores = jobs.map((job) => {
-      const matchDetails = matchResumeWithJob(resumeData, job, userPrefs);
+  // Computed matching details for all jobs
+  const rankedJobs = useMemo(() => {
+    if (!resumeData || !jobs.length) return jobs;
+
+    const scored = jobs.map((job) => {
+      const match = matchResumeWithJob(resumeData, job, {
+        userCity: location || resumeData.personal?.location,
+        maxRadiusKm: radiusKm
+      });
       return {
-        job,
-        matchDetails
+        ...job,
+        matchDetails: match
       };
     });
 
-    // Sort descending by ATS Match Score
-    return withScores.sort((a, b) => b.matchDetails.score - a.matchDetails.score);
+    // Sort by ATS score descending
+    return scored.sort((a, b) => (b.matchDetails?.score || 0) - (a.matchDetails?.score || 0));
   }, [jobs, resumeData, location, radiusKm]);
 
-  // ⚡ 1-Click Trigger: Adapt CV + Cover Letter
-  const handleTrigger1ClickAdapt = async (job) => {
-    setAdaptingJobId(job.id);
-    setAdaptationProgress(t('⚡ Analyse ATS & Adaptation chirurgicale du CV...'));
-    setError('');
-
-    try {
-      const result = await batchAdaptForJob(resumeData, job, language);
-      setReviewData({
-        job,
-        tailoredResume: result.tailoredResume,
-        coverLetter: result.coverLetter,
-        matchDetails: result.matchDetails
-      });
-    } catch (err) {
-      setError(err.message || t('Échec de l\'adaptation automatique.'));
-    } finally {
-      setAdaptingJobId(null);
-      setAdaptationProgress('');
+  // Handle Save / Bookmark Job
+  const handleSaveJob = (job) => {
+    const existing = applications.find((a) => a.jobId === job.id);
+    if (existing) {
+      const updated = deleteApplication(existing.id);
+      setApplications(updated);
+    } else {
+      const newApp = {
+        jobId: job.id,
+        jobTitle: job.title,
+        company: job.company,
+        location: job.location,
+        status: 'saved',
+        matchScore: job.matchDetails?.score || 50,
+        jobUrl: job.url
+      };
+      const updated = saveApplication(newApp);
+      setApplications(updated);
     }
   };
 
-  const handleSaveJob = (job) => {
-    const updated = saveApplication({
-      id: `app-${job.id}`,
-      jobTitle: job.title,
-      company: job.company,
-      location: job.location,
-      url: job.url,
-      status: 'saved',
-      jobOffer: job
+  // Handle 1-Click Adaptation
+  const handle1ClickAdapt = async (job) => {
+    setAdaptingJobId(job.id);
+    setAdaptationProgress({
+      step: 1,
+      total: 3,
+      label: t('Analyse de l\'offre et calcul des mots-clés ATS...')
     });
-    setApplications(updated);
+
+    try {
+      // Step 2: Generation
+      setTimeout(() => {
+        setAdaptationProgress({
+          step: 2,
+          total: 3,
+          label: t('Ajustement du CV & valorisation des compétences...')
+        });
+      }, 900);
+
+      const result = await batchAdaptForJob(resumeData, job, language);
+
+      setAdaptationProgress({
+        step: 3,
+        total: 3,
+        label: t('Finalisation de la lettre de motivation...')
+      });
+
+      // Save into tracker as tailored
+      const appRecord = {
+        jobId: job.id,
+        jobTitle: job.title,
+        company: job.company,
+        location: job.location,
+        status: 'tailored',
+        matchScore: job.matchDetails?.score || 85,
+        tailoredResume: result.tailoredResume,
+        coverLetter: result.coverLetter,
+        jobUrl: job.url
+      };
+      const updatedApps = saveApplication(appRecord);
+      setApplications(updatedApps);
+
+      // Open Visual Diff Review screen
+      setPendingReview({
+        job,
+        tailoredResume: result.tailoredResume,
+        coverLetter: result.coverLetter
+      });
+      setActiveTab('review');
+    } catch (err) {
+      setErrorMessage(err.message || t('Échec de l\'adaptation'));
+    } finally {
+      setAdaptingJobId(null);
+      setAdaptationProgress(null);
+    }
   };
 
-  const handleDiffSelectionChange = useCallback((ids) => {
-    setSelectedDiffIds(ids);
-  }, []);
-
-  const handleApplyReviewChanges = () => {
-    if (!reviewData) return;
-
-    // Merge selected changes into active resume
-    const merged = mergeSelected(resumeData, reviewData.tailoredResume, selectedDiffIds);
-    merged.targetJobDescription = `${reviewData.job.title} chez ${reviewData.job.company}\n\n${reviewData.job.description}`;
-    
-    // Save to application tracker
-    const updated = saveApplication({
-      id: `app-${reviewData.job.id}`,
-      jobTitle: reviewData.job.title,
-      company: reviewData.job.company,
-      location: reviewData.job.location,
-      url: reviewData.job.url,
-      status: 'tailored',
-      tailoredResume: merged,
-      coverLetter: reviewData.coverLetter,
-      jobOffer: reviewData.job
-    });
-    setApplications(updated);
-
-    onApplyTailoredResume(merged);
-    setReviewData(null);
-    onClose();
+  // Handle Diff Application
+  const handleAcceptTailoredResume = () => {
+    if (pendingReview?.tailoredResume) {
+      onApplyTailoredResume(pendingReview.tailoredResume);
+      setPendingReview(null);
+      setActiveTab('tracker');
+    }
   };
+
+  if (!isOpen) return null;
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={!adaptingJobId ? onClose : () => {}}
-      title={`🎯 ${t('Big CareerOps — Agrégateur & Candidature 1-Clic')}`}
-      maxWidth="1100px"
-      actions={
-        reviewData ? (
-          <>
-            <button className="btn-secondary" onClick={() => setReviewData(null)}>
-              {t('Retour aux offres')}
-            </button>
-            <button className="btn-primary" onClick={handleApplyReviewChanges}>
-              {t('✅ Appliquer les modifications au CV')}
-            </button>
-          </>
-        ) : (
-          <button className="btn-secondary" onClick={onClose}>
-            {t('Fermer')}
-          </button>
-        )
-      }
+      onClose={onClose}
+      title={t('🎯 Big CareerOps — Recherche & Candidature 1-Clic')}
+      ariaLabelledby="career-ops-modal-title"
     >
-      <div className="career-ops-container flex flex-col gap-5 text-sm">
-        {/* Top Tab Bar (Recherche vs Tracker) */}
-        {!reviewData && (
-          <div className="flex items-center justify-between border-b pb-3 gap-2 flex-wrap" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveTab('search')}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all text-xs flex items-center gap-1.5 ${
-                  activeTab === 'search'
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <span>🔍</span>
-                <span>{t('Offres & Matching IA')}</span>
-                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-600 font-bold">
-                  {matchedJobs.length}
-                </span>
-              </button>
+      <div className="career-ops-hub">
+        {/* Top Navigation Tabs */}
+        <div className="career-top-nav">
+          <div className="career-tab-group">
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`career-tab-btn ${activeTab === 'search' ? 'active' : ''}`}
+            >
+              <span>🔍</span>
+              <span>{t('Offres & Matching IA')}</span>
+              <span className="career-tab-count">{rankedJobs.length}</span>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('tracker')}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all text-xs flex items-center gap-1.5 ${
-                  activeTab === 'tracker'
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <span>📊</span>
-                <span>{t('Suivi de Candidatures')}</span>
-                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-600 font-bold">
-                  {applications.length}
-                </span>
-              </button>
-            </div>
+            <button
+              onClick={() => setActiveTab('tracker')}
+              className={`career-tab-btn ${activeTab === 'tracker' ? 'active' : ''}`}
+            >
+              <span>📊</span>
+              <span>{t('Suivi de Candidatures')}</span>
+              <span className="career-tab-count blue">{applications.length}</span>
+            </button>
 
-            {/* Candidate Quick Context */}
-            <div className="text-xs opacity-75 hidden sm:block">
-              👤 <strong>{resumeData?.personal?.name || t('Candidat')}</strong> • {resumeData?.personal?.tagline || t('Profil Actif')}
-            </div>
+            {pendingReview && (
+              <button
+                onClick={() => setActiveTab('review')}
+                className={`career-tab-btn ${activeTab === 'review' ? 'active' : ''}`}
+                style={{ color: 'var(--color-accent)' }}
+              >
+                <span>⚡</span>
+                <span>{t('Revue Express')}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="career-candidate-badge">
+            <span>👤</span>
+            <span><strong>{resumeData?.personal?.name || 'Candidat'}</strong></span>
+            {resumeData?.personal?.tagline && (
+              <span style={{ opacity: 0.8 }}>• {resumeData.personal.tagline}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Global Error Banner */}
+        {errorMessage && (
+          <div style={{
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--color-danger-light)',
+            color: 'var(--color-danger)',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span>⚠️ {errorMessage}</span>
+            <button
+              onClick={() => setErrorMessage('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+            >
+              ✕
+            </button>
           </div>
         )}
 
-        {/* REVIEW SCREEN: Instant Diff & Letter Preview */}
-        {reviewData ? (
-          <div className="review-flow animate-fade-in flex flex-col gap-5">
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <h4 className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
-                  ✨ {t('Adaptation 1-Clic Terminée pour')} : {reviewData.job.title} ({reviewData.job.company})
-                </h4>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
-                  {t('Vérifiez les modifications apportées à votre CV ci-dessous avant de valider.')}
-                </p>
-              </div>
-              <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 text-emerald-600 border border-emerald-500/30">
-                🎯 {reviewData.matchDetails.score}% ATS Match
-              </div>
-            </div>
-
-            {/* Visual Diff for Resume */}
-            <div>
-              <h5 className="font-semibold text-xs mb-2 opacity-80 uppercase tracking-wider">
-                1. {t('Modifications suggérées sur votre CV')} :
-              </h5>
-              <VisualDiff
-                original={resumeData}
-                modified={reviewData.tailoredResume}
-                onSelectionChange={handleDiffSelectionChange}
-              />
-            </div>
-
-            {/* Generated Cover Letter Preview */}
-            {reviewData.coverLetter && (
-              <div className="pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-                <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-semibold text-xs opacity-80 uppercase tracking-wider">
-                    2. {t('Lettre de motivation personnalisée générée')} :
-                  </h5>
-                  <button
-                    onClick={() => onOpenCoverLetter && onOpenCoverLetter(reviewData.coverLetter)}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                  >
-                    {t('Ouvrir dans l\'éditeur complet')} ↗
-                  </button>
-                </div>
-                <textarea
-                  readOnly
-                  value={reviewData.coverLetter}
-                  className="w-full h-40 p-3 rounded-xl border text-xs font-mono bg-slate-50 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 resize-none leading-relaxed"
-                />
-              </div>
-            )}
-          </div>
-        ) : activeTab === 'tracker' ? (
-          /* KANBAN APPLICATION TRACKER TAB */
-          <JobApplicationTracker
-            applications={applications}
-            onUpdateApplications={setApplications}
-            onLoadTailoredResume={(tailored) => {
-              onApplyTailoredResume(tailored);
-              onClose();
-            }}
-            onOpenLetter={(letter) => {
-              if (onOpenCoverLetter) onOpenCoverLetter(letter);
-              onClose();
-            }}
-          />
-        ) : (
-          /* SEARCH & ATS MATCHING TAB */
-          <div className="search-flow flex flex-col gap-4">
-            {/* Filter Bar */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col gap-3">
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                {/* Search Keywords */}
-                <div className="sm:col-span-6">
-                  <label className="block text-xs font-semibold mb-1 opacity-80">
-                    {t('Poste recherché / Mots-clés')}
-                  </label>
+        {/* TAB 1: Search & AI Job Board */}
+        {activeTab === 'search' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Search Filter Box */}
+            <div className="career-filter-box">
+              <div className="career-filter-grid">
+                <div className="career-input-field">
+                  <label>{t('Poste recherché / Mots-clés')}</label>
                   <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder={t('ex: Développeur React, Data Engineer, Chef de projet...')}
-                    className="w-full px-3 py-2 text-xs rounded-xl border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    placeholder={t('ex : Développeur React, Data Engineer, Product Manager...')}
                   />
                 </div>
 
-                {/* Location */}
-                <div className="sm:col-span-4">
-                  <label className="block text-xs font-semibold mb-1 opacity-80">
-                    📍 {t('Ville / Localisation')}
-                  </label>
+                <div className="career-input-field">
+                  <label>📍 {t('Ville / Localisation')}</label>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder={t('ex: Paris, Lyon, Bordeaux, Remote...')}
-                    className="w-full px-3 py-2 text-xs rounded-xl border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    placeholder={t('ex : Paris, Lyon, Bordeaux, Remote...')}
                   />
                 </div>
 
-                {/* Search Action Button */}
-                <div className="sm:col-span-2 flex items-end">
+                <div>
                   <button
-                    onClick={() => handleSearch()}
+                    onClick={handleSearch}
                     disabled={isLoadingJobs}
-                    className="btn-primary w-full py-2 text-xs rounded-xl font-semibold flex items-center justify-center gap-1 shadow-sm"
+                    className="btn-primary"
+                    style={{ height: '40px', padding: '0 20px', fontSize: '13px', whiteSpace: 'nowrap' }}
                   >
                     {isLoadingJobs ? (
-                      <span className="animate-spin">⏳</span>
+                      <div style={{
+                        width: '14px',
+                        height: '14px',
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        borderTopColor: '#fff',
+                        borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite'
+                      }} />
                     ) : (
                       <>
                         <span>🔍</span>
-                        <span>{t('Filtrer')}</span>
+                        <span>{t('Rechercher & Filtrer')}</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Secondary Filter Row */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/80 text-xs">
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Radius */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="opacity-75">📏 {t('Rayon :')}</span>
+              {/* Sub-filters: Radius, Contract, Remote */}
+              <div className="career-filter-row">
+                <div className="career-filter-options">
+                  <div className="career-filter-option-item">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>📏 {t('Rayon :')}</span>
                     <select
                       value={radiusKm}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setRadiusKm(val);
-                        handleSearch({ radiusKm: val });
-                      }}
-                      className="px-2 py-1 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs"
+                      onChange={(e) => setRadiusKm(Number(e.target.value))}
+                      aria-label="Rayon géographique"
                     >
                       <option value={25}>25 km</option>
                       <option value={50}>50 km</option>
                       <option value={100}>100 km</option>
-                      <option value={500}>{t('National')}</option>
+                      <option value={500}>{t('France entière')}</option>
                     </select>
                   </div>
 
-                  {/* Contract Type */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="opacity-75">📄 {t('Contrat :')}</span>
+                  <div className="career-filter-option-item">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>📄 {t('Contrat :')}</span>
                     <select
                       value={contractType}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setContractType(val);
-                        handleSearch({ contractType: val });
-                      }}
-                      className="px-2 py-1 rounded-lg border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs"
+                      onChange={(e) => setContractType(e.target.value)}
+                      aria-label="Type de contrat"
                     >
                       <option value="all">{t('Tous les contrats')}</option>
                       <option value="CDI">CDI</option>
@@ -410,17 +366,11 @@ export default function CareerOpsHub({
                     </select>
                   </div>
 
-                  {/* Remote Toggle */}
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <label className="career-checkbox-label">
                     <input
                       type="checkbox"
                       checked={remoteOnly}
-                      onChange={(e) => {
-                        const val = e.target.checked;
-                        setRemoteOnly(val);
-                        handleSearch({ remoteOnly: val });
-                      }}
-                      className="rounded text-emerald-600 focus:ring-0"
+                      onChange={(e) => setRemoteOnly(e.target.checked)}
                     />
                     <span>🌐 {t('Télétravail uniquement')}</span>
                   </label>
@@ -428,57 +378,296 @@ export default function CareerOpsHub({
               </div>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-xs">
-                ⚠️ {error}
-              </div>
-            )}
-
-            {/* Loading or Progress Indicator */}
-            {adaptingJobId && (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-pulse">
-                <span className="text-xl">⚡</span>
-                <div>
-                  <p className="font-bold text-xs text-emerald-800 dark:text-emerald-300">
-                    {adaptationProgress}
-                  </p>
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                    {t('Génération en parallèle du CV sur-mesure et de la lettre de motivation...')}
-                  </p>
+            {/* Adaptation Progress Overlay Modal/Banner */}
+            {adaptationProgress && (
+              <div style={{
+                padding: '16px 20px',
+                borderRadius: 'var(--radius-lg)',
+                background: 'var(--color-accent-light)',
+                border: '1px solid var(--color-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px'
+              }}>
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  border: '3px solid rgba(27, 107, 58, 0.2)',
+                  borderTopColor: 'var(--color-accent)',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                  flexShrink: 0
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
+                    ⚡ {t('Adaptation 1-Clic en cours')} ({adaptationProgress.step}/{adaptationProgress.total})
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text)' }}>
+                    {adaptationProgress.label}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Job Offers List sorted by ATS Match */}
-            <div className="grid grid-cols-1 gap-4">
+            {/* Job Listings */}
+            <div className="career-job-list">
               {isLoadingJobs ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto mb-3" />
-                  <p className="font-medium text-xs opacity-80">{t('Analyse des offres et calcul de compatibilité ATS...')}</p>
+                <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    border: '3px solid rgba(27, 107, 58, 0.2)',
+                    borderTopColor: 'var(--color-accent)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                    margin: '0 auto 12px'
+                  }} />
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
+                    {t('Analyse des offres et calcul de compatibilité ATS en direct...')}
+                  </p>
                 </div>
-              ) : matchedJobs.length === 0 ? (
-                <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
-                  <p className="text-3xl mb-2">🔍</p>
-                  <p className="font-semibold text-sm mb-1">{t('Aucune offre trouvée pour ces critères')}</p>
-                  <p className="text-xs opacity-75">{t('Élargissez votre recherche géographique ou modifiez l\'intitulé de poste.')}</p>
+              ) : rankedJobs.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '48px 20px',
+                  background: 'var(--color-surface-alt)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px dashed var(--color-border)'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔎</div>
+                  <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '14px' }}>
+                    {t('Aucune offre trouvée pour ces critères')}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                    {t('Essayez d\'élargir le rayon géographique ou de modifier les mots-clés.')}
+                  </p>
                 </div>
               ) : (
-                matchedJobs.map(({ job, matchDetails }) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    matchDetails={matchDetails}
-                    isSaved={applications.some((a) => a.id === `app-${job.id}`)}
-                    isAdapting={adaptingJobId === job.id}
-                    onAdaptClick={handleTrigger1ClickAdapt}
-                    onSaveJob={handleSaveJob}
-                  />
-                ))
+                rankedJobs.map((job) => {
+                  const isSaved = applications.some((a) => a.jobId === job.id);
+                  return (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      matchDetails={job.matchDetails}
+                      onAdaptClick={handle1ClickAdapt}
+                      onSaveJob={handleSaveJob}
+                      isSaved={isSaved}
+                      isAdapting={adaptingJobId === job.id}
+                    />
+                  );
+                })
               )}
             </div>
           </div>
         )}
+
+        {/* TAB 2: Application Tracker (Kanban) */}
+        {activeTab === 'tracker' && (
+          <JobApplicationTracker
+            applications={applications}
+            onUpdateStatus={(appId, newStatus) => {
+              const updated = updateApplicationStatus(appId, newStatus);
+              setApplications(updated);
+            }}
+            onDeleteApplication={(appId) => {
+              const updated = deleteApplication(appId);
+              setApplications(updated);
+            }}
+            onLoadTailoredResume={(tailored) => {
+              onApplyTailoredResume(tailored);
+              onClose();
+            }}
+            onViewCoverLetter={(letter) => {
+              setViewingCoverLetter(letter);
+            }}
+          />
+        )}
+
+        {/* TAB 3: Visual Diff & Review */}
+        {activeTab === 'review' && pendingReview && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="career-review-banner">
+              <div>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--color-accent)' }}>
+                  ✅ {t('Candidature générée avec succès pour')} : {pendingReview.job?.title} ({pendingReview.job?.company})
+                </h4>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--color-text)' }}>
+                  {t('Vérifiez les ajustements apportés à votre CV et votre lettre de motivation avant de les valider.')}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setActiveTab('search')}
+                  className="btn-secondary"
+                  style={{ fontSize: '12px', padding: '6px 12px' }}
+                >
+                  {t('Retour aux offres')}
+                </button>
+                <button
+                  onClick={handleAcceptTailoredResume}
+                  className="btn-primary"
+                  style={{ fontSize: '12px', padding: '6px 16px' }}
+                >
+                  ⚡ {t('Appliquer ce CV dans l\'atelier')}
+                </button>
+              </div>
+            </div>
+
+            {/* Split View: Resume Tailoring & Cover Letter */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '16px'
+            }}>
+              {/* Left: Tailored Resume Highlights */}
+              <div style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                <h5 style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>
+                  📝 {t('Points Clés du CV Adapté')}
+                </h5>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <strong>{t('Titre ciblé :')}</strong> {pendingReview.tailoredResume?.personal?.tagline || '-'}
+                </div>
+                {pendingReview.tailoredResume?.personal?.summary && (
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', background: 'var(--color-surface-alt)', padding: '8px', borderRadius: 'var(--radius-sm)' }}>
+                    <strong>{t('Accroche :')}</strong> {pendingReview.tailoredResume.personal.summary}
+                  </div>
+                )}
+                <div style={{ fontSize: '12px' }}>
+                  <strong>{t('Compétences mises en avant :')}</strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                    {(pendingReview.tailoredResume?.skills || []).map((s, idx) => (
+                      <span key={idx} className="career-skill-chip matched">
+                        {typeof s === 'string' ? s : s.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Cover Letter Preview */}
+              <div style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                <h5 style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>
+                  ✉️ {t('Lettre de Motivation Personnalisée')}
+                </h5>
+                <textarea
+                  readOnly
+                  value={pendingReview.coverLetter || ''}
+                  rows={8}
+                  style={{
+                    width: '100%',
+                    fontSize: '12px',
+                    padding: '10px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--color-border)',
+                    background: 'var(--color-surface-alt)',
+                    color: 'var(--color-text)',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.5',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Cover Letter Preview Popup */}
+        {viewingCoverLetter && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px'
+          }}>
+            <div style={{
+              background: 'var(--color-surface)',
+              borderRadius: 'var(--radius-lg)',
+              maxWidth: '600px',
+              width: '100%',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: 'var(--shadow-lg)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>
+                  ✉️ {t('Lettre de Motivation')}
+                </h4>
+                <button
+                  onClick={() => setViewingCoverLetter(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <textarea
+                readOnly
+                value={viewingCoverLetter}
+                rows={12}
+                style={{
+                  width: '100%',
+                  fontSize: '12px',
+                  padding: '12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface-alt)',
+                  color: 'var(--color-text)',
+                  lineHeight: '1.5'
+                }}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(viewingCoverLetter);
+                    alert(t('Lettre copiée dans le presse-papier !'));
+                  }}
+                  className="btn-primary"
+                  style={{ fontSize: '12px', padding: '6px 14px' }}
+                >
+                  📋 {t('Copier')}
+                </button>
+                <button
+                  onClick={() => setViewingCoverLetter(null)}
+                  className="btn-secondary"
+                  style={{ fontSize: '12px', padding: '6px 14px' }}
+                >
+                  {t('Fermer')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="modal-actions" style={{ marginTop: '16px' }}>
+        <button onClick={onClose} className="btn-secondary">
+          {t('Fermer')}
+        </button>
       </div>
     </Modal>
   );
