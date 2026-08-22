@@ -10,13 +10,16 @@ export default function JobCard({
   isAdapting = false
 }) {
   const { t } = useTranslation();
-  const score = matchDetails?.score || 50;
+  const score = matchDetails?.score ?? 0;
 
   // Determine styling based on ATS Score
   let scorePillClass = 'career-ats-pill score-mid';
   let scoreLabel = t('Bon Match');
 
-  if (score >= 80) {
+  if (score === 0) {
+    scorePillClass = 'career-ats-pill score-low';
+    scoreLabel = t('Profil vierge');
+  } else if (score >= 80) {
     scorePillClass = 'career-ats-pill score-high';
     scoreLabel = t('Top Match');
   } else if (score < 50) {
@@ -39,6 +42,12 @@ export default function JobCard({
           </div>
           <div className="career-job-meta">
             <span>🏢 <strong>{job.company}</strong></span>
+            {job.sector && (
+              <>
+                <span>•</span>
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{job.sector}</span>
+              </>
+            )}
             <span>•</span>
             <span>📍 {job.location}</span>
             {matchDetails?.locationDistanceKm != null && matchDetails.locationDistanceKm > 0 && (
@@ -52,7 +61,7 @@ export default function JobCard({
         {/* ATS Score Indicator */}
         <div className="career-ats-score-box">
           <div className={scorePillClass}>
-            <span>🎯 {score}% ATS</span>
+            <span>{score > 0 ? `🎯 ${score}% ATS` : `📄 ${t('0% ATS')}`}</span>
           </div>
           <span className="career-ats-label">{scoreLabel}</span>
         </div>

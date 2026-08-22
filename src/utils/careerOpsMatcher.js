@@ -239,13 +239,30 @@ export function matchResumeWithJob(resumeData, jobOffer, userPreferences = {}) {
     }
   }
 
-  // Aggregate Total ATS Score (Bounded 15 - 99%)
-  let totalScore = baseCompleteness + skillsScore + roleScore + expScore;
-  if (!locationMatch && locationDistanceKm && locationDistanceKm > 100) {
-    totalScore = Math.max(20, totalScore - 15); // penalize distant non-remote jobs
+  // If resume has NO content (no skills, no experiences, no tagline)
+  const hasProfileData = (resumeData.skills && resumeData.skills.length > 0) || 
+                         (resumeData.experiences && resumeData.experiences.length > 0) || 
+                         Boolean(resumeData.personal?.tagline?.trim());
+
+  if (!hasProfileData || resumeKeywords.size === 0) {
+    return {
+      score: 0,
+      matchedSkills: [],
+      missingSkills: requiredSkills,
+      locationDistanceKm,
+      locationMatch,
+      strengths: [],
+      advice: 'Complétez votre CV (métier, compétences, expériences) pour obtenir un score ATS précis.'
+    };
   }
 
-  totalScore = Math.max(15, Math.min(98, totalScore));
+  // Aggregate Total ATS Score (Bounded 5 - 99%)
+  let totalScore = baseCompleteness + skillsScore + roleScore + expScore;
+  if (!locationMatch && locationDistanceKm && locationDistanceKm > 100) {
+    totalScore = Math.max(10, totalScore - 15); // penalize distant non-remote jobs
+  }
+
+  totalScore = Math.max(5, Math.min(98, totalScore));
 
   // Strengths & Advice
   const strengths = [];

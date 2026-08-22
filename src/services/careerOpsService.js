@@ -38,41 +38,83 @@ export async function searchCareerJobs(params = {}) {
     console.warn('[CareerOps Service] API unavailable, using built-in catalog fallback:', err.message);
   }
 
-  // Built-in fallback catalog
+  // Built-in multi-sector fallback catalog
   const fallbackJobs = [
     {
       id: 'job-fb-001',
-      title: 'Développeur Fullstack React & Node.js',
-      company: 'TechCorp Innovation',
+      title: 'Boulanger Artisanal Traditionnel (H/F)',
+      company: 'Maison Kayser',
+      location: 'Paris, France',
+      city: 'Paris',
+      contractType: 'CDI',
+      remoteMode: 'onsite',
+      isRemote: false,
+      salary: '26k€ - 34k€',
+      skills: ['Boulangerie', 'Pétrissage', 'Levain naturel', 'Cuisson au four', 'HACCP'],
+      description: 'Confection des pains traditionnels, gestion du four à sole et respect des normes d\'hygiène.',
+      postedAt: new Date().toISOString(),
+      source: 'France Travail',
+      url: '#'
+    },
+    {
+      id: 'job-fb-002',
+      title: 'Infirmier Diplômé d\'État (IDE) (H/F)',
+      company: 'Centre Hospitalier Universitaire',
+      location: 'Lyon, France',
+      city: 'Lyon',
+      contractType: 'CDI',
+      remoteMode: 'onsite',
+      isRemote: false,
+      salary: '32k€ - 42k€',
+      skills: ['Soins infirmiers', 'Urgences', 'Administration médicamenteuse', 'Transmissions'],
+      description: 'Prise en charge globale des patients, surveillance clinique et soins prescrits.',
+      postedAt: new Date().toISOString(),
+      source: 'Santé Emploi',
+      url: '#'
+    },
+    {
+      id: 'job-fb-003',
+      title: 'Conseiller(ère) de Vente & Relation Client (H/F)',
+      company: 'Fnac Darty',
+      location: 'Bordeaux, France',
+      city: 'Bordeaux',
+      contractType: 'CDI',
+      remoteMode: 'onsite',
+      isRemote: false,
+      salary: '24k€ - 30k€',
+      skills: ['Vente conseil', 'Relation client', 'Encaissement', 'Merchandising'],
+      description: 'Accueil, écoute et conseil personnalisé auprès des clients.',
+      postedAt: new Date().toISOString(),
+      source: 'Commerce RH',
+      url: '#'
+    },
+    {
+      id: 'job-fb-004',
+      title: 'Développeur Fullstack React & Node.js (H/F)',
+      company: 'Doctolib',
       location: 'Paris, France',
       city: 'Paris',
       contractType: 'CDI',
       remoteMode: 'hybrid',
       isRemote: false,
-      salary: '50k€ - 65k€',
-      skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'Docker'],
-      description: 'Développement d\'applications web SaaS modernes en équipe agile.',
-      postedAt: new Date().toISOString(),
-      source: 'Direct Partner',
-      url: '#'
-    },
-    {
-      id: 'job-fb-002',
-      title: 'Développeur Frontend React / Vite (100% Remote)',
-      company: 'CloudNative Solutions',
-      location: 'Lyon, France',
-      city: 'Lyon',
-      contractType: 'CDI',
-      remoteMode: 'full',
-      isRemote: true,
       salary: '55k€ - 70k€',
-      skills: ['React', 'Vite', 'JavaScript', 'CSS', 'REST API'],
-      description: 'Conception d\'interfaces web performantes et accessibles en télétravail complet.',
+      skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'Docker'],
+      description: 'Développement d\'applications web e-santé modernes en équipe agile.',
       postedAt: new Date().toISOString(),
-      source: 'RemoteOK',
+      source: 'France Travail',
       url: '#'
     }
   ];
+
+  if (query) {
+    const q = query.toLowerCase();
+    const matched = fallbackJobs.filter(j => 
+      j.title.toLowerCase().includes(q) || 
+      j.skills.some(s => s.toLowerCase().includes(q)) ||
+      j.description.toLowerCase().includes(q)
+    );
+    return matched.length > 0 ? matched : [];
+  }
 
   return fallbackJobs;
 }

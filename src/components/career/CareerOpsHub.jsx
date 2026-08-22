@@ -13,6 +13,17 @@ import {
   deleteApplication
 } from '../../services/careerOpsService';
 
+const SECTOR_SUGGESTIONS = [
+  { label: 'Boulangerie & Pâtisserie', query: 'Boulanger', icon: '🥖' },
+  { label: 'Santé & Soins', query: 'Infirmier', icon: '🏥' },
+  { label: 'Commerce & Vente', query: 'Vente', icon: '🛍️' },
+  { label: 'BTP & Électricité', query: 'Électricien', icon: '🏗️' },
+  { label: 'Comptabilité & RH', query: 'Comptable', icon: '💼' },
+  { label: 'Logistique & Transport', query: 'Chauffeur', icon: '🚚' },
+  { label: 'Restauration & Cuisine', query: 'Cuisinier', icon: '🍽️' },
+  { label: 'Tech & Informatique', query: 'Développeur', icon: '💻' }
+];
+
 export default function CareerOpsHub({
   isOpen,
   onClose,
@@ -31,6 +42,7 @@ export default function CareerOpsHub({
   const [radiusKm, setRadiusKm] = useState(50);
   const [contractType, setContractType] = useState('all');
   const [remoteOnly, setRemoteOnly] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Data state
   const [jobs, setJobs] = useState([]);
@@ -44,17 +56,48 @@ export default function CareerOpsHub({
   const [pendingReview, setPendingReview] = useState(null); // { job, tailoredResume, coverLetter }
   const [viewingCoverLetter, setViewingCoverLetter] = useState(null);
 
+  // Check if candidate has profile data (role, skills, or experience)
+  const candidateTagline = resumeData?.personal?.tagline?.trim() || '';
+  const candidateLocation = resumeData?.personal?.location?.trim() || '';
+  const hasCandidateProfile = Boolean(candidateTagline || (resumeData?.skills && resumeData.skills.length > 0) || (resumeData?.experiences && resumeData.experiences.length > 0));
+
+  // Search execution
+  const executeSearch = useCallback(async (searchQuery = query, searchLocation = location) => {
+    setIsLoadingJobs(true);
+    setErrorMessage('');
+    setHasSearched(true);
+    try {
+      const fetchedJobs = await searchCareerJobs({
+        query: searchQuery,
+        location: searchLocation,
+        contractType,
+        remoteOnly,
+        radius: radiusKm
+      });
+      setJobs(fetchedJobs);
+    } catch (err) {
+      setErrorMessage(err.message || t('Une erreur est survenue lors de la recherche'));
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  }, [query, location, contractType, remoteOnly, radiusKm, t]);
+
   // Initialize search criteria from user resume data
   useEffect(() => {
-    if (resumeData && isOpen) {
-      if (!query && resumeData.personal?.tagline) {
-        setQuery(resumeData.personal.tagline);
+    if (isOpen && resumeData) {
+      if (candidateTagline && !query) {
+        setQuery(candidateTagline);
       }
-      if (!location && resumeData.personal?.location) {
-        setLocation(resumeData.personal.location);
+      if (candidateLocation && !location) {
+        setLocation(candidateLocation);
+      }
+
+      // If user has a specific tagline or trade in their CV, auto-search for THEIR trade
+      if (candidateTagline && !hasSearched) {
+        executeSearch(candidateTagline, candidateLocation || location);
       }
     }
-  }, [isOpen, resumeData]);
+  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location, hasSearched, executeSearch]);
 
   // Load saved applications
   const loadApps = useCallback(() => {
@@ -72,32 +115,11 @@ export default function CareerOpsHub({
     }
   }, [isOpen, loadApps]);
 
-  // Search execution
-  const handleSearch = useCallback(async () => {
-    setIsLoadingJobs(true);
-    setErrorMessage('');
-    try {
-      const fetchedJobs = await searchCareerJobs({
-        query,
-        location,
-        contractType,
-        remoteOnly,
-        radius: radiusKm
-      });
-      setJobs(fetchedJobs);
-    } catch (err) {
-      setErrorMessage(err.message || t('Une erreur est survenue lors de la recherche'));
-    } finally {
-      setIsLoadingJobs(false);
-    }
-  }, [query, location, contractType, remoteOnly, radiusKm, t]);
-
-  // Initial search on modal opening
-  useEffect(() => {
-    if (isOpen && jobs.length === 0) {
-      handleSearch();
-    }
-  }, [isOpen, handleSearch, jobs.length]);
+  // Quick-select a sector suggestion
+  const handleSelectSector = (sector) => {
+    setQuery(sector.query);
+    executeSearch(sector.query, location);
+  };
 
   // Computed matching details for all jobs
   const rankedJobs = useMemo(() => {
@@ -105,7 +127,7 @@ export default function CareerOpsHub({
 
     const scored = jobs.map((job) => {
       const match = matchResumeWithJob(resumeData, job, {
-        userCity: location || resumeData.personal?.location,
+        userCity: location || candidateLocation,
         maxRadiusKm: radiusKm
       });
       return {
@@ -116,7 +138,7 @@ export default function CareerOpsHub({
 
     // Sort by ATS score descending
     return scored.sort((a, b) => (b.matchDetails?.score || 0) - (a.matchDetails?.score || 0));
-  }, [jobs, resumeData, location, radiusKm]);
+  }, [jobs, resumeData, location, candidateLocation, radiusKm]);
 
   // Handle Save / Bookmark Job
   const handleSaveJob = (job) => {
@@ -131,7 +153,7 @@ export default function CareerOpsHub({
         company: job.company,
         location: job.location,
         status: 'saved',
-        matchScore: job.matchDetails?.score || 50,
+        matchScore: job.matchDetails?.score || 0,
         jobUrl: job.url
       };
       const updated = saveApplication(newApp);
@@ -149,7 +171,6 @@ export default function CareerOpsHub({
     });
 
     try {
-      // Step 2: Generation
       setTimeout(() => {
         setAdaptationProgress({
           step: 2,
@@ -225,7 +246,9 @@ export default function CareerOpsHub({
             >
               <span>🔍</span>
               <span>{t('Offres & Matching IA')}</span>
-              <span className="career-tab-count">{rankedJobs.length}</span>
+              {hasSearched && (
+                <span className="career-tab-count">{rankedJobs.length}</span>
+              )}
             </button>
 
             <button
@@ -251,9 +274,11 @@ export default function CareerOpsHub({
 
           <div className="career-candidate-badge">
             <span>👤</span>
-            <span><strong>{resumeData?.personal?.name || 'Candidat'}</strong></span>
-            {resumeData?.personal?.tagline && (
-              <span style={{ opacity: 0.8 }}>• {resumeData.personal.tagline}</span>
+            <span><strong>{resumeData?.personal?.name || t('Candidat')}</strong></span>
+            {candidateTagline ? (
+              <span style={{ opacity: 0.8 }}>• {candidateTagline}</span>
+            ) : (
+              <span style={{ opacity: 0.6, fontStyle: 'italic' }}>• {t('Tous secteurs')}</span>
             )}
           </div>
         </div>
@@ -287,13 +312,13 @@ export default function CareerOpsHub({
             <div className="career-filter-box">
               <div className="career-filter-grid">
                 <div className="career-input-field">
-                  <label>{t('Poste recherché / Mots-clés')}</label>
+                  <label>{t('Métier recherché / Mots-clés')}</label>
                   <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder={t('ex : Développeur React, Data Engineer, Product Manager...')}
+                    onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
+                    placeholder={t('ex : Boulanger, Infirmier, Commercial, Comptable, Développeur...')}
                   />
                 </div>
 
@@ -303,17 +328,17 @@ export default function CareerOpsHub({
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder={t('ex : Paris, Lyon, Bordeaux, Remote...')}
+                    onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
+                    placeholder={t('ex : Paris, Lyon, Bordeaux, Marseille...')}
                   />
                 </div>
 
                 <div className="career-filter-btn-cell">
                   <button
-                    onClick={handleSearch}
+                    onClick={() => executeSearch()}
                     disabled={isLoadingJobs}
                     className="btn-primary"
-                    style={{ height: '40px', padding: '0 20px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                    style={{ height: '40px', padding: '0 22px', fontSize: '13px', whiteSpace: 'nowrap' }}
                   >
                     {isLoadingJobs ? (
                       <div style={{
@@ -379,6 +404,44 @@ export default function CareerOpsHub({
               </div>
             </div>
 
+            {/* Quick Sector Suggestions */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexWrap: 'wrap',
+              fontSize: '12px',
+              padding: '4px 0'
+            }}>
+              <span style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                💡 {t('Suggestions par métier :')}
+              </span>
+              {SECTOR_SUGGESTIONS.map((sec, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectSector(sec)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '16px',
+                    fontSize: '11.5px',
+                    fontWeight: 500,
+                    border: '1px solid var(--color-border)',
+                    background: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent-light)' : 'var(--color-surface)',
+                    color: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent)' : 'var(--color-text)',
+                    borderColor: query.toLowerCase() === sec.query.toLowerCase() ? 'var(--color-accent)' : 'var(--color-border)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>{sec.icon}</span>
+                  <span>{sec.label}</span>
+                </button>
+              ))}
+            </div>
+
             {/* Adaptation Progress Overlay Modal/Banner */}
             {adaptationProgress && (
               <div style={{
@@ -410,7 +473,7 @@ export default function CareerOpsHub({
               </div>
             )}
 
-            {/* Job Listings */}
+            {/* Job Listings / Onboarding State */}
             <div className="career-job-list">
               {isLoadingJobs ? (
                 <div style={{ textAlign: 'center', padding: '48px 0' }}>
@@ -424,8 +487,73 @@ export default function CareerOpsHub({
                     margin: '0 auto 12px'
                   }} />
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {t('Analyse des offres et calcul de compatibilité ATS en direct...')}
+                    {t('Recherche des offres multi-sources et calcul de compatibilité en direct...')}
                   </p>
+                </div>
+              ) : !hasSearched && jobs.length === 0 ? (
+                /* Welcome / Discovery State when user hasn't typed a search */
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px 24px',
+                  background: 'var(--color-surface)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '16px'
+                }}>
+                  <div style={{ fontSize: '36px' }}>🎯</div>
+                  <div>
+                    <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700 }}>
+                      {t('Trouvez des offres correspondant exactement à votre métier')}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '520px' }}>
+                      {t('Que vous soyez boulanger, soignant, commercial, électricien, comptable ou ingénieur, saisissez votre métier et votre ville ci-dessus pour lancer la recherche.')}
+                    </p>
+                  </div>
+
+                  {/* 1-click discovery sectors grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gap: '10px',
+                    width: '100%',
+                    marginTop: '8px'
+                  }}>
+                    {SECTOR_SUGGESTIONS.map((sec, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectSector(sec)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '12px 14px',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--color-border)',
+                          background: 'var(--color-surface-alt)',
+                          color: 'var(--color-text)',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 600,
+                          textAlign: 'left',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-accent)';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border)';
+                          e.currentTarget.style.transform = 'none';
+                        }}
+                      >
+                        <span style={{ fontSize: '20px' }}>{sec.icon}</span>
+                        <span>{sec.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : rankedJobs.length === 0 ? (
                 <div style={{
@@ -437,10 +565,10 @@ export default function CareerOpsHub({
                 }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔎</div>
                   <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '14px' }}>
-                    {t('Aucune offre trouvée pour ces critères')}
+                    {t('Aucune offre trouvée pour')} « {query} »
                   </p>
                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                    {t('Essayez d\'élargir le rayon géographique ou de modifier les mots-clés.')}
+                    {t('Essayez d\'élargir le rayon kilométrique ou d\'utiliser des mots-clés plus généraux.')}
                   </p>
                 </div>
               ) : (
