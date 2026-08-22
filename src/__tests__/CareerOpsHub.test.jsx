@@ -43,8 +43,8 @@ describe('CareerOpsHub Component', () => {
       />
     );
 
-    expect(screen.getByText(/Big CareerOps/i)).toBeInTheDocument();
-    expect(screen.getByText(/Offres & Matching IA/i)).toBeInTheDocument();
+    expect(screen.getByText(/CareerOps — Command Center/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Auto-Pipeline/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Suivi de Candidatures/i)).toBeInTheDocument();
   });
 

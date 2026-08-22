@@ -3,7 +3,7 @@ import Modal from '../ui/Modal';
 import JobCard from './JobCard';
 import JobApplicationTracker from './JobApplicationTracker';
 import { useTranslation } from '../../utils/TranslationContext';
-import { matchResumeWithJob } from '../../utils/careerOpsMatcher';
+import { matchResumeWithJob, evaluateJobWithCareerOpsRubric } from '../../utils/careerOpsMatcher';
 import {
   searchCareerJobs,
   batchAdaptForJob,
@@ -15,15 +15,15 @@ import {
 
 const STANDARD_INDUSTRY_DOMAINS = [
   { nameFr: 'Tous les secteurs', nameEn: 'All Industries', nameEs: 'Todos los sectores', value: 'all', icon: '🌐' },
-  { nameFr: 'Artisanat & Métiers de bouche', nameEn: 'Crafts & Food Trades', nameEs: 'Artesanía y Alimentación', value: 'Artisanat', query: 'Artisanat', icon: '🥖' },
-  { nameFr: 'Santé, Soins & Paramédical', nameEn: 'Healthcare & Nursing', nameEs: 'Salud y Cuidados', value: 'Santé', query: 'Santé', icon: '🏥' },
-  { nameFr: 'Commerce, Vente & Distribution', nameEn: 'Retail & Sales', nameEs: 'Comercio y Ventas', value: 'Commerce', query: 'Vente', icon: '🛍️' },
-  { nameFr: 'BTP, Bâtiment & Énergie', nameEn: 'Construction & Energy', nameEs: 'Construcción y Energía', value: 'BTP', query: 'BTP', icon: '🏗️' },
-  { nameFr: 'Gestion, Comptabilité & RH', nameEn: 'Finance, HR & Admin', nameEs: 'Gestión, Finanzas y RRHH', value: 'Comptabilité', query: 'Comptabilité', icon: '💼' },
-  { nameFr: 'Transport, Logistique & Achat', nameEn: 'Logistics & Supply Chain', nameEs: 'Transporte y Logística', value: 'Logistique', query: 'Logistique', icon: '🚚' },
-  { nameFr: 'Hôtellerie & Restauration', nameEn: 'Hospitality & Catering', nameEs: 'Hostelería y Restauración', value: 'Restauration', query: 'Restauration', icon: '🍽️' },
-  { nameFr: 'Informatique, Digital & Télécoms', nameEn: 'Tech, IT & Software', nameEs: 'Informática y Tecnología', value: 'Tech', query: 'Informatique', icon: '💻' },
-  { nameFr: 'Industrie & Ingénierie', nameEn: 'Manufacturing & Engineering', nameEs: 'Industria e Ingeniería', value: 'Industrie', query: 'Industrie', icon: '⚙️' }
+  { nameFr: 'Artisanat & Métiers de bouche', nameEn: 'Crafts & Food Trades', nameEs: 'Artesanía y Alimentación', value: 'Artisanat', icon: '🥖' },
+  { nameFr: 'Santé, Soins & Paramédical', nameEn: 'Healthcare & Nursing', nameEs: 'Salud y Cuidados', value: 'Santé', icon: '🏥' },
+  { nameFr: 'Commerce, Vente & Distribution', nameEn: 'Retail & Sales', nameEs: 'Comercio y Ventas', value: 'Commerce', icon: '🛍️' },
+  { nameFr: 'BTP, Bâtiment & Énergie', nameEn: 'Construction & Energy', nameEs: 'Construcción y Energía', value: 'BTP', icon: '🏗️' },
+  { nameFr: 'Gestion, Comptabilité & RH', nameEn: 'Finance, HR & Admin', nameEs: 'Gestión, Finanzas y RRHH', value: 'Comptabilité', icon: '💼' },
+  { nameFr: 'Transport, Logistique & Achat', nameEn: 'Logistics & Supply Chain', nameEs: 'Transporte y Logística', value: 'Logistique', icon: '🚚' },
+  { nameFr: 'Hôtellerie & Restauration', nameEn: 'Hospitality & Catering', nameEs: 'Hostelería y Restauración', value: 'Restauration', icon: '🍽️' },
+  { nameFr: 'Informatique, Digital & Télécoms', nameEn: 'Tech, IT & Software', nameEs: 'Informática y Tecnología', value: 'Tech', icon: '💻' },
+  { nameFr: 'Industrie & Ingénierie', nameEn: 'Manufacturing & Engineering', nameEs: 'Industria e Ingeniería', value: 'Industrie', icon: '⚙️' }
 ];
 
 export default function CareerOpsHub({
@@ -35,8 +35,13 @@ export default function CareerOpsHub({
 }) {
   const { t } = useTranslation();
 
-  // Navigation tabs: 'search' | 'tracker' | 'review'
-  const [activeTab, setActiveTab] = useState('search');
+  // Navigation tabs: 'pipeline' (Auto-Pipeline URL/JD) | 'search' (Portals & APIs) | 'tracker' (Kanban) | 'review' (Diff)
+  const [activeTab, setActiveTab] = useState('pipeline');
+
+  // Auto-Pipeline URL / Text Input State
+  const [inputUrlOrJd, setInputUrlOrJd] = useState('');
+  const [isEvaluatingJd, setIsEvaluatingJd] = useState(false);
+  const [evaluatedJob, setEvaluatedJob] = useState(null);
 
   // Search & Filter state
   const [query, setQuery] = useState('');
@@ -63,7 +68,113 @@ export default function CareerOpsHub({
   const candidateTagline = resumeData?.personal?.tagline?.trim() || '';
   const candidateLocation = resumeData?.personal?.location?.trim() || '';
 
-  // Search execution
+  // Initialize search criteria from user resume data
+  useEffect(() => {
+    if (isOpen && resumeData) {
+      if (candidateTagline && !query) {
+        setQuery(candidateTagline);
+      }
+      if (candidateLocation && !location) {
+        setLocation(candidateLocation);
+      }
+    }
+  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location]);
+
+  // Load saved applications
+  const loadApps = useCallback(() => {
+    try {
+      const list = getSavedApplications();
+      setApplications(list);
+    } catch {
+      // Ignored
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadApps();
+    }
+  }, [isOpen, loadApps]);
+
+  // ⚡ Auto-Pipeline : Evaluate pasted Job URL or Raw JD text with CareerOps A-H Rubric
+  const handleAutoPipeline = async () => {
+    if (!inputUrlOrJd.trim()) {
+      setErrorMessage(t('Veuillez coller une URL d\'offre d\'emploi ou le texte de l\'annonce.'));
+      return;
+    }
+
+    setIsEvaluatingJd(true);
+    setErrorMessage('');
+
+    try {
+      const textInput = inputUrlOrJd.trim();
+      const isUrl = /^https?:\/\//i.test(textInput);
+
+      let parsedTitle = 'Poste Ciblé';
+      let parsedCompany = 'Entreprise';
+      let parsedDescription = textInput;
+      let parsedUrl = isUrl ? textInput : '#';
+
+      if (isUrl) {
+        // Extract basic host & title from URL
+        try {
+          const u = new URL(textInput);
+          parsedCompany = u.hostname.replace(/^www\./, '').split('.')[0].toUpperCase();
+          const pathSegments = u.pathname.split('/').filter(Boolean);
+          if (pathSegments.length > 0) {
+            parsedTitle = decodeURIComponent(pathSegments[pathSegments.length - 1]).replace(/[-_]/g, ' ');
+          }
+        } catch {
+          // Ignored
+        }
+      } else {
+        // First line as title if short
+        const lines = textInput.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length > 0 && lines[0].length < 80) {
+          parsedTitle = lines[0];
+          parsedDescription = lines.slice(1).join('\n');
+        }
+      }
+
+      // Extract skills tokens
+      const skillMatches = [];
+      const commonTerms = ['react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'boulangerie', 'cuisine', 'vente', 'commerce', 'soins', 'haccp', 'gestion', 'comptabilité', 'rh', 'anglais', 'gestion de projet'];
+      commonTerms.forEach(term => {
+        if (textInput.toLowerCase().includes(term)) {
+          skillMatches.push(term.charAt(0).toUpperCase() + term.slice(1));
+        }
+      });
+
+      const syntheticJob = {
+        id: `pipeline-${Date.now()}`,
+        title: parsedTitle,
+        company: parsedCompany,
+        location: candidateLocation || 'France',
+        contractType: 'CDI',
+        salary: 'Selon profil / marché',
+        skills: skillMatches.length > 0 ? skillMatches : ['Compétences clés du poste', 'Expérience requise', 'Rigueur'],
+        description: parsedDescription.slice(0, 600) + '...',
+        url: parsedUrl,
+        source: isUrl ? 'URL Import' : 'Texte JD'
+      };
+
+      const match = matchResumeWithJob(resumeData, syntheticJob, {
+        userCity: candidateLocation,
+        maxRadiusKm: radiusKm
+      });
+
+      setEvaluatedJob({
+        ...syntheticJob,
+        matchDetails: match
+      });
+    } catch (err) {
+      setErrorMessage(err.message || t('Échec de l\'évaluation CareerOps.'));
+    } finally {
+      setIsEvaluatingJd(false);
+    }
+  };
+
+  // Search execution for Tab 2
   const executeSearch = useCallback(async (searchQuery = query, searchLocation = location, sector = selectedSector) => {
     setIsLoadingJobs(true);
     setErrorMessage('');
@@ -85,52 +196,7 @@ export default function CareerOpsHub({
     }
   }, [query, location, selectedSector, contractType, remoteOnly, radiusKm, t]);
 
-  // Initialize search criteria from user resume data
-  useEffect(() => {
-    if (isOpen && resumeData) {
-      if (candidateTagline && !query) {
-        setQuery(candidateTagline);
-      }
-      if (candidateLocation && !location) {
-        setLocation(candidateLocation);
-      }
-
-      // If user has a specific tagline or trade in their CV, auto-search for THEIR trade
-      if (candidateTagline && !hasSearched) {
-        executeSearch(candidateTagline, candidateLocation || location, selectedSector);
-      }
-    }
-  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location, selectedSector, hasSearched, executeSearch]);
-
-  // Load saved applications
-  const loadApps = useCallback(() => {
-    try {
-      const list = getSavedApplications();
-      setApplications(list);
-    } catch {
-      // Ignored
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      loadApps();
-    }
-  }, [isOpen, loadApps]);
-
-  // Quick-select an industry domain
-  const handleSelectDomain = (domain) => {
-    if (domain.value === 'all') {
-      setSelectedSector('all');
-      executeSearch('', location, 'all');
-    } else {
-      setSelectedSector(domain.value);
-      setQuery(domain.query || domain.nameFr);
-      executeSearch(domain.query || domain.nameFr, location, domain.value);
-    }
-  };
-
-  // Computed matching details for all jobs
+  // Computed matching details for all searched jobs
   const rankedJobs = useMemo(() => {
     if (!resumeData || !jobs.length) return jobs;
 
@@ -145,11 +211,10 @@ export default function CareerOpsHub({
       };
     });
 
-    // Sort by ATS score descending
-    return scored.sort((a, b) => (b.matchDetails?.score || 0) - (a.matchDetails?.score || 0));
+    return scored.sort((a, b) => (b.matchDetails?.scoreRating || 0) - (a.matchDetails?.scoreRating || 0));
   }, [jobs, resumeData, location, candidateLocation, radiusKm]);
 
-  // Handle Save / Bookmark Job
+  // Handle Save Job
   const handleSaveJob = (job) => {
     const existing = applications.find((a) => a.jobId === job.id);
     if (existing) {
@@ -170,7 +235,7 @@ export default function CareerOpsHub({
     }
   };
 
-  // Handle 1-Click Adaptation
+  // Handle 1-Click Adaptation (Harvard XYZ + Cover Letter)
   const handle1ClickAdapt = async (job) => {
     setAdaptingJobId(job.id);
     setAdaptationProgress({
@@ -184,7 +249,7 @@ export default function CareerOpsHub({
         setAdaptationProgress({
           step: 2,
           total: 3,
-          label: t('Ajustement du CV & valorisation des compétences...')
+          label: t('Ajustement du CV selon la formule Harvard XYZ...')
         });
       }, 900);
 
@@ -241,8 +306,8 @@ export default function CareerOpsHub({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth="920px"
-      title={t('🎯 Big CareerOps — Recherche & Candidature 1-Clic')}
+      maxWidth="940px"
+      title={t('🎯 CareerOps — Command Center IA de Recherche d\'Emploi')}
       ariaLabelledby="career-ops-modal-title"
     >
       <div className="career-ops-hub">
@@ -250,11 +315,19 @@ export default function CareerOpsHub({
         <div className="career-top-nav">
           <div className="career-tab-group">
             <button
+              onClick={() => setActiveTab('pipeline')}
+              className={`career-tab-btn ${activeTab === 'pipeline' ? 'active' : ''}`}
+            >
+              <span>⚡</span>
+              <span>{t('Auto-Pipeline (URL / JD)')}</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('search')}
               className={`career-tab-btn ${activeTab === 'search' ? 'active' : ''}`}
             >
               <span>🔍</span>
-              <span>{t('Offres & Matching IA')}</span>
+              <span>{t('Scanner de Portails & APIs')}</span>
               {hasSearched && (
                 <span className="career-tab-count">{rankedJobs.length}</span>
               )}
@@ -284,10 +357,8 @@ export default function CareerOpsHub({
           <div className="career-candidate-badge">
             <span>👤</span>
             <span><strong>{resumeData?.personal?.name || t('Candidat')}</strong></span>
-            {candidateTagline ? (
+            {candidateTagline && (
               <span style={{ opacity: 0.8 }}>• {candidateTagline}</span>
-            ) : (
-              <span style={{ opacity: 0.6, fontStyle: 'italic' }}>• {t('Tous secteurs')}</span>
             )}
           </div>
         </div>
@@ -314,20 +385,110 @@ export default function CareerOpsHub({
           </div>
         )}
 
-        {/* TAB 1: Search & AI Job Board */}
+        {/* TAB 1: Auto-Pipeline (Paste Job URL or Raw JD) */}
+        {activeTab === 'pipeline' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>⚡</span>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>
+                    {t('Auto-Pipeline CareerOps — Évaluation A-H & Adaptation 1-Clic')}
+                  </h4>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                    {t('Collez l\'URL d\'une offre (Greenhouse, Ashby, Lever, France Travail, Indeed, LinkedIn...) ou le texte de l\'annonce pour lancer l\'évaluation.')}
+                  </p>
+                </div>
+              </div>
+
+              <textarea
+                value={inputUrlOrJd}
+                onChange={(e) => setInputUrlOrJd(e.target.value)}
+                placeholder={t('Collez ici l\'URL de l\'offre (ex : https://jobs.ashbyhq.com/... ou https://candidat.francetravail.fr/...) OU le texte complet de la fiche de poste...')}
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '13px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface-alt)',
+                  color: 'var(--color-text)',
+                  lineHeight: '1.5',
+                  resize: 'vertical'
+                }}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  onClick={handleAutoPipeline}
+                  disabled={isEvaluatingJd || !inputUrlOrJd.trim()}
+                  className="btn-primary"
+                  style={{ height: '40px', padding: '0 20px', fontSize: '13px' }}
+                >
+                  {isEvaluatingJd ? (
+                    <>
+                      <div style={{
+                        width: '14px',
+                        height: '14px',
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        borderTopColor: '#fff',
+                        borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite'
+                      }} />
+                      <span>{t('Évaluation du Rubric en cours...')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⚡</span>
+                      <span>{t('Évaluer avec le Rubric CareerOps (1.0 - 5.0)')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Evaluated Job Card Result */}
+            {evaluatedJob && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-accent)' }}>
+                  ✅ {t('Résultat de l\'Évaluation')} :
+                </div>
+                <JobCard
+                  job={evaluatedJob}
+                  matchDetails={evaluatedJob.matchDetails}
+                  onAdaptClick={handle1ClickAdapt}
+                  onSaveJob={handleSaveJob}
+                  isSaved={applications.some((a) => a.jobId === evaluatedJob.id)}
+                  isAdapting={adaptingJobId === evaluatedJob.id}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: Search & Live Portals Scanner */}
         {activeTab === 'search' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Search Filter Box */}
             <div className="career-filter-box">
               <div className="career-filter-grid">
                 <div className="career-input-field">
-                  <label>{t('Métier recherché / Mots-clés')}</label>
+                  <label>{t('Intitulé de poste / Mots-clés')}</label>
                   <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
-                    placeholder={t('ex : Boulanger, Infirmier, Commercial, Comptable, Développeur...')}
+                    placeholder={t('ex : Développeur, Chef de projet, Infirmier, Comptable...')}
                   />
                 </div>
 
@@ -361,7 +522,7 @@ export default function CareerOpsHub({
                     ) : (
                       <>
                         <span>🔍</span>
-                        <span>{t('Rechercher & Filtrer')}</span>
+                        <span>{t('Scanner les Portails')}</span>
                       </>
                     )}
                   </button>
@@ -431,38 +592,7 @@ export default function CareerOpsHub({
               </div>
             </div>
 
-            {/* Adaptation Progress Overlay Modal/Banner */}
-            {adaptationProgress && (
-              <div style={{
-                padding: '16px 20px',
-                borderRadius: 'var(--radius-lg)',
-                background: 'var(--color-accent-light)',
-                border: '1px solid var(--color-accent)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px'
-              }}>
-                <div style={{
-                  width: '24px',
-                  height: '24px',
-                  border: '3px solid rgba(27, 107, 58, 0.2)',
-                  borderTopColor: 'var(--color-accent)',
-                  borderRadius: '50%',
-                  animation: 'spin 0.8s linear infinite',
-                  flexShrink: 0
-                }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
-                    ⚡ {t('Adaptation 1-Clic en cours')} ({adaptationProgress.step}/{adaptationProgress.total})
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text)' }}>
-                    {adaptationProgress.label}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Job Listings / Onboarding State */}
+            {/* Job Listings / Scan Results */}
             <div className="career-job-list">
               {isLoadingJobs ? (
                 <div style={{ textAlign: 'center', padding: '48px 0' }}>
@@ -476,73 +606,24 @@ export default function CareerOpsHub({
                     margin: '0 auto 12px'
                   }} />
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {t('Recherche des offres réelles et calcul de compatibilité ATS en direct...')}
+                    {t('Interrogation des flux en direct et calcul de compatibilité ATS...')}
                   </p>
                 </div>
               ) : !hasSearched && jobs.length === 0 ? (
-                /* Welcome / Discovery State when user hasn't typed a search */
                 <div style={{
                   textAlign: 'center',
                   padding: '40px 24px',
                   background: 'var(--color-surface)',
                   borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--color-border)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '16px'
+                  border: '1px solid var(--color-border)'
                 }}>
-                  <div style={{ fontSize: '36px' }}>🎯</div>
-                  <div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700 }}>
-                      {t('Recherchez des offres dans n\'importe quel domaine d\'activité')}
-                    </h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '560px' }}>
-                      {t('Saisissez votre métier et votre ville ci-dessus ou choisissez un secteur d\'activité standard pour accéder aux offres en direct (France Travail, Indeed, LinkedIn, etc.).')}
-                    </p>
-                  </div>
-
-                  {/* Standard Industry Sector Grid */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '10px',
-                    width: '100%',
-                    marginTop: '8px'
-                  }}>
-                    {STANDARD_INDUSTRY_DOMAINS.filter(d => d.value !== 'all').map((dom, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectDomain(dom)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '12px 14px',
-                          borderRadius: 'var(--radius-md)',
-                          border: '1px solid var(--color-border)',
-                          background: 'var(--color-surface-alt)',
-                          color: 'var(--color-text)',
-                          cursor: 'pointer',
-                          fontSize: '12.5px',
-                          fontWeight: 600,
-                          textAlign: 'left',
-                          transition: 'all 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--color-accent)';
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--color-border)';
-                          e.currentTarget.style.transform = 'none';
-                        }}
-                      >
-                        <span style={{ fontSize: '20px' }}>{dom.icon}</span>
-                        <span>{language === 'fr' ? dom.nameFr : language === 'es' ? dom.nameEs : dom.nameEn}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔍</div>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700 }}>
+                    {t('Scanner les Portails de Recrutement en Direct')}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                    {t('Saisissez votre intitulé de poste et votre localisation ci-dessus pour lancer l\'analyse multi-portails.')}
+                  </p>
                 </div>
               ) : rankedJobs.length === 0 ? (
                 <div style={{
@@ -555,9 +636,6 @@ export default function CareerOpsHub({
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔎</div>
                   <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '14px' }}>
                     {t('Aucune offre trouvée pour')} « {query} »
-                  </p>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                    {t('Essayez d\'élargir le rayon kilométrique ou d\'utiliser des mots-clés plus généraux.')}
                   </p>
                 </div>
               ) : (
@@ -580,7 +658,7 @@ export default function CareerOpsHub({
           </div>
         )}
 
-        {/* TAB 2: Application Tracker (Kanban) */}
+        {/* TAB 3: Application Tracker (Kanban) */}
         {activeTab === 'tracker' && (
           <JobApplicationTracker
             applications={applications}
@@ -602,7 +680,7 @@ export default function CareerOpsHub({
           />
         )}
 
-        {/* TAB 3: Visual Diff & Review */}
+        {/* TAB 4: Visual Diff & Review */}
         {activeTab === 'review' && pendingReview && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="career-review-banner">
@@ -617,11 +695,11 @@ export default function CareerOpsHub({
 
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => setActiveTab('search')}
+                  onClick={() => setActiveTab('pipeline')}
                   className="btn-secondary"
                   style={{ fontSize: '12px', padding: '6px 12px' }}
                 >
-                  {t('Retour aux offres')}
+                  {t('Retour')}
                 </button>
                 <button
                   onClick={handleAcceptTailoredResume}
