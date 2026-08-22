@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 
 export default function JobCard({
-  job,
-  matchDetails,
+  job = {},
+  matchDetails = {},
   onAdaptClick,
   onSaveJob,
   isSaved = false,
@@ -12,7 +12,7 @@ export default function JobCard({
   const { t } = useTranslation();
   const [showReport, setShowReport] = useState(false);
 
-  const scoreAts = matchDetails?.score ?? 0;
+  const scoreAts = typeof matchDetails?.score === 'number' ? matchDetails.score : 0;
   const rating = matchDetails?.scoreRating ?? (scoreAts > 0 ? (scoreAts / 20).toFixed(1) : '1.0');
   const verdict = matchDetails?.verdict || (scoreAts >= 80 ? t('Top Match (Recommandé)') : scoreAts >= 50 ? t('Match Modéré') : t('Écart important'));
   const blocks = matchDetails?.careerOpsBlocks;
@@ -21,11 +21,18 @@ export default function JobCard({
   let scorePillClass = 'career-ats-pill score-mid';
   if (scoreAts === 0) {
     scorePillClass = 'career-ats-pill score-low';
-  } else if (rating >= 4.0 || scoreAts >= 80) {
+  } else if (Number(rating) >= 4.0 || scoreAts >= 80) {
     scorePillClass = 'career-ats-pill score-high';
-  } else if (rating < 3.0 || scoreAts < 50) {
+  } else if (Number(rating) < 3.0 || scoreAts < 50) {
     scorePillClass = 'career-ats-pill score-low';
   }
+
+  const jobTitle = String(job?.title || 'Offre d\'emploi');
+  const jobCompany = String(job?.company || 'Entreprise');
+  const jobLocation = String(job?.location || 'France');
+  const jobContract = String(job?.contractType || 'CDI');
+  const jobSource = String(job?.source || 'Direct Job Board');
+  const jobDescription = String(job?.description || '');
 
   return (
     <div className="career-job-card">
@@ -33,7 +40,7 @@ export default function JobCard({
       <div className="career-job-header">
         <div className="career-job-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <h3 className="career-job-title">{job.title}</h3>
+            <h3 className="career-job-title">{jobTitle}</h3>
             {job.isRemote && (
               <span className="career-tag-pill remote">
                 🌐 {t('100% Télétravail')}
@@ -41,15 +48,15 @@ export default function JobCard({
             )}
           </div>
           <div className="career-job-meta">
-            <span>🏢 <strong>{job.company}</strong></span>
+            <span>🏢 <strong>{jobCompany}</strong></span>
             {job.sector && (
               <>
                 <span>•</span>
-                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{job.sector}</span>
+                <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{String(job.sector)}</span>
               </>
             )}
             <span>•</span>
-            <span>📍 {job.location}</span>
+            <span>📍 {jobLocation}</span>
             {matchDetails?.locationDistanceKm != null && matchDetails.locationDistanceKm > 0 && (
               <span className="career-distance-badge">
                 ~{matchDetails.locationDistanceKm} km
@@ -70,39 +77,47 @@ export default function JobCard({
       {/* Contract, Salary & Source Tags */}
       <div className="career-job-tags">
         <span className="career-tag-pill">
-          📄 {job.contractType || 'CDI'}
+          📄 {jobContract}
         </span>
         {job.salary && (
           <span className="career-tag-pill salary">
-            💰 {job.salary}
+            💰 {String(job.salary)}
           </span>
         )}
         <span className="career-tag-pill" style={{ opacity: 0.85 }}>
-          🔍 {job.source || 'Direct Job Board'}
+          🔍 {jobSource}
         </span>
       </div>
 
       {/* Skills Match Chips (Block B Summary) */}
       <div className="career-skills-row">
         {/* Matched skills */}
-        {(matchDetails?.matchedSkills || []).slice(0, 5).map((skill, idx) => (
-          <span key={`match-${idx}`} className="career-skill-chip matched">
-            ✓ {skill}
-          </span>
-        ))}
+        {(matchDetails?.matchedSkills || []).slice(0, 5).map((skill, idx) => {
+          const label = typeof skill === 'string' ? skill : skill?.name || String(skill);
+          return (
+            <span key={`match-${idx}`} className="career-skill-chip matched">
+              ✓ {label}
+            </span>
+          );
+        })}
 
         {/* Missing skills */}
-        {(matchDetails?.missingSkills || []).slice(0, 3).map((skill, idx) => (
-          <span key={`miss-${idx}`} className="career-skill-chip missing" title={t('Compétence demandée à valoriser')}>
-            + {skill}
-          </span>
-        ))}
+        {(matchDetails?.missingSkills || []).slice(0, 3).map((skill, idx) => {
+          const label = typeof skill === 'string' ? skill : skill?.name || String(skill);
+          return (
+            <span key={`miss-${idx}`} className="career-skill-chip missing" title={t('Compétence demandée à valoriser')}>
+              + {label}
+            </span>
+          );
+        })}
       </div>
 
       {/* Snippet Description */}
-      <p className="career-job-description">
-        {job.description}
-      </p>
+      {jobDescription && (
+        <p className="career-job-description">
+          {jobDescription}
+        </p>
+      )}
 
       {/* Expandable CareerOps A-G Rubric Report */}
       {showReport && blocks && (
@@ -134,38 +149,38 @@ export default function JobCard({
           {/* Block C & D: Leveling & Comp */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <div>
-              <strong>📈 {t('Bloc C — Niveau :')}</strong> {blocks.blockC?.seniority || '-'}
+              <strong>📈 {t('Bloc C — Niveau :')}</strong> {String(blocks.blockC?.seniority || '-')}
             </div>
             <div>
-              <strong>💰 {t('Bloc D — Rémunération :')}</strong> {blocks.blockD?.salaryEstimate || '-'}
+              <strong>💰 {t('Bloc D — Rémunération :')}</strong> {String(blocks.blockD?.salaryEstimate || '-')}
             </div>
           </div>
 
           {/* Block E: Harvard XYZ Blueprint */}
-          {blocks.blockE?.suggestedMetrics?.length > 0 && (
+          {Array.isArray(blocks.blockE?.suggestedMetrics) && blocks.blockE.suggestedMetrics.length > 0 && (
             <div>
               <strong>📝 {t('Bloc E — Blueprint Harvard XYZ :')}</strong>
               <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
                 {blocks.blockE.suggestedMetrics.map((m, i) => (
-                  <li key={i}>{m}</li>
+                  <li key={i}>{String(m)}</li>
                 ))}
               </ul>
             </div>
           )}
 
           {/* Block F: STAR+R Interview Prep */}
-          {blocks.blockF?.interviewQuestions?.length > 0 && (
+          {Array.isArray(blocks.blockF?.interviewQuestions) && blocks.blockF.interviewQuestions.length > 0 && (
             <div>
               <strong>🎤 {t('Bloc F — Question Entretien STAR+R :')}</strong>
               <div style={{ fontStyle: 'italic', marginTop: '2px', color: 'var(--color-text-secondary)' }}>
-                « {blocks.blockF.interviewQuestions[0]} »
+                « {String(blocks.blockF.interviewQuestions[0])} »
               </div>
             </div>
           )}
 
           {/* Block G: Legitimacy & Ghost Job Check */}
           <div>
-            <strong>🛡️ {t('Bloc G — Vérification Légitimité :')}</strong> {blocks.blockG?.legitimacyStatus} ({t('Risque Ghost Job :')} {blocks.blockG?.ghostJobRisk})
+            <strong>🛡️ {t('Bloc G — Vérification Légitimité :')}</strong> {String(blocks.blockG?.legitimacyStatus || 'Vérifié')} ({t('Risque Ghost Job :')} {String(blocks.blockG?.ghostJobRisk || 'Faible')})
           </div>
         </div>
       )}

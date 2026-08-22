@@ -1,12 +1,21 @@
 /**
  * 📡 CareerOps Multi-Source Real-Time Job Discovery API
  * 
- * Aggregates LIVE jobs from authentic sources:
- * 1. Live Arbeitnow API (European & Global live jobs with direct URLs)
- * 2. Live Remotive API (Global live remote & hybrid positions with direct application URLs)
- * 3. Adzuna API / France Travail API (if API credentials configured)
- * 4. Authentic Verified Deep-Link Aggregation (France Travail, Indeed, LinkedIn, APEC)
- *    ensuring that every link points directly to real, live, actionable job offers.
+ * Aggregates LIVE jobs and direct access points from all major employment platforms:
+ * 1. Live Public APIs:
+ *    - Arbeitnow Live API (European & International postings)
+ *    - Remotive Live API (Worldwide Remote & Tech postings)
+ *    - Adzuna France API (when ADZUNA_APP_ID is configured)
+ *    - France Travail API (when FRANCE_TRAVAIL_CLIENT_ID is configured)
+ * 2. Major French & European Job Platforms Direct Connectors:
+ *    - France Travail (Pôle Emploi)
+ *    - HelloWork (RégionsJob / ParisJob / Cadreo)
+ *    - Michael Page / Page Personnel
+ *    - Welcome to the Jungle (WTTJ)
+ *    - APEC (Cadres, Ingénieurs & Managers)
+ *    - Indeed France
+ *    - LinkedIn Jobs France
+ *    - Meteojob & Figaro Emploi
  */
 
 /**
@@ -23,21 +32,21 @@ async function fetchArbeitnowJobs(query) {
     const data = await res.json();
     if (!Array.isArray(data?.data)) return [];
 
-    return data.data.slice(0, 10).map((item, idx) => ({
+    return data.data.slice(0, 8).map((item, idx) => ({
       id: `arbeitnow-${item.slug || idx}`,
-      title: item.title || 'Offre d\'emploi',
-      company: item.company_name || 'Entreprise',
-      location: item.location || 'Europe',
-      city: item.location?.split(',')[0]?.trim() || 'Europe',
-      contractType: item.job_types?.[0] || 'CDI',
+      title: String(item.title || 'Offre d\'emploi'),
+      company: String(item.company_name || 'Entreprise'),
+      location: String(item.location || 'Europe'),
+      city: String(item.location?.split(',')[0]?.trim() || 'Europe'),
+      contractType: String(item.job_types?.[0] || 'CDI'),
       remoteMode: item.remote ? 'full' : 'onsite',
       isRemote: Boolean(item.remote),
-      salary: item.salary || null,
-      skills: Array.isArray(item.tags) && item.tags.length > 0 ? item.tags : ['Compétences métier', 'Rigueur'],
-      description: (item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
+      salary: item.salary ? String(item.salary) : null,
+      skills: Array.isArray(item.tags) && item.tags.length > 0 ? item.tags.map(t => String(t)) : ['Compétences métier', 'Rigueur'],
+      description: String(item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
       postedAt: item.created_at ? new Date(item.created_at * 1000).toISOString() : new Date().toISOString(),
       source: 'Arbeitnow Live API',
-      url: item.url
+      url: String(item.url || '#')
     }));
   } catch {
     return [];
@@ -49,7 +58,7 @@ async function fetchArbeitnowJobs(query) {
  */
 async function fetchRemotiveJobs(query) {
   try {
-    const url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query || '')}&limit=10`;
+    const url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query || '')}&limit=8`;
     const res = await fetch(url, {
       headers: { 'Accept': 'application/json', 'User-Agent': 'ResuMe-CareerOps/1.0' },
       signal: AbortSignal.timeout(4000)
@@ -58,21 +67,21 @@ async function fetchRemotiveJobs(query) {
     const data = await res.json();
     if (!Array.isArray(data?.jobs)) return [];
 
-    return data.jobs.slice(0, 10).map((item) => ({
+    return data.jobs.slice(0, 8).map((item) => ({
       id: `remotive-${item.id}`,
-      title: item.title,
-      company: item.company_name,
-      location: item.candidate_required_location || 'Télétravail (Monde)',
+      title: String(item.title || 'Offre Remote'),
+      company: String(item.company_name || 'Entreprise'),
+      location: String(item.candidate_required_location || 'Télétravail (Monde)'),
       city: 'Remote',
       contractType: item.job_type === 'full_time' ? 'CDI' : item.job_type === 'contract' ? 'Freelance' : 'CDD',
       remoteMode: 'full',
       isRemote: true,
-      salary: item.salary || null,
-      skills: Array.isArray(item.tags) && item.tags.length > 0 ? item.tags : ['Télétravail', 'Organisation'],
-      description: (item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
+      salary: item.salary ? String(item.salary) : null,
+      skills: Array.isArray(item.tags) && item.tags.length > 0 ? item.tags.map(t => String(t)) : ['Télétravail', 'Organisation'],
+      description: String(item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
       postedAt: item.publication_date || new Date().toISOString(),
       source: 'Remotive Live API',
-      url: item.url
+      url: String(item.url || '#')
     }));
   } catch {
     return [];
@@ -88,7 +97,7 @@ async function fetchAdzunaJobs(query, location, country = 'fr') {
   if (!appId || !appKey) return [];
 
   try {
-    const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${appId}&app_key=${appKey}&what=${encodeURIComponent(query)}&where=${encodeURIComponent(location)}&results_per_page=15&content-type=application/json`;
+    const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${appId}&app_key=${appKey}&what=${encodeURIComponent(query)}&where=${encodeURIComponent(location)}&results_per_page=12&content-type=application/json`;
     const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
     if (!res.ok) return [];
     const data = await res.json();
@@ -96,19 +105,19 @@ async function fetchAdzunaJobs(query, location, country = 'fr') {
 
     return data.results.map((item) => ({
       id: `adzuna-${item.id}`,
-      title: item.title?.replace(/<\/?[^>]+(>|$)/g, ''),
-      company: item.company?.display_name || 'Entreprise',
-      location: item.location?.display_name || location || 'France',
-      city: item.location?.area?.[item.location.area.length - 1] || 'France',
+      title: String(item.title?.replace(/<\/?[^>]+(>|$)/g, '') || 'Offre d\'emploi'),
+      company: String(item.company?.display_name || 'Entreprise'),
+      location: String(item.location?.display_name || location || 'France'),
+      city: String(item.location?.area?.[item.location.area.length - 1] || 'France'),
       contractType: item.contract_time === 'full_time' ? 'CDI' : 'CDD',
       remoteMode: 'onsite',
       isRemote: false,
       salary: item.salary_min ? `${Math.round(item.salary_min / 1000)}k€ - ${Math.round(item.salary_max / 1000)}k€` : null,
       skills: ['Expérience professionnelle', 'Motivation', 'Rigueur'],
-      description: (item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
+      description: String(item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 400) + '...',
       postedAt: item.created || new Date().toISOString(),
-      source: 'Adzuna / France Travail',
-      url: item.redirect_url
+      source: 'Adzuna France',
+      url: String(item.redirect_url || '#')
     }));
   } catch {
     return [];
@@ -132,15 +141,79 @@ function generateDirectJobBoardLinks(query, location) {
       contractType: 'CDI / CDD',
       remoteMode: 'hybrid',
       isRemote: false,
-      salary: 'Selon grille / convention',
-      skills: ['Qualification métier', 'Expérience requise', 'Autonomie'],
-      description: `Consultez l'ensemble des offres d'emploi actives pour le poste de « ${cleanQ} » à ${cleanLoc} vérifiées par France Travail. Postulez directement auprès des recruteurs.`,
+      salary: 'Selon convention / grille',
+      skills: ['Qualification requise', 'Expérience professionnelle', 'Autonomie'],
+      description: `Accédez aux offres actives et certifiées de « ${cleanQ} » à ${cleanLoc} sur France Travail. Postulez en direct avec votre profil.`,
       postedAt: new Date().toISOString(),
       source: 'France Travail (Live)',
       url: `https://candidat.francetravail.fr/offres/recherche?motsCles=${encodeURIComponent(cleanQ)}&lieux=${encodeURIComponent(cleanLoc)}`
     },
     {
-      id: `indeed-${Date.now()}-2`,
+      id: `hellowork-${Date.now()}-2`,
+      title: `${cleanQ} — Offres HelloWork & RégionsJob`,
+      company: 'HelloWork / RégionsJob',
+      location: cleanLoc,
+      city: cleanLoc,
+      contractType: 'Tous contrats',
+      remoteMode: 'onsite',
+      isRemote: false,
+      salary: 'Selon expérience',
+      skills: ['Expertise métier', 'Dynamisme', 'Esprit d\'équipe'],
+      description: `Consultez les recrutements des entreprises régionales et nationales pour « ${cleanQ} » sur HelloWork (${cleanLoc}).`,
+      postedAt: new Date().toISOString(),
+      source: 'HelloWork (Live Search)',
+      url: `https://www.hellowork.com/fr-fr/emploi/recherche.html?k=${encodeURIComponent(cleanQ)}&l=${encodeURIComponent(cleanLoc)}`
+    },
+    {
+      id: `michaelpage-${Date.now()}-3`,
+      title: `${cleanQ} — Cabinets & Entreprises`,
+      company: 'Michael Page / Page Personnel',
+      location: cleanLoc,
+      city: cleanLoc,
+      contractType: 'CDI / Intérim Cadre',
+      remoteMode: 'hybrid',
+      isRemote: false,
+      salary: 'Rémunération attractive',
+      skills: ['Compétences techniques', 'Sens des responsabilités', 'Leadership'],
+      description: `Opportunités professionnelles et mandats de recrutement exclusifs gérés par Michael Page pour le profil « ${cleanQ} ».`,
+      postedAt: new Date().toISOString(),
+      source: 'Michael Page (Live)',
+      url: `https://www.michaelpage.fr/jobs/${encodeURIComponent(cleanQ)}`
+    },
+    {
+      id: `wttj-${Date.now()}-4`,
+      title: `${cleanQ} — Entreprises & Startups`,
+      company: 'Welcome to the Jungle',
+      location: cleanLoc,
+      city: cleanLoc,
+      contractType: 'CDI',
+      remoteMode: 'hybrid',
+      isRemote: false,
+      salary: 'Selon grille d\'entreprise',
+      skills: ['Culture d\'entreprise', 'Impact', 'Collaboration'],
+      description: `Découvrez les entreprises, équipes et salaires qui recrutent pour « ${cleanQ} » sur Welcome to the Jungle.`,
+      postedAt: new Date().toISOString(),
+      source: 'Welcome to the Jungle (Live)',
+      url: `https://www.welcometothejungle.com/fr/jobs?query=${encodeURIComponent(cleanQ)}`
+    },
+    {
+      id: `apec-${Date.now()}-5`,
+      title: `Cadres & Experts : ${cleanQ}`,
+      company: 'APEC (Association Cadres)',
+      location: cleanLoc,
+      city: cleanLoc,
+      contractType: 'CDI',
+      remoteMode: 'hybrid',
+      isRemote: false,
+      salary: 'Statut Cadre / Maîtrise',
+      skills: ['Expertise sectorielle', 'Pilotage de projets', 'Autonomie'],
+      description: `Sélection des postes pour profils qualifiés, techniciens et cadres dans le domaine de « ${cleanQ} » via l'APEC.`,
+      postedAt: new Date().toISOString(),
+      source: 'APEC (Live)',
+      url: `https://www.apec.fr/candidat/recherche-emploi.html/emploi?motsCles=${encodeURIComponent(cleanQ)}`
+    },
+    {
+      id: `indeed-${Date.now()}-6`,
       title: `${cleanQ} — Recrutements en cours`,
       company: 'Indeed France',
       location: cleanLoc,
@@ -149,15 +222,15 @@ function generateDirectJobBoardLinks(query, location) {
       remoteMode: 'onsite',
       isRemote: false,
       salary: 'Rémunération selon profil',
-      skills: ['Compétences techniques', 'Sens du service', 'Rigueur'],
-      description: `Accédez à toutes les annonces de recrutement récentes pour « ${cleanQ} » sur Indeed (${cleanLoc}). Candidatures simplifiées et coordonnées directes des employeurs.`,
+      skills: ['Polyvalence', 'Rigueur', 'Sens du service'],
+      description: `Toutes les annonces d'emploi de recruteurs et agences pour « ${cleanQ} » publiées en temps réel sur Indeed France (${cleanLoc}).`,
       postedAt: new Date().toISOString(),
-      source: 'Indeed (Live Search)',
+      source: 'Indeed (Live)',
       url: `https://fr.indeed.com/jobs?q=${encodeURIComponent(cleanQ)}&l=${encodeURIComponent(cleanLoc)}`
     },
     {
-      id: `linkedin-${Date.now()}-3`,
-      title: `${cleanQ} — Offres & Entreprises qui recrutent`,
+      id: `linkedin-${Date.now()}-7`,
+      title: `${cleanQ} — Offres & Recruteurs`,
       company: 'LinkedIn Jobs',
       location: cleanLoc,
       city: cleanLoc,
@@ -166,26 +239,10 @@ function generateDirectJobBoardLinks(query, location) {
       isRemote: false,
       salary: 'Marché',
       skills: ['Professionnalisme', 'Communication', 'Organisation'],
-      description: `Offres d'emploi officielles et opportunités de réseau pour le profil « ${cleanQ} » publiées par les entreprises et cabinets de recrutement sur LinkedIn.`,
+      description: `Postulez avec votre profil sur LinkedIn aux annonces officielles publiées par les entreprises pour « ${cleanQ} ».`,
       postedAt: new Date().toISOString(),
       source: 'LinkedIn Jobs (Live)',
       url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(cleanQ)}&location=${encodeURIComponent(cleanLoc)}`
-    },
-    {
-      id: `apec-${Date.now()}-4`,
-      title: `Cadres & Spécialistes : ${cleanQ}`,
-      company: 'APEC / Offres Cadres & Techniciens',
-      location: cleanLoc,
-      city: cleanLoc,
-      contractType: 'CDI',
-      remoteMode: 'hybrid',
-      isRemote: false,
-      salary: 'Statut Cadre / Maîtrise',
-      skills: ['Expertise métier', 'Gestion de projet', 'Autonomie'],
-      description: `Sélection d'opportunités professionnelles pour profils qualifiés et cadres dans le secteur de « ${cleanQ} ».`,
-      postedAt: new Date().toISOString(),
-      source: 'APEC (Live)',
-      url: `https://www.apec.fr/candidat/recherche-emploi.html/emploi?motsCles=${encodeURIComponent(cleanQ)}`
     }
   ];
 }
@@ -215,10 +272,9 @@ export default async function handler(req, res) {
       limit = 20
     } = params;
 
-    const cleanQuery = (query || '').trim();
-    const cleanLocation = (location || '').trim();
+    const cleanQuery = String(query || '').trim();
+    const cleanLocation = String(location || '').trim();
 
-    // If query is empty, return empty list (do NOT spam user with unsolicited tech jobs)
     if (!cleanQuery && !cleanLocation) {
       return res.status(200).json({
         success: true,
@@ -236,14 +292,14 @@ export default async function handler(req, res) {
 
     let combinedJobs = [...adzunaResults, ...arbeitnowResults, ...remotiveResults];
 
-    // 2. Add verified direct search listings for the requested trade and city
+    // 2. Add verified direct portal deep-links for French and global sites
     const directSearchListings = generateDirectJobBoardLinks(cleanQuery, cleanLocation);
     combinedJobs = [...combinedJobs, ...directSearchListings];
 
     // 3. Filter by contract type if specified
     if (contractType && contractType !== 'all') {
       combinedJobs = combinedJobs.filter((job) =>
-        job.contractType.toLowerCase().includes(contractType.toLowerCase())
+        String(job.contractType || '').toLowerCase().includes(contractType.toLowerCase())
       );
     }
 

@@ -198,10 +198,10 @@ export default function CareerOpsHub({
 
   // Computed matching details for all searched jobs
   const rankedJobs = useMemo(() => {
-    if (!resumeData || !jobs.length) return jobs;
+    if (!jobs || !jobs.length) return [];
 
     const scored = jobs.map((job) => {
-      const match = matchResumeWithJob(resumeData, job, {
+      const match = matchResumeWithJob(resumeData || {}, job, {
         userCity: location || candidateLocation,
         maxRadiusKm: radiusKm
       });
@@ -211,7 +211,7 @@ export default function CareerOpsHub({
       };
     });
 
-    return scored.sort((a, b) => (b.matchDetails?.scoreRating || 0) - (a.matchDetails?.scoreRating || 0));
+    return scored.sort((a, b) => (Number(b.matchDetails?.scoreRating) || 0) - (Number(a.matchDetails?.scoreRating) || 0));
   }, [jobs, resumeData, location, candidateLocation, radiusKm]);
 
   // Handle Save Job
