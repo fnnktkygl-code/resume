@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function Modal({ isOpen, onClose, title, children, actions, ariaLabelledby }) {
+export default function Modal({ isOpen, onClose, title, children, actions, ariaLabelledby, maxWidth, style, className = '' }) {
   const modalRef = useRef(null);
   const previousFocusRef = useRef(null);
 
@@ -69,10 +69,14 @@ export default function Modal({ isOpen, onClose, title, children, actions, ariaL
       onClick={handleOverlayClick}
     >
       <div 
-        className="modal-content" 
+        className={`modal-content ${className}`.trim()} 
         ref={modalRef} 
         tabIndex={-1}
-        style={{ position: 'relative' }}
+        style={{ 
+          position: 'relative',
+          maxWidth: maxWidth || undefined,
+          ...style
+        }}
       >
         {onClose && (
           <button

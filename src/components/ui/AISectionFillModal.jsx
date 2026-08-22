@@ -231,7 +231,7 @@ export default function AISectionFillModal({
         initialStep={language === 'fr' ? '⚡ Analyse du contexte et création de suggestions sur-mesure...' : '⚡ Analyzing context & generating tailored suggestions...'}
         language={language}
       />
-      <Modal isOpen={isOpen} onClose={onClose} title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
+      <Modal isOpen={isOpen} onClose={onClose} maxWidth="620px" title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* JD Banner info */}
         {/* Job Description Optional Input */}

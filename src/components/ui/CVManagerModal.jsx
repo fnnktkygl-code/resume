@@ -28,6 +28,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      maxWidth="620px"
       title={t('My Resumes 📂')}
       ariaLabelledby="cv-manager-modal-title"
     >

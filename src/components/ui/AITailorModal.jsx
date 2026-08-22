@@ -74,6 +74,7 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
       <Modal
         isOpen={isOpen}
         onClose={!isLoading ? onClose : () => {}}
+        maxWidth="620px"
         title={`✨ ${t('Tailor to Job Description')}`}
       actions={
         tailoredResult ? (

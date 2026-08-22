@@ -211,6 +211,7 @@ export default function CareerOpsHub({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      maxWidth="920px"
       title={t('🎯 Big CareerOps — Recherche & Candidature 1-Clic')}
       ariaLabelledby="career-ops-modal-title"
     >
@@ -307,7 +308,7 @@ export default function CareerOpsHub({
                   />
                 </div>
 
-                <div>
+                <div className="career-filter-btn-cell">
                   <button
                     onClick={handleSearch}
                     disabled={isLoadingJobs}

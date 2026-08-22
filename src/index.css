@@ -3900,40 +3900,45 @@ input[type="range"] {
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .career-filter-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: flex-end;
-}
-
-@media (max-width: 768px) {
-  .career-filter-grid {
-    grid-template-columns: 1fr;
-  }
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .career-input-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1 1 220px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .career-input-field label {
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .career-input-field input,
 .career-input-field select {
   height: 40px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
@@ -3942,7 +3947,21 @@ input[type="range"] {
   font-size: 13px;
   font-family: inherit;
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.career-filter-btn-cell {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .career-filter-btn-cell {
+    flex: 1 1 100%;
+  }
+  .career-filter-btn-cell button {
+    width: 100%;
+  }
 }
 
 .career-input-field input:focus,
