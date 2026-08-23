@@ -69,62 +69,72 @@ export default function Header({
           <i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}
         </span>
 
-        {/* Big CareerOps Button */}
+        {/* 1. Primary Action: Manage Resumes */}
         <button
           className="btn-demo desktop-only"
-          style={{ 
-            marginRight: '8px', 
-            border: '1px solid rgba(16, 185, 129, 0.4)',
-            background: 'rgba(16, 185, 129, 0.1)',
-            color: '#10B981',
-            fontWeight: '600'
-          }}
-          onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
-          data-tooltip={language === 'fr' ? '🎯 Recherche d\'offres géolocalisées, matching ATS & adaptation 1-clic' : '🎯 Smart Job Search, ATS Matcher & 1-Click Apply'}
+          style={{ marginRight: '6px', border: '1px solid var(--color-border)' }}
+          onClick={() => setIsCvManagerOpen(true)}
+          data-tooltip={language === 'fr' ? 'Gérer, dupliquer et organiser vos différentes versions de CV' : 'Manage, duplicate and organize your resume versions'}
           data-tooltip-pos="bottom"
         >
-          🎯 {t('Big CareerOps')}
+          <i className="fi fi-rr-folder"></i> {language === 'fr' ? 'Mes CVs' : t('Manage My Resumes')}
         </button>
 
-        {/* Daily Tip Button */}
-        <button
-          className="btn-demo desktop-only"
-          style={{ 
-            marginRight: '8px', 
-            border: '1px solid rgba(var(--color-accent-rgb, 99, 102, 241), 0.3)',
-            background: 'var(--color-accent-light, rgba(99, 102, 241, 0.08))',
-            color: 'var(--color-accent, #6366f1)',
-            fontWeight: '600'
-          }}
-          onClick={() => setIsDailyTipOpen && setIsDailyTipOpen(true)}
-          data-tooltip={language === 'fr' ? 'Recommandations & statistiques RH vérifiées du jour (CV & Lettre)' : 'Daily data-backed HR insights & tips'}
-          data-tooltip-pos="bottom"
-        >
-          💡 {language === 'fr' ? 'Conseil du Jour' : 'Daily Pro Tip'}
-        </button>
-
-        {/* Cover Letter Generator */}
-        <button 
-          className="btn-demo desktop-only" 
-          style={{ marginRight: '8px', border: '1px solid var(--color-border)' }} 
-          onClick={() => setIsCoverLetterModalOpen(true)}
-          data-tooltip={language === 'fr' ? 'Ouvrir le générateur de lettre de motivation IA' : 'Open AI cover letter generator'}
-          data-tooltip-pos="bottom"
-        >
-          <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
-        </button>
-
-        {/* Primary action: Import CV */}
+        {/* 2. Primary Action: Import CV */}
         <button 
           className="btn-demo btn-import-primary desktop-only" 
+          style={{ marginRight: '6px' }}
           onClick={() => setShowImportModal(true)}
-          data-tooltip={language === 'fr' ? 'Importer et analyser un CV (PDF, JSON)' : 'Import & parse existing CV (PDF, JSON)'}
+          data-tooltip={language === 'fr' ? 'Importer et analyser un CV existant (PDF, JSON)' : 'Import & parse existing CV (PDF, JSON)'}
           data-tooltip-pos="bottom"
         >
           <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
         </button>
 
-        {/* Overflow Menu */}
+        {/* 3. Core Feature: CareerOps with Beta Badge */}
+        <button
+          className="btn-demo desktop-only"
+          style={{ 
+            marginRight: '6px', 
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            background: 'rgba(16, 185, 129, 0.1)',
+            color: '#10B981',
+            fontWeight: '600',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+          onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
+          data-tooltip={language === 'fr' ? '🎯 Recherche d\'offres géolocalisées, matching ATS & adaptation 1-clic (Feature en développement)' : '🎯 Smart Job Search, ATS Matcher & 1-Click Apply (In active development)'}
+          data-tooltip-pos="bottom"
+        >
+          <span>🎯 CareerOps</span>
+          <span style={{ 
+            fontSize: '9.5px', 
+            fontWeight: '700', 
+            textTransform: 'uppercase', 
+            padding: '1px 5px', 
+            borderRadius: '4px', 
+            background: 'rgba(16, 185, 129, 0.25)', 
+            color: '#10B981', 
+            border: '1px solid rgba(16, 185, 129, 0.4)' 
+          }}>
+            {language === 'fr' ? 'Bêta' : 'Beta'}
+          </span>
+        </button>
+
+        {/* 4. Cover Letter Generator */}
+        <button 
+          className="btn-demo desktop-only" 
+          style={{ marginRight: '6px', border: '1px solid var(--color-border)' }} 
+          onClick={() => setIsCoverLetterModalOpen(true)}
+          data-tooltip={language === 'fr' ? 'Rédiger une lettre de motivation ciblée par IA' : 'Generate AI tailored cover letter'}
+          data-tooltip-pos="bottom"
+        >
+          <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
+        </button>
+
+        {/* Overflow Menu (Cleaned & De-duplicated) */}
         <div className="header-overflow-menu" ref={menuRef}>
           <button
             className="mobile-menu-btn header-more-btn"
@@ -138,51 +148,46 @@ export default function Header({
           </button>
           
           <div className={`mobile-menu-dropdown header-dropdown${mobileMenuOpen ? ' open' : ''}`}>
-            <div className="dropdown-section-label">{t('My Documents')}</div>
-            <button 
-              className="btn-demo dropdown-item" 
-              onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Recherche d\'offres géolocalisées & matching ATS' : 'Smart Job Search & ATS Matcher'}
-              data-tooltip-pos="left"
-            >
-              🎯 {t('Big CareerOps')}
-            </button>
+            {/* Mobile Only Quick Actions */}
+            <div className="mobile-only">
+              <div className="dropdown-section-label">{t('Actions')}</div>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-folder"></i> {language === 'fr' ? 'Mes CVs' : t('Manage My Resumes')}
+              </button>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
+              </button>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
+              >
+                🎯 CareerOps (Bêta)
+              </button>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
+              </button>
+              <div className="dropdown-divider" />
+            </div>
+
+            {/* General Utilities */}
+            <div className="dropdown-section-label">{t('Outils & Modèles')}</div>
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}
               data-tooltip={language === 'fr' ? 'Conseils & statistiques RH du jour (CV & Lettre)' : 'Daily data-backed HR insights'}
               data-tooltip-pos="left"
             >
-              💡 {language === 'fr' ? 'Conseil du Jour' : 'Daily Pro Tip'}
+              💡 {language === 'fr' ? 'Conseil RH du Jour' : 'Daily Pro Tip'}
             </button>
-            <button 
-              className="btn-demo dropdown-item mobile-only" 
-              onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Rédiger une lettre de motivation IA' : 'Generate AI cover letter'}
-              data-tooltip-pos="left"
-            >
-              <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
-            </button>
-            <button 
-              className="btn-demo dropdown-item mobile-only" 
-              onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Importer un CV existant (PDF, JSON)' : 'Import existing CV (PDF, JSON)'}
-              data-tooltip-pos="left"
-            >
-              <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
-            </button>
-            <button 
-              className="btn-demo dropdown-item" 
-              onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Sauvegarder, charger ou exporter vos versions de CV' : 'Save, load, or export resume versions'}
-              data-tooltip-pos="left"
-            >
-              <i className="fi fi-rr-folder"></i> {t('Manage My Resumes')}
-            </button>
-            
-            <div className="dropdown-divider" />
-            
-            <div className="dropdown-section-label">{t('Examples')}</div>
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}
@@ -211,7 +216,6 @@ export default function Header({
             >
               <i className="fi fi-rr-trash"></i> {t('Clear')}
             </button>
-            
           </div>
         </div>
 

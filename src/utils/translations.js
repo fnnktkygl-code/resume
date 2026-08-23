@@ -589,9 +589,9 @@ export const TRANSLATIONS = {
     'Paste target job advertisement / offer here (optional)...': 'Paste target job advertisement / offer here (optional)...',
 
     // CareerOps Translations
-    'Big CareerOps': 'Big CareerOps',
+    'Big CareerOps': 'CareerOps',
     'CareerOps': 'CareerOps',
-    'Big CareerOps — Agrégateur & Candidature 1-Clic': 'Big CareerOps — Smart Job Matcher & 1-Click Apply',
+    'Big CareerOps — Agrégateur & Candidature 1-Clic': 'CareerOps — Smart Job Matcher & 1-Click Apply',
     'Offres & Matching IA': 'Jobs & AI Matching',
     'Suivi de Candidatures': 'Application Tracker',
     'Poste recherché / Mots-clés': 'Target Role / Keywords',

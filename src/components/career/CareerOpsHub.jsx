@@ -477,7 +477,24 @@ export default function CareerOpsHub({
       isOpen={isOpen}
       onClose={onClose}
       maxWidth="940px"
-      title={t('🎯 CareerOps — Command Center IA de Recherche d\'Emploi')}
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span>🎯 {t('CareerOps — Command Center IA de Recherche d\'Emploi')}</span>
+          <span style={{
+            fontSize: '10px',
+            fontWeight: '700',
+            textTransform: 'uppercase',
+            padding: '2px 7px',
+            borderRadius: '4px',
+            background: 'rgba(16, 185, 129, 0.15)',
+            color: '#10B981',
+            border: '1px solid rgba(16, 185, 129, 0.35)',
+            letterSpacing: '0.5px'
+          }}>
+            {language === 'fr' ? 'Bêta (En cours d\'amélioration)' : 'Beta (In development)'}
+          </span>
+        </div>
+      }
       ariaLabelledby="career-ops-modal-title"
     >
       <div className="career-ops-hub">

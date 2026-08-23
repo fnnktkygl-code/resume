@@ -602,6 +602,85 @@ export default function App() {
     dispatch({ type: 'DELETE_SECTION_SPACER', payload: spacerId });
   }, [dispatch]);
 
+function estimateResumeHeightInPages(resumeData) {
+  if (!resumeData) return 1;
+  let lines = 0;
+
+  // Header
+  if (resumeData.personal?.name) lines += 2;
+  if (resumeData.personal?.tagline) lines += 1.5;
+  if (resumeData.personal?.email || resumeData.personal?.phone || resumeData.personal?.location) lines += 1.5;
+
+  // Summary
+  if (resumeData.summary) {
+    lines += Math.ceil(resumeData.summary.length / 80) + 2;
+  }
+
+  // Experience
+  if (Array.isArray(resumeData.experience)) {
+    for (const exp of resumeData.experience) {
+      if (!exp.company && !exp.title && !exp.isSpacer) continue;
+      lines += 2.5; // Company, title, date, location
+      if (Array.isArray(exp.bullets)) {
+        for (const bullet of exp.bullets) {
+          if (bullet && typeof bullet === 'string') {
+            lines += Math.ceil(bullet.length / 75) + 0.5;
+          }
+        }
+      }
+    }
+  }
+
+  // Education
+  if (Array.isArray(resumeData.education)) {
+    for (const edu of resumeData.education) {
+      if (!edu.institution && !edu.degree && !edu.isSpacer) continue;
+      lines += 2;
+      if (Array.isArray(edu.bullets)) {
+        for (const bullet of edu.bullets) {
+          if (bullet && typeof bullet === 'string') {
+            lines += Math.ceil(bullet.length / 75) + 0.5;
+          }
+        }
+      }
+    }
+  }
+
+  // Skills
+  if (resumeData.skills) {
+    lines += 2;
+    if (resumeData.skills.technical) lines += Math.ceil(resumeData.skills.technical.length / 80);
+    if (resumeData.skills.soft) lines += Math.ceil(resumeData.skills.soft.length / 80);
+    if (resumeData.skills.languages) lines += Math.ceil(resumeData.skills.languages.length / 80);
+  }
+
+  // Projects
+  if (Array.isArray(resumeData.projects)) {
+    for (const pr of resumeData.projects) {
+      if (pr.name) lines += 2;
+    }
+  }
+
+  // Certifications
+  if (Array.isArray(resumeData.certifications)) {
+    for (const c of resumeData.certifications) {
+      if (c.name) lines += 1.5;
+    }
+  }
+
+  // Custom sections
+  if (Array.isArray(resumeData.customSections)) {
+    for (const cs of resumeData.customSections) {
+      if (cs.items?.some(i => i.title || i.subtitle || i.description)) {
+        lines += 2 + (cs.items.length * 1.5);
+      }
+    }
+  }
+
+  // A standard non-compact 1-page A4 resume accommodates approximately 32 text lines.
+  return lines > 32 ? 2 : 1;
+}
+
   const handleImport = useCallback((imported, originalImported = null, originalInput = null) => {
     const defaultData = structuredClone(DEFAULT_DATA);
     
@@ -685,10 +764,36 @@ export default function App() {
       snapshotData.originalText = originalInput.text;
     }
 
+    // Auto-compact if imported resume exceeds 1 page
+    const estimatedPages = estimateResumeHeightInPages(newData);
+    if (estimatedPages > 1) {
+      setLayout(prev => ({
+        ...prev,
+        isCompact: true,
+        fontSize: 9.5,
+        paddingX: 0.5,
+        paddingY: 0.5,
+        lineHeight: 1.25,
+        sectionSpacing: 4,
+        itemSpacing: 4
+      }));
+    } else {
+      setLayout(prev => ({
+        ...prev,
+        isCompact: false,
+        fontSize: 10.5,
+        paddingX: 0.75,
+        paddingY: 0.75,
+        lineHeight: 1.45,
+        sectionSpacing: 8,
+        itemSpacing: 12
+      }));
+    }
+
     dispatch({ type: 'SET_DATA', payload: newData });
     setImportSnapshot(snapshotData);
     setOriginalImportInput(originalInput);
-  }, [dispatch]);
+  }, [dispatch, setLayout]);
 
   const clearData = () => {
     localStorage.removeItem(STORAGE_KEY);
