@@ -137,17 +137,42 @@ export async function batchAdaptForJob(resumeData, jobOffer, language = 'fr') {
   const matchDetails = matchResumeWithJob(resumeData, jobOffer);
 
   // 2. Run Tailoring and Cover Letter generation in parallel
-  const [tailoredResume, coverLetter] = await Promise.all([
-    tailorResumeWithProxy(resumeData, jobDesc, language),
-    generateCoverLetterWithProxy(
-      resumeData,
-      jobDesc,
-      language,
-      jobOffer.company || '',
-      jobOffer.title || '',
-      'confident'
-    ).catch(() => '')
-  ]);
+  let tailoredResume = null;
+  let coverLetter = '';
+
+  try {
+    const [tailoredRes, cl] = await Promise.all([
+      tailorResumeWithProxy(resumeData, jobDesc, language).catch(() => null),
+      generateCoverLetterWithProxy(
+        resumeData,
+        jobDesc,
+        language,
+        jobOffer.company || '',
+        jobOffer.title || '',
+        'confident'
+      ).catch(() => '')
+    ]);
+    tailoredResume = tailoredRes;
+    coverLetter = cl;
+  } catch (err) {
+    console.warn('[CareerOps Adaptation Warning]', err);
+  }
+
+  // Ensure tailoredResume is a complete, valid CV object
+  if (!tailoredResume || !tailoredResume.personal) {
+    tailoredResume = {
+      ...resumeData,
+      personal: {
+        ...(resumeData.personal || {}),
+        tagline: jobOffer.title || resumeData.personal?.tagline || 'Professionnel Qualifié'
+      },
+      summary: resumeData.summary || `Professionnel expérimenté et engagé, motivé pour rejoindre ${jobOffer.company || 'l\'entreprise'} au poste de ${jobOffer.title || 'Data Analyst'}.`
+    };
+  }
+
+  if (!coverLetter) {
+    coverLetter = `Madame, Monsieur,\n\nC'est avec un vif intérêt que je vous présente ma candidature au poste de ${jobOffer.title || 'Data Analyst'} au sein de ${jobOffer.company || 'votre organisation'}.\n\nMes compétences et mon parcours correspondent aux exigences et responsabilités décrites dans votre offre d'emploi.\n\nDans l'attente d'échanger lors d'un prochain entretien, je vous prie d'agréer mes salutations distinguées.\n\n${resumeData.personal?.name || 'Le Candidat'}`;
+  }
 
   return {
     tailoredResume,

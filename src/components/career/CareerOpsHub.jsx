@@ -28,6 +28,24 @@ const STANDARD_INDUSTRY_DOMAINS = [
   { nameFr: 'Enseignement & Formation', nameEn: 'Education & Training', nameEs: 'Educación y Formación', value: 'Enseignement', icon: '🎓' }
 ];
 
+function extractSkillsList(skills) {
+  if (!skills) return [];
+  if (Array.isArray(skills)) {
+    return skills.map(s => (typeof s === 'string' ? s : s?.name || String(s))).filter(Boolean);
+  }
+  if (typeof skills === 'object') {
+    const list = [];
+    if (skills.technical) list.push(...skills.technical.split(/[,;\n]/));
+    if (skills.soft) list.push(...skills.soft.split(/[,;\n]/));
+    if (skills.languages) list.push(...skills.languages.split(/[,;\n]/));
+    return list.map(s => s.trim()).filter(Boolean);
+  }
+  if (typeof skills === 'string') {
+    return skills.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 export default function CareerOpsHub({
   isOpen,
   onClose,
@@ -831,9 +849,9 @@ export default function CareerOpsHub({
                 <div style={{ fontSize: '12px' }}>
                   <strong>{t('Compétences mises en avant :')}</strong>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                    {(pendingReview.tailoredResume?.skills || []).map((s, idx) => (
+                    {extractSkillsList(pendingReview.tailoredResume?.skills).map((s, idx) => (
                       <span key={idx} className="career-skill-chip matched">
-                        {typeof s === 'string' ? s : s.name}
+                        ✓ {s}
                       </span>
                     ))}
                   </div>
