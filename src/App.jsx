@@ -998,11 +998,11 @@ function estimateResumeHeightInPages(resumeData) {
             <div className="stepper-mobile-actions mobile-only" role="toolbar" aria-label={t('Section shortcuts')}>
               <button
                 type="button"
-                className="stepper-mobile-chip"
+                className="stepper-mobile-chip stepper-mobile-chip-primary"
                 onClick={addCustomSection}
                 aria-label={t('Add custom section')}
               >
-                <span>➕</span> {t('Section')}
+                <i className="fi fi-rr-plus"></i> <span>{t('Section')}</span>
               </button>
               <button
                 type="button"
@@ -1010,7 +1010,7 @@ function estimateResumeHeightInPages(resumeData) {
                 onClick={addSpacerSection}
                 aria-label={t('Add spacer or page break')}
               >
-                <span>📐</span> {t('Spacer')}
+                <i className="fi fi-rr-ruler-triangle"></i> <span>{t('Spacer')}</span>
               </button>
               <button
                 type="button"
@@ -1018,7 +1018,7 @@ function estimateResumeHeightInPages(resumeData) {
                 onClick={() => setIsReorderModalOpen(true)}
                 aria-label={t('Reorder sections')}
               >
-                <span>⇅</span> {t('Reorder')}
+                <i className="fi fi-rr-exchange"></i> <span>{t('Reorder')}</span>
               </button>
             </div>
 

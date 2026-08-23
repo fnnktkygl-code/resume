@@ -82,6 +82,7 @@ class TooltipManager {
       pointer-events: none;
     `;
 
+    this.handleTouchStart = this.handleTouchStart.bind(this);
     this.container.appendChild(this.contentEl);
     this.container.appendChild(this.arrowEl);
     document.body.appendChild(this.container);
@@ -91,6 +92,7 @@ class TooltipManager {
     document.addEventListener('mouseout', this.handleMouseOut, true);
     document.addEventListener('focusin', this.handleFocusIn, true);
     document.addEventListener('focusout', this.handleFocusOut, true);
+    document.addEventListener('touchstart', this.handleTouchStart, { passive: true });
     window.addEventListener('scroll', this.handleScroll, { passive: true });
     window.addEventListener('resize', this.updatePosition, { passive: true });
     document.addEventListener('keydown', this.handleKeyDown, true);
@@ -104,6 +106,7 @@ class TooltipManager {
     document.removeEventListener('mouseout', this.handleMouseOut, true);
     document.removeEventListener('focusin', this.handleFocusIn, true);
     document.removeEventListener('focusout', this.handleFocusOut, true);
+    document.removeEventListener('touchstart', this.handleTouchStart);
     window.removeEventListener('scroll', this.handleScroll);
     window.removeEventListener('resize', this.updatePosition);
     document.removeEventListener('keydown', this.handleKeyDown, true);
@@ -112,6 +115,10 @@ class TooltipManager {
       this.container.parentNode.removeChild(this.container);
     }
     this.isInitialized = false;
+  }
+
+  handleTouchStart() {
+    this.hide(true);
   }
 
   findTrigger(target) {
