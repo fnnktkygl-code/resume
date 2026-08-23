@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { getTranslation } from '../utils/translations';
+import { DEMO_DATA_1_PAGE_FR, DEMO_DATA_1_PAGE, DEMO_DATA_1_PAGE_ES } from '../utils/demoData';
+import ResumePreview from './ResumePreview';
 import ImportModal from './ui/ImportModal';
 import '../styles/landing.css';
 
@@ -17,12 +19,32 @@ export default function Landing({ onStart, onNavigate }) {
     }
   });
 
+  const [activeTemplate, setActiveTemplate] = useState('standard');
+  const [activeMobileTab, setActiveMobileTab] = useState('preview');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const langMenuRef = useRef(null);
 
   const t = (k) => getTranslation(lang, k);
+
+  const activeDemoData = useMemo(() => {
+    if (lang === 'fr') return DEMO_DATA_1_PAGE_FR;
+    if (lang === 'es') return DEMO_DATA_1_PAGE_ES;
+    return DEMO_DATA_1_PAGE;
+  }, [lang]);
+
+  const studioLayout = useMemo(() => ({
+    isCompact: true,
+    fontSize: 9.5,
+    paddingX: 0.5,
+    paddingY: 0.5,
+    lineHeight: 1.3,
+    sectionSpacing: 6,
+    itemSpacing: 6,
+    accentColor: '#0F3A8C',
+    fontFamily: 'Inter'
+  }), []);
 
   const handleLanguageChange = (newLang) => {
     setLang(newLang);
@@ -39,7 +61,6 @@ export default function Landing({ onStart, onNavigate }) {
     onStart();
   };
 
-  // Close dropdown on click outside or escape
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target)) {
@@ -59,11 +80,9 @@ export default function Landing({ onStart, onNavigate }) {
     };
   }, []);
 
-  // Scroll header effect & intersection animations
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
-
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -71,11 +90,9 @@ export default function Landing({ onStart, onNavigate }) {
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
     document.querySelectorAll('.animate-on-scroll').forEach((el) => {
       observer.observe(el);
     });
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
@@ -84,7 +101,6 @@ export default function Landing({ onStart, onNavigate }) {
 
   return (
     <div className="landing-page">
-      {/* HEADER NAVIGATION */}
       <nav className={`landing-nav ${scrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-logo">
           Resu<span>Me</span>
@@ -92,7 +108,6 @@ export default function Landing({ onStart, onNavigate }) {
         </div>
         
         <div className="landing-nav-actions">
-          {/* Language Switcher */}
           <div className="landing-lang-wrapper" ref={langMenuRef}>
             <button 
               className="landing-lang-btn"
@@ -106,29 +121,13 @@ export default function Landing({ onStart, onNavigate }) {
 
             {langDropdownOpen && (
               <div className="landing-lang-dropdown">
-                <button 
-                  className={`landing-lang-option ${lang === 'fr' ? 'active' : ''}`}
-                  onClick={() => handleLanguageChange('fr')}
-                >
-                  <span>🇫🇷</span> Français
-                </button>
-                <button 
-                  className={`landing-lang-option ${lang === 'en' ? 'active' : ''}`}
-                  onClick={() => handleLanguageChange('en')}
-                >
-                  <span>🇬🇧</span> English
-                </button>
-                <button 
-                  className={`landing-lang-option ${lang === 'es' ? 'active' : ''}`}
-                  onClick={() => handleLanguageChange('es')}
-                >
-                  <span>🇪🇸</span> Español
-                </button>
+                <button className={`landing-lang-option ${lang === 'fr' ? 'active' : ''}`} onClick={() => handleLanguageChange('fr')}><span>🇫🇷</span> Français</button>
+                <button className={`landing-lang-option ${lang === 'en' ? 'active' : ''}`} onClick={() => handleLanguageChange('en')}><span>🇬🇧</span> English</button>
+                <button className={`landing-lang-option ${lang === 'es' ? 'active' : ''}`} onClick={() => handleLanguageChange('es')}><span>🇪🇸</span> Español</button>
               </div>
             )}
           </div>
 
-          {/* Single High-Priority Call to Action */}
           <button className="landing-cta-small" onClick={onStart}>
             ✨ {t('Open Studio')}
           </button>
@@ -136,7 +135,6 @@ export default function Landing({ onStart, onNavigate }) {
       </nav>
 
       <main className="landing-main">
-        {/* HERO SECTION */}
         <section className="landing-hero">
           <div className="hero-content">
             <div className="hero-pill animate-on-scroll">
@@ -163,82 +161,74 @@ export default function Landing({ onStart, onNavigate }) {
             </div>
           </div>
 
-          {/* HERO STUDIO SHOWCASE MOCKUP */}
           <div className="hero-showcase animate-on-scroll staggered-4">
             <div className="showcase-glow"></div>
             <div className="studio-mockup-frame">
-              {/* Studio Window Header */}
               <div className="mockup-window-bar">
                 <div className="window-dots">
                   <span className="dot dot-red"></span>
                   <span className="dot dot-yellow"></span>
                   <span className="dot dot-green"></span>
                 </div>
-                <div className="window-title">ResuMe Studio — {lang === 'fr' ? 'Éditeur & Audit ATS en direct' : 'Live ATS Resume Studio'}</div>
-                <div className="window-status">
-                  <span className="status-indicator"></span>
-                  {lang === 'fr' ? 'Sauvegardé en local' : 'Saved locally'}
+                <div className="window-title">
+                  ResuMe Studio — {lang === 'fr' ? 'Aperçu & Éditeur Réels en Direct' : 'Live Real Studio & ATS Preview'}
+                </div>
+                <div className="window-controls-row">
+                  <div className="template-switch-pill">
+                    <button className={`tpl-mini-btn ${activeTemplate === 'standard' ? 'active' : ''}`} onClick={() => setActiveTemplate('standard')}>Classic</button>
+                    <button className={`tpl-mini-btn ${activeTemplate === 'njm' ? 'active' : ''}`} onClick={() => setActiveTemplate('njm')}>NJM</button>
+                    <button className={`tpl-mini-btn ${activeTemplate === 'modern' ? 'active' : ''}`} onClick={() => setActiveTemplate('modern')}>Modern</button>
+                    <button className={`tpl-mini-btn ${activeTemplate === 'minimalist' ? 'active' : ''}`} onClick={() => setActiveTemplate('minimalist')}>Minimalist</button>
+                  </div>
+                  <div className="window-status">
+                    <span className="status-indicator"></span>
+                    {lang === 'fr' ? 'Sauvegardé' : 'Saved'}
+                  </div>
                 </div>
               </div>
 
-              {/* Dual-Pane Studio Body */}
               <div className="studio-mockup-body">
-                {/* Left Pane: Editor */}
                 <div className="studio-left-pane">
                   <div className="studio-pane-header">
-                    <span className="pane-tag">{lang === 'fr' ? 'Éditeur Structuré' : 'Structured Editor'}</span>
-                    <span className="pane-badge-xyz">⚡ Formule Harvard XYZ</span>
+                    <span className="pane-tag"><i className="fi fi-rr-edit"></i> {lang === 'fr' ? 'Éditeur & IA' : 'Live Editor & AI'}</span>
+                    <span className="pane-badge-xyz">⚡ {lang === 'fr' ? 'Formule Harvard XYZ' : 'Harvard XYZ Formula'}</span>
                   </div>
-                  <div className="mock-input-group">
-                    <label>{lang === 'fr' ? 'Intitulé recherché' : 'Target Role'}</label>
-                    <div className="mock-input">Consultant Power BI & Data Analyst</div>
-                  </div>
-                  <div className="mock-input-group">
-                    <label>{lang === 'fr' ? 'Réalisation percutante (Formule XYZ)' : 'Impact Achievement (XYZ)'}</label>
-                    <div className="mock-input-highlight">
-                      <span className="highlight-tag">[X] +35% de performance</span> mesuré par <span className="highlight-tag">[Y] réduction du temps de refresh</span> en automatisant les pipelines DAX & Power Query <span className="highlight-tag">[Z]</span>.
+
+                  <div className="live-editor-preview-card">
+                    <div className="form-group-item">
+                      <label>{lang === 'fr' ? 'Intitulé de poste cible' : 'Target Job Title'}</label>
+                      <div className="live-mock-input">{activeDemoData.personal?.tagline || 'Lead Product Manager & Data Strategist'}</div>
                     </div>
-                  </div>
-                  <div className="mock-tags-row">
-                    <span className="mock-chip active">Power BI</span>
-                    <span className="mock-chip active">DAX</span>
-                    <span className="mock-chip active">SQL</span>
-                    <span className="mock-chip active">Azure Data Factory</span>
+                    <div className="form-group-item">
+                      <label>{lang === 'fr' ? 'Expérience clé (Format Impact Harvard XYZ)' : 'Key Experience (Harvard XYZ Impact)'}</label>
+                      <div className="live-mock-bullet-box">
+                        <span className="tag-accent">[X] +40% de conversion</span> {lang === 'fr' ? 'mesuré par' : 'measured by'} <span className="tag-accent">[Y] le taux d’activation utilisateur</span> {lang === 'fr' ? 'en déployant une refonte complète des parcours' : 'by delivering full workflow redesign'} <span className="tag-accent">[Z]</span>.
+                      </div>
+                    </div>
+                    <div className="skills-chips-live">
+                      <span className="skill-badge-item active">Product Strategy</span>
+                      <span className="skill-badge-item active">Data Analytics</span>
+                      <span className="skill-badge-item active">SQL & BI</span>
+                      <span className="skill-badge-item active">A/B Testing</span>
+                      <span className="skill-badge-item active">Scrum</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Right Pane: Live ATS Resume Preview */}
                 <div className="studio-right-pane">
                   <div className="preview-top-badge">
-                    <span className="ats-score-pill">
-                      🎯 Score ATS : <strong>96 / 100</strong>
-                    </span>
-                    <span className="template-pill">Modèle : Classic ATS</span>
+                    <span className="ats-score-pill">🎯 Score ATS : <strong>96 / 100</strong></span>
+                    <span className="template-pill">{lang === 'fr' ? 'Modèle actif :' : 'Active template:'} <strong>{activeTemplate.toUpperCase()}</strong></span>
                   </div>
 
-                  <div className="mini-resume-sheet">
-                    <div className="sheet-header">
-                      <div className="sheet-name">ALEXANDRE DUPONT</div>
-                      <div className="sheet-role">Consultant Business Intelligence & Data Analyst</div>
-                      <div className="sheet-contact">Montpellier, France • linkedin.com/in/alexandre-dupont • 06 12 34 56 78</div>
-                    </div>
-                    <div className="sheet-divider"></div>
-                    <div className="sheet-section">
-                      <div className="sheet-section-title">EXPÉRIENCE PROFESSIONNELLE</div>
-                      <div className="sheet-exp-header">
-                        <strong>Senior Data Analyst</strong> — DataCorp Solutions
-                        <span className="sheet-date">2022 - Présent</span>
-                      </div>
-                      <ul className="sheet-bullets">
-                        <li><strong>+35% de performance</strong> des rapports décisionnels en optimisant les modèles de données tabulaires DAX.</li>
-                        <li><strong>Déploiement de 14 dashboards Power BI</strong> pour 250 utilisateurs métiers clés.</li>
-                      </ul>
+                  <div className="live-resume-container-wrapper">
+                    <div className="live-resume-scaler">
+                      <ResumePreview data={activeDemoData} layout={studioLayout} language={lang} compact={true} template={activeTemplate} />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Floating Highlight Chips */}
               <div className="floating-badge badge-careerops">
                 <span className="badge-icon">🎯</span>
                 <div className="badge-text">
@@ -246,7 +236,6 @@ export default function Landing({ onStart, onNavigate }) {
                   <span>4.8 / 5.0 ★ ({lang === 'fr' ? 'Top Adéquation' : 'Top Match'})</span>
                 </div>
               </div>
-
               <div className="floating-badge badge-compact">
                 <span className="badge-icon">📐</span>
                 <div className="badge-text">
@@ -258,7 +247,6 @@ export default function Landing({ onStart, onNavigate }) {
           </div>
         </section>
 
-        {/* BENTO GRID: COMPREHENSIVE FEATURE SHOWCASE */}
         <section id="features" className="landing-bento-section">
           <div className="bento-header animate-on-scroll">
             <h2>{t('Pro-level tools.')}</h2>
@@ -266,7 +254,6 @@ export default function Landing({ onStart, onNavigate }) {
           </div>
 
           <div className="bento-grid">
-            {/* FEATURE 1 (FULL WIDTH): CAREEROPS HUB */}
             <div className="bento-box bx-full animate-on-scroll">
               <div className="bento-text bento-centered-top">
                 <span className="bento-eyebrow">🎯 {lang === 'fr' ? 'Nouveau Module' : 'Flagship Feature'}</span>
@@ -284,13 +271,13 @@ export default function Landing({ onStart, onNavigate }) {
                       <span className="portal-tag">APEC</span>
                       <span className="portal-tag">LinkedIn</span>
                     </div>
-                    <span className="careerops-status-badge">● {lang === 'fr' ? 'Géolocalisation Réelle' : 'Geodesic Distance'}</span>
+                    <span className="careerops-status-badge">● {lang === 'fr' ? 'Distance Géodésique Réelle' : 'Geodesic Distance'}</span>
                   </div>
 
                   <div className="careerops-job-item">
                     <div className="job-meta">
-                      <h4>Consultant Power BI / Data Analyst</h4>
-                      <span className="job-company">DataCorp Solutions • Montpellier (0 km) • CDI</span>
+                      <h4>Lead Product Manager & Data Analyst</h4>
+                      <span className="job-company">TechSolutions • Montpellier (0 km) • CDI</span>
                     </div>
                     <div className="job-rating-pill">
                       <span className="score-num">4.8 / 5.0</span>
@@ -299,16 +286,15 @@ export default function Landing({ onStart, onNavigate }) {
                   </div>
 
                   <div className="careerops-skills-match">
-                    <span className="skill-match-tag match">✓ Power BI</span>
-                    <span className="skill-match-tag match">✓ SQL & DAX</span>
-                    <span className="skill-match-tag match">✓ Modélisation de données</span>
-                    <span className="skill-match-tag neutral">+ Azure Data</span>
+                    <span className="skill-match-tag match">✓ Product Strategy</span>
+                    <span className="skill-match-tag match">✓ SQL & Analytics</span>
+                    <span className="skill-match-tag match">✓ Formule Harvard XYZ</span>
+                    <span className="skill-match-tag neutral">+ Machine Learning</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* FEATURE 2 (HALF): 1-CLICK TAILOR & HARVARD XYZ */}
             <div className="bento-box bx-half animate-on-scroll">
               <div className="bento-text">
                 <span className="bento-eyebrow">⚡ {lang === 'fr' ? 'Impact Mesurable' : 'Proven Impact'}</span>
@@ -318,17 +304,16 @@ export default function Landing({ onStart, onNavigate }) {
 
               <div className="bento-diff-card">
                 <div className="diff-item diff-before">
-                  <span className="diff-label">❌ {lang === 'fr' ? 'Avant :' : 'Before:'}</span>
-                  <p>« En charge de la création de dashboards et analyse des ventes. »</p>
+                  <span className="diff-label">❌ {lang === 'fr' ? 'Avant (Description passive) :' : 'Before (Passive description):'}</span>
+                  <p>« Responsable de l'analyse des indicateurs clés et gestion des sprints. »</p>
                 </div>
                 <div className="diff-item diff-after">
-                  <span className="diff-label">✅ {lang === 'fr' ? 'Après (Harvard XYZ & Gras IA) :' : 'After (Harvard XYZ & AI Bold):'}</span>
-                  <p>« <strong>Augmentation de +28% de la vélocité commerciale</strong> mesurée par le délai de reporting en concevant 8 dashboards Power BI automatisés. »</p>
+                  <span className="diff-label">✅ {lang === 'fr' ? 'Après (Harvard XYZ & Mots-clés ATS en gras) :' : 'After (Harvard XYZ & Bolds):'}</span>
+                  <p>« <strong>Amélioration de +32% du taux de rétention</strong> mesurée sur 10 000 utilisateurs actifs en pilotant l'analyse produit et 12 sprints Agile. »</p>
                 </div>
               </div>
             </div>
 
-            {/* FEATURE 3 (HALF): SURGICAL LAYOUT & AUTO-COMPACT */}
             <div className="bento-box bx-half animate-on-scroll">
               <div className="bento-text">
                 <span className="bento-eyebrow">📐 {lang === 'fr' ? 'Mise en Page Parfaite' : 'Smart Spacing'}</span>
@@ -346,14 +331,13 @@ export default function Landing({ onStart, onNavigate }) {
                 <div className="compact-toggle-card">
                   <div className="toggle-info">
                     <strong>Mode Compact Automatique</strong>
-                    <span>{lang === 'fr' ? "Resserre interlignes et marges si > 1 page" : "Tightens spacing & margins if > 1 page"}</span>
+                    <span>{lang === 'fr' ? "Resserre interlignes et marges dès que le CV > 1 page" : "Tightens spacing & margins if resume > 1 page"}</span>
                   </div>
                   <div className="mock-toggle on"></div>
                 </div>
               </div>
             </div>
 
-            {/* FEATURE 4 (HALF): AI COVER LETTERS & TRANSLATION */}
             <div className="bento-box bx-half animate-on-scroll">
               <div className="bento-text">
                 <span className="bento-eyebrow">✉️ {lang === 'fr' ? 'Suite Complète' : 'AI Assistant'}</span>
@@ -363,16 +347,15 @@ export default function Landing({ onStart, onNavigate }) {
 
               <div className="bento-letter-preview">
                 <div className="letter-header-snippet">
-                  <span className="letter-to">Destinataire : DataCorp — Département Data</span>
-                  <span className="letter-subject">Candidature au poste de Consultant Power BI</span>
+                  <span className="letter-to">Destinataire : TechSolutions — Recrutement</span>
+                  <span className="letter-subject">Candidature : Lead Product Manager</span>
                 </div>
                 <div className="letter-body-snippet">
-                  « Madame, Monsieur, fort d'une expertise reconnue en modélisation DAX et reporting stratégique... »
+                  « Madame, Monsieur, particulièrement enthousiaste à l'idée d'accélérer l'impact de vos produits digitaux, je mets à profit mon expertise éprouvée en stratégie Data et pilotage de fonctionnalités... »
                 </div>
               </div>
             </div>
 
-            {/* FEATURE 5 (HALF): FLAWLESS MOBILE FREEDOM */}
             <div className="bento-box bx-half animate-on-scroll">
               <div className="bento-text">
                 <span className="bento-eyebrow">📱 {lang === 'fr' ? 'Mobilité Totale' : 'Mobile First'}</span>
@@ -380,25 +363,64 @@ export default function Landing({ onStart, onNavigate }) {
                 <p>{t('Create, update and preview your resume natively on your smartphone with a dedicated ergonomic tactile interface.')}</p>
               </div>
 
-              {/* REALISTIC SMARTPHONE CHASSIS (PROPERLY PROPORTIONED, NO CUT-OFF) */}
               <div className="smartphone-showcase">
                 <div className="smartphone-chassis">
-                  <div className="phone-dynamic-island"></div>
+                  <div className="phone-dynamic-island">
+                    <span className="phone-camera-lens"></span>
+                  </div>
                   <div className="phone-screen">
-                    <div className="phone-app-bar">
-                      <span className="phone-logo">Resu<span>Me</span></span>
-                      <span className="phone-ats-badge">🎯 96</span>
-                    </div>
-                    <div className="phone-card">
-                      <span className="phone-card-title">Consultant Power BI</span>
-                      <div className="phone-chip-group">
-                        <span className="p-chip">1 Page</span>
-                        <span className="p-chip">Compact</span>
-                        <span className="p-chip">PDF</span>
+                    <div className="phone-status-bar">
+                      <span className="phone-time">9:41</span>
+                      <div className="phone-status-icons">
+                        <span className="signal-bar"></span>
+                        <span className="battery-icon"></span>
                       </div>
                     </div>
-                    <div className="phone-action-btn">
-                      ✨ {lang === 'fr' ? 'Télécharger PDF' : 'Download PDF'}
+                    <div className="phone-app-header">
+                      <span className="phone-app-title">Resu<span>Me</span></span>
+                      <span className="phone-ats-score">🎯 96/100</span>
+                    </div>
+                    <div className="phone-mobile-nav-tabs">
+                      <button className={`phone-tab-btn ${activeMobileTab === 'editor' ? 'active' : ''}`} onClick={() => setActiveMobileTab('editor')}>
+                        {lang === 'fr' ? 'Édition' : 'Editor'}
+                      </button>
+                      <button className={`phone-tab-btn ${activeMobileTab === 'preview' ? 'active' : ''}`} onClick={() => setActiveMobileTab('preview')}>
+                        {lang === 'fr' ? 'Aperçu CV' : 'Preview'}
+                      </button>
+                    </div>
+                    <div className="phone-content-area">
+                      {activeMobileTab === 'preview' ? (
+                        <div className="phone-resume-mini-preview">
+                          <div className="p-mini-name">{activeDemoData.personal?.name}</div>
+                          <div className="p-mini-role">{activeDemoData.personal?.tagline}</div>
+                          <div className="p-mini-divider"></div>
+                          <div className="p-mini-section">EXPÉRIENCE</div>
+                          <div className="p-mini-exp-item">
+                            <strong>{activeDemoData.experience?.[0]?.title}</strong> — {activeDemoData.experience?.[0]?.company}
+                            <p>{activeDemoData.experience?.[0]?.bullets?.[0]}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="phone-editor-mini-fields">
+                          <div className="p-field">
+                            <label>{lang === 'fr' ? 'Nom complet' : 'Full Name'}</label>
+                            <input type="text" readOnly value={activeDemoData.personal?.name} />
+                          </div>
+                          <div className="p-field">
+                            <label>{lang === 'fr' ? 'Intitulé' : 'Tagline'}</label>
+                            <input type="text" readOnly value={activeDemoData.personal?.tagline} />
+                          </div>
+                          <div className="p-field">
+                            <label>{lang === 'fr' ? 'Formule Harvard XYZ' : 'Harvard XYZ'}</label>
+                            <div className="p-xyz-chip">✓ Formule [X]-[Y]-[Z] activée</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="phone-bottom-bar">
+                      <button className="phone-export-btn" onClick={onStart}>
+                        ✨ {lang === 'fr' ? 'Ouvrir sur mobile' : 'Open on mobile'}
+                      </button>
                     </div>
                   </div>
                   <div className="phone-home-indicator"></div>
@@ -408,7 +430,6 @@ export default function Landing({ onStart, onNavigate }) {
           </div>
         </section>
 
-        {/* TRUST & PRIVACY PILLARS */}
         <section className="landing-pillars animate-on-scroll">
           <div className="pillar-item">
             <div className="pillar-icon">🔒</div>
@@ -427,7 +448,6 @@ export default function Landing({ onStart, onNavigate }) {
           </div>
         </section>
 
-        {/* FINAL CALL TO ACTION */}
         <section className="landing-final-cta animate-on-scroll">
           <div className="cta-glow"></div>
           <h2>{t('Ready to stand out?')}</h2>
@@ -437,16 +457,13 @@ export default function Landing({ onStart, onNavigate }) {
           </button>
         </section>
 
-        {/* FOOTER */}
         <footer className="landing-footer">
           <div className="landing-logo">Resu<span>Me</span></div>
-          
           <nav className="footer-nav">
             <button onClick={() => onNavigate('privacy')}>Privacy Policy</button>
             <button onClick={() => onNavigate('terms')}>Terms of Service</button>
             <button onClick={() => onNavigate('security')}>Security</button>
           </nav>
-
           <div className="footer-links">
             <span className="footer-tag">ATS Ready</span>
             <span className="footer-tag">CareerOps Bêta</span>
