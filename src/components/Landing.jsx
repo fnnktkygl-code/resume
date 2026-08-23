@@ -107,11 +107,8 @@ export default function Landing({ onStart, onNavigate }) {
               {t('The all-in-one studio to craft elite resumes, audit ATS compatibility, match verified job offers with CareerOps, and tailor applications in 1 click.')}
             </p>
             <div className="hero-actions animate-on-scroll staggered-3">
-              <button className="landing-cta-primary" onClick={onStart}>
-                ✨ {t('Start Building Free')}
-              </button>
-              <button className="landing-cta-secondary" onClick={() => setShowImportModal(true)}>
-                <i className="fi fi-rr-magic-wand"></i> {t('Import Resume')}
+              <button className="landing-cta-primary large" onClick={onStart}>
+                ✨ {t('Open Studio')}
               </button>
             </div>
           </div>
@@ -224,7 +221,7 @@ export default function Landing({ onStart, onNavigate }) {
           <h2>Ready to stand out?</h2>
           <p>Join the next generation of professionals.</p>
           <button className="landing-cta-primary large mt-6" onClick={onStart}>
-            Start Building Now
+            ✨ {t('Open Studio')}
           </button>
         </section>
 
