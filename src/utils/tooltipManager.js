@@ -126,7 +126,16 @@ class TooltipManager {
     return target.closest('[data-tooltip]');
   }
 
+  isTouchDevice() {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+      window.matchMedia && 
+      window.matchMedia('(hover: none) and (pointer: coarse)').matches
+    );
+  }
+
   handleMouseOver(e) {
+    if (this.isTouchDevice()) return;
     const trigger = this.findTrigger(e.target);
     if (!trigger) return;
     const text = trigger.getAttribute('data-tooltip');
@@ -142,6 +151,7 @@ class TooltipManager {
   }
 
   handleFocusIn(e) {
+    if (this.isTouchDevice()) return;
     const trigger = this.findTrigger(e.target);
     if (!trigger) return;
     const text = trigger.getAttribute('data-tooltip');
