@@ -46,6 +46,37 @@ function extractSkillsList(skills) {
   return [];
 }
 
+function extractCleanJobTitle(resumeData) {
+  if (!resumeData) return '';
+  const rawTagline = resumeData.personal?.tagline?.trim() || '';
+
+  // If tagline is clean, concise (<= 6 words, not a full sentence/pitch)
+  const isPitchSentence = /^(je\s|en\s+recherche|recherche|au\s+service|passionn|mon\s+objectif)/i.test(rawTagline) || rawTagline.split(/\s+/).length > 6 || rawTagline.length > 55;
+
+  if (rawTagline && !isPitchSentence) {
+    return rawTagline;
+  }
+
+  // Check latest experience title
+  const latestExpTitle = resumeData.experience?.find(e => e.title?.trim())?.title?.trim();
+  if (latestExpTitle && latestExpTitle.split(/\s+/).length <= 6) {
+    return latestExpTitle;
+  }
+
+  // Extract key technical role from pitch tagline if present (e.g. "EXPERTISE POWER BI" -> "Expertise Power BI")
+  if (rawTagline) {
+    const match = rawTagline.match(/(?:expertise|poste\s+de|comme|en\s+tant\s+que)\s+([A-Za-z0-9+#.\s]{3,30})(?:\s+au\s+service|\s+pour|\s+dans|$)/i);
+    if (match && match[1]) {
+      const clean = match[1].trim();
+      if (clean.length > 2 && clean.length < 35) return clean;
+    }
+    const words = rawTagline.split(/\s+/).slice(0, 4).join(' ');
+    return words.length < 35 ? words : words.slice(0, 35);
+  }
+
+  return '';
+}
+
 export default function CareerOpsHub({
   isOpen,
   onClose,
@@ -87,7 +118,7 @@ export default function CareerOpsHub({
   const [viewingCoverLetter, setViewingCoverLetter] = useState(null);
 
   // Candidate CV context
-  const candidateTagline = resumeData?.personal?.tagline?.trim() || '';
+  const cleanJobTitle = useMemo(() => extractCleanJobTitle(resumeData), [resumeData]);
   const candidateLocation = resumeData?.personal?.location?.trim() || '';
 
   // Master Profile validation
@@ -106,14 +137,14 @@ export default function CareerOpsHub({
   // Initialize search criteria from user resume data
   useEffect(() => {
     if (isOpen && resumeData) {
-      if (candidateTagline && !query) {
-        setQuery(candidateTagline);
+      if (cleanJobTitle && !query) {
+        setQuery(cleanJobTitle);
       }
       if (candidateLocation && !location) {
         setLocation(candidateLocation);
       }
     }
-  }, [isOpen, resumeData, candidateTagline, candidateLocation, query, location]);
+  }, [isOpen, resumeData, cleanJobTitle, candidateLocation, query, location]);
 
   // Load saved applications
   const loadApps = useCallback(() => {
@@ -494,8 +525,8 @@ export default function CareerOpsHub({
           <div className="career-candidate-badge">
             <span>👤</span>
             <span><strong>{resumeData?.personal?.name || t('Candidat')}</strong></span>
-            {candidateTagline && (
-              <span style={{ opacity: 0.8 }}>• {candidateTagline}</span>
+            {cleanJobTitle && (
+              <span style={{ opacity: 0.85 }}>• {cleanJobTitle}</span>
             )}
           </div>
         </div>

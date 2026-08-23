@@ -88,7 +88,7 @@ CRITICAL RULES:
 1. EXTRACT FAITHFULLY: Copy all text exactly as it appears. Do NOT improve bullet points, rewrite descriptions, or add action verbs.
 2. LANGUAGE: Ensure all the extracted text translates exactly to ${language ? targetLangStr : 'the detected language of the resume'} if it is not already. Add a "detectedLanguage" field with the ISO code ("fr", "en", "es").
 3. SKILLS: Extract skills exactly as written in a single string per category. Do NOT infer or add skills that are not explicitly listed. Preserve existing categories with semicolons if present (e.g. "Programming: Python, Java; Data: SQL").
-4. TAGLINE: Only extract a tagline if it is explicitly written in the resume. Otherwise leave it as "".
+4. TAGLINE vs SUMMARY: "personal.tagline" MUST strictly be the concise Professional Title / Role (e.g. "Consultant Power BI", "Data Analyst", 2 to 5 words max). If the candidate's resume header contains a full sentence, pitch, or career objective (e.g., "Je souhaite mettre mon expertise...", "À la recherche d'une opportunité..."), put that entire sentence into "summary", NOT into "personal.tagline".
 5. BULLET POINTS: Remove leading bullet characters ('>', '-', '•') but keep the text identical.
 6. MISSING INFO: If information is missing, use "" or [].
 7. JSON ONLY: Return ONLY valid JSON.
