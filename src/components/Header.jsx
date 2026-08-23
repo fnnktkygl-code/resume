@@ -64,7 +64,7 @@ export default function Header({
       <div className="header-right">
         <span 
           className="privacy-note"
-          data-tooltip={language === 'fr' ? 'Vos données restent 100% privées et stockées uniquement dans votre navigateur' : 'Your data stays 100% private and stored in your browser'}
+          data-tooltip={t('All data stays in your browser')}
           data-tooltip-pos="bottom"
           style={{ cursor: 'help' }}
         >
@@ -76,7 +76,7 @@ export default function Header({
           className={`btn-demo btn-save-resume desktop-only ${saveStatus === 'saved' ? 'btn-save-success' : ''}`}
           style={{ marginRight: '6px' }}
           onClick={onSave}
-          data-tooltip={language === 'fr' ? 'Enregistrer vos modifications dans Mes CVs' : 'Save changes to My Resumes'}
+          data-tooltip={t('Save current resume to My Resumes')}
           data-tooltip-pos="bottom"
         >
           <i className={`fi ${saveStatus === 'saved' ? 'fi-rr-check' : 'fi-rr-disk'}`}></i>
@@ -88,10 +88,10 @@ export default function Header({
           className="btn-demo desktop-only"
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }}
           onClick={() => setIsCvManagerOpen(true)}
-          data-tooltip={language === 'fr' ? 'Gérer, dupliquer et organiser vos différentes versions de CV' : 'Manage, duplicate and organize your resume versions'}
+          data-tooltip={t('Manage, duplicate and organize your resume versions')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-folder"></i> {language === 'fr' ? 'Mes CVs' : t('Manage My Resumes')}
+          <i className="fi fi-rr-folder"></i> {t('My Resumes')}
         </button>
 
         {/* 3. Primary Action: Import CV */}
@@ -99,7 +99,7 @@ export default function Header({
           className="btn-demo btn-import-primary desktop-only" 
           style={{ marginRight: '6px' }}
           onClick={() => setShowImportModal(true)}
-          data-tooltip={language === 'fr' ? 'Importer et analyser un CV existant (PDF, JSON)' : 'Import & parse existing CV (PDF, JSON)'}
+          data-tooltip={t('Import and analyze an existing CV (PDF, JSON)')}
           data-tooltip-pos="bottom"
         >
           <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
@@ -119,7 +119,7 @@ export default function Header({
             gap: '5px'
           }}
           onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
-          data-tooltip={language === 'fr' ? '🎯 Recherche d\'offres géolocalisées, matching ATS & adaptation 1-clic (Feature en développement)' : '🎯 Smart Job Search, ATS Matcher & 1-Click Apply (In active development)'}
+          data-tooltip={t('Smart Job Search, ATS Matcher & 1-Click Apply (In active development)')}
           data-tooltip-pos="bottom"
         >
           <span>🎯 CareerOps</span>
@@ -133,7 +133,7 @@ export default function Header({
             color: '#10B981', 
             border: '1px solid rgba(16, 185, 129, 0.4)' 
           }}>
-            {language === 'fr' ? 'Bêta' : 'Beta'}
+            {t('Beta')}
           </span>
         </button>
 
@@ -142,7 +142,7 @@ export default function Header({
           className="btn-demo desktop-only" 
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }} 
           onClick={() => setIsCoverLetterModalOpen(true)}
-          data-tooltip={language === 'fr' ? 'Rédiger une lettre de motivation ciblée par IA' : 'Generate AI tailored cover letter'}
+          data-tooltip={t('Generate tailored cover letter with AI')}
           data-tooltip-pos="bottom"
         >
           <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
@@ -153,9 +153,9 @@ export default function Header({
           <button
             className="mobile-menu-btn header-more-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="More options"
+            aria-label={t('More options')}
             aria-expanded={mobileMenuOpen}
-            data-tooltip={language === 'fr' ? 'Plus d\'options et modèles' : 'More options & templates'}
+            data-tooltip={t('More options & templates')}
             data-tooltip-pos="bottom"
           >
             <i className="fi fi-rr-menu-dots"></i>
@@ -176,7 +176,7 @@ export default function Header({
                 className="btn-demo dropdown-item" 
                 onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
               >
-                <i className="fi fi-rr-folder"></i> {language === 'fr' ? 'Mes CVs' : t('Manage My Resumes')}
+                <i className="fi fi-rr-folder"></i> {t('My Resumes')}
               </button>
               <button 
                 className="btn-demo dropdown-item" 
@@ -188,7 +188,7 @@ export default function Header({
                 className="btn-demo dropdown-item" 
                 onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
               >
-                🎯 CareerOps (Bêta)
+                🎯 CareerOps ({t('Beta')})
               </button>
               <button 
                 className="btn-demo dropdown-item" 
@@ -200,19 +200,19 @@ export default function Header({
             </div>
 
             {/* General Utilities */}
-            <div className="dropdown-section-label">{t('Outils & Modèles')}</div>
+            <div className="dropdown-section-label">{t('Tools & Templates')}</div>
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Conseils & statistiques RH du jour (CV & Lettre)' : 'Daily data-backed HR insights'}
+              data-tooltip={t('Daily data-backed HR insights')}
               data-tooltip-pos="left"
             >
-              💡 {language === 'fr' ? 'Conseil RH du Jour' : 'Daily Pro Tip'}
+              💡 {t('Daily Pro Tip')}
             </button>
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Charger un exemple de CV 1 page optimisé' : 'Load 1-page optimized demo resume'}
+              data-tooltip={t('Load 1-page optimized demo resume')}
               data-tooltip-pos="left"
             >
               <i className="fi fi-rr-document"></i> {t('1-Page Demo')}
@@ -220,7 +220,7 @@ export default function Header({
             <button 
               className="btn-demo dropdown-item" 
               onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}
-              data-tooltip={language === 'fr' ? 'Charger un exemple de CV 2 pages complet' : 'Load 2-page complete demo resume'}
+              data-tooltip={t('Load 2-page complete demo resume')}
               data-tooltip-pos="left"
             >
               <i className="fi fi-rr-copy"></i> {t('2-Page Demo')}
@@ -232,7 +232,7 @@ export default function Header({
               className="btn-demo dropdown-item dropdown-danger"
               onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}
               disabled={!hasContent}
-              data-tooltip={language === 'fr' ? 'Réinitialiser toutes les données du CV' : 'Reset all resume content'}
+              data-tooltip={t('Reset all resume content')}
               data-tooltip-pos="left"
             >
               <i className="fi fi-rr-trash"></i> {t('Clear')}
@@ -245,7 +245,7 @@ export default function Header({
             className="btn-demo" 
             onClick={() => setLangMenuOpen(!langMenuOpen)}
             aria-label={t('Change language')}
-            data-tooltip={language === 'fr' ? "Changer la langue de l'application" : 'Switch application language'}
+            data-tooltip={t('Switch application language')}
             data-tooltip-pos="bottom"
             style={{ padding: '5px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
@@ -291,8 +291,8 @@ export default function Header({
           className="theme-toggle" 
           onClick={toggleTheme} 
           aria-label={t('Toggle theme')}
-          data-tooltip={language === 'fr' ? (theme === 'light' ? 'Basculer en Mode Sombre' : 'Basculer en Mode Clair') : (theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode')}
-          data-tooltip-pos="left"
+          data-tooltip={theme === 'light' ? t('Switch to Dark Mode') : t('Switch to Light Mode')}
+          data-tooltip-pos="bottom"
         >
           {theme === 'light' ? '🌙' : '☀️'}
         </button>

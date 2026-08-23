@@ -818,10 +818,10 @@ function estimateResumeHeightInPages(resumeData) {
     let title = '';
     if (pages === 1) {
       demoData = language === 'fr' ? DEMO_DATA_1_PAGE_FR : language === 'es' ? DEMO_DATA_1_PAGE_ES : DEMO_DATA_1_PAGE;
-      title = language === 'fr' ? 'Démo 1 Page (Marie Dubois)' : 'Demo 1-Page';
+      title = language === 'fr' ? 'Démo 1 Page (Marie Dubois)' : language === 'es' ? 'Demo 1 Página (Marie Dubois)' : 'Demo 1-Page';
     } else {
       demoData = language === 'fr' ? DEMO_DATA_2_PAGES_FR : language === 'es' ? DEMO_DATA_2_PAGES_ES : DEMO_DATA_2_PAGES;
-      title = language === 'fr' ? 'Démo 2 Pages (Marie Dubois)' : 'Demo 2-Pages';
+      title = language === 'fr' ? 'Démo 2 Pages (Marie Dubois)' : language === 'es' ? 'Demo 2 Páginas (Marie Dubois)' : 'Demo 2-Pages';
     }
     const cloned = structuredClone(demoData);
     if (!cloned.sectionOrder) cloned.sectionOrder = [...DEFAULT_SECTION_ORDER];
@@ -964,7 +964,7 @@ function estimateResumeHeightInPages(resumeData) {
                 className="stepper-mobile-nav-btn"
                 onClick={() => setStep(prev => Math.max(0, prev - 1))}
                 disabled={step === 0}
-                aria-label={language === 'fr' ? 'Rubrique précédente' : 'Previous section'}
+                aria-label={t('Previous section')}
               >
                 <i className="fi fi-rr-angle-left"></i>
               </button>
@@ -988,37 +988,37 @@ function estimateResumeHeightInPages(resumeData) {
                 className="stepper-mobile-nav-btn"
                 onClick={() => setStep(prev => Math.min(allSteps.length - 1, prev + 1))}
                 disabled={step === allSteps.length - 1}
-                aria-label={language === 'fr' ? 'Rubrique suivante' : 'Next section'}
+                aria-label={t('Next section')}
               >
                 <i className="fi fi-rr-angle-right"></i>
               </button>
             </div>
 
             {/* Mobile Stepper Quick Actions */}
-            <div className="stepper-mobile-actions mobile-only" role="toolbar" aria-label="Section shortcuts">
+            <div className="stepper-mobile-actions mobile-only" role="toolbar" aria-label={t('Section shortcuts')}>
               <button
                 type="button"
                 className="stepper-mobile-chip"
                 onClick={addCustomSection}
-                aria-label={language === 'fr' ? 'Ajouter une rubrique personnalisée' : 'Add custom section'}
+                aria-label={t('Add custom section')}
               >
-                <span>➕</span> {language === 'fr' ? 'Rubrique' : 'Section'}
+                <span>➕</span> {t('Section')}
               </button>
               <button
                 type="button"
                 className="stepper-mobile-chip"
                 onClick={addSpacerSection}
-                aria-label={language === 'fr' ? 'Ajouter un espaceur ou saut de page' : 'Add spacer or page break'}
+                aria-label={t('Add spacer or page break')}
               >
-                <span>📐</span> {language === 'fr' ? 'Espaceur' : 'Spacer'}
+                <span>📐</span> {t('Spacer')}
               </button>
               <button
                 type="button"
                 className="stepper-mobile-chip"
                 onClick={() => setIsReorderModalOpen(true)}
-                aria-label={language === 'fr' ? 'Réorganiser les rubriques' : 'Reorder sections'}
+                aria-label={t('Reorder sections')}
               >
-                <span>⇅</span> {language === 'fr' ? 'Réorganiser' : 'Reorder'}
+                <span>⇅</span> {t('Reorder')}
               </button>
             </div>
 
@@ -1026,11 +1026,11 @@ function estimateResumeHeightInPages(resumeData) {
             <nav className="stepper desktop-only" role="tablist" aria-label="Resume sections">
               <div className="stepper-header-meta">
                 <span className="stepper-progress-badge">
-                  📊 {allSteps.filter(s => stepHasData(s.id)).length}/{allSteps.length} {language === 'fr' ? 'rubriques remplies' : 'sections completed'}
+                  📊 {allSteps.filter(s => stepHasData(s.id)).length}/{allSteps.length} {t('sections completed')}
                 </span>
                 {allSteps.some(s => isSectionHidden(s.id)) && (
-                  <span className="stepper-hidden-badge" data-tooltip={language === 'fr' ? 'Rubrique(s) masquée(s) sur le CV final' : 'Section(s) hidden from final CV'}>
-                    <i className="fi fi-rr-eye-crossed"></i> {allSteps.filter(s => isSectionHidden(s.id)).length} {language === 'fr' ? 'masquée(s)' : 'hidden'}
+                  <span className="stepper-hidden-badge" data-tooltip={t('Section(s) hidden from final CV')}>
+                    <i className="fi fi-rr-eye-crossed"></i> {allSteps.filter(s => isSectionHidden(s.id)).length} {t('hidden')}
                   </span>
                 )}
               </div>
@@ -1057,8 +1057,8 @@ function estimateResumeHeightInPages(resumeData) {
                       onDragEnd={() => { setDraggedStepId(null); setDragOverStepId(null); }}
                       data-tooltip={
                         hidden
-                          ? (language === 'fr' ? `${t(s.label)} (👁️‍🗨️ Masquée sur le CV)` : `${t(s.label)} (👁️‍🗨️ Hidden on CV)`)
-                          : (language === 'fr' ? `Accéder à la rubrique : ${t(s.label)}` : `Go to section: ${t(s.label)}`)
+                          ? `${t(s.label)} (${t('Hidden on CV')})`
+                          : `${t('Go to section:')} ${t(s.label)}`
                       }
                       data-tooltip-pos="right"
                     >
@@ -1066,7 +1066,7 @@ function estimateResumeHeightInPages(resumeData) {
                       <span className="step-label">{t(s.label)}</span>
                       {hasData && <span className="step-check" aria-hidden="true">✓</span>}
                       {hidden && (
-                        <span className="step-hidden-icon" title={language === 'fr' ? 'Rubrique masquée sur le CV' : 'Section hidden on CV'}>
+                        <span className="step-hidden-icon" title={t('Section hidden on CV')}>
                           <i className="fi fi-rr-eye-crossed"></i>
                         </span>
                       )}
@@ -1079,7 +1079,7 @@ function estimateResumeHeightInPages(resumeData) {
                 <button 
                   className="step-action-chip" 
                   onClick={addCustomSection}
-                  data-tooltip={language === 'fr' ? 'Créer une nouvelle rubrique personnalisée' : 'Create a new custom section'}
+                  data-tooltip={t('Add custom section')}
                   data-tooltip-pos="right"
                   aria-label={t("Add Custom Section")}
                 >
@@ -1089,7 +1089,7 @@ function estimateResumeHeightInPages(resumeData) {
                 <button 
                   className="step-action-chip" 
                   onClick={addSpacerSection}
-                  data-tooltip={language === 'fr' ? 'Insérer un saut de page ou espaceur ajustable' : 'Insert page break or adjustable space'}
+                  data-tooltip={t('Add spacer or page break')}
                   data-tooltip-pos="right"
                   aria-label={t("Add Spacer (Page Break)")}
                 >
@@ -1099,7 +1099,7 @@ function estimateResumeHeightInPages(resumeData) {
                 <button 
                   className="step-action-chip" 
                   onClick={() => setIsReorderModalOpen(true)}
-                  data-tooltip={language === 'fr' ? 'Réorganiser l\'ordre des rubriques du CV' : 'Reorder CV sections display'}
+                  data-tooltip={t('Reorder sections')}
                   data-tooltip-pos="right"
                   aria-label={t("Reorder Sections")}
                 >
@@ -1424,7 +1424,7 @@ function estimateResumeHeightInPages(resumeData) {
                           className="control-btn" 
                           onClick={undo} 
                           disabled={past.length === 0}
-                          data-tooltip={language === 'fr' ? 'Annuler la dernière action (Ctrl+Z)' : 'Undo last action (Ctrl+Z)'}
+                          data-tooltip={t('Undo last action (Ctrl+Z)')}
                           data-tooltip-pos="bottom"
                           style={{ opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
                           aria-label="Undo"
@@ -1435,7 +1435,7 @@ function estimateResumeHeightInPages(resumeData) {
                           className="control-btn" 
                           onClick={redo} 
                           disabled={future.length === 0}
-                          data-tooltip={language === 'fr' ? "Rétablir l'action annulée (Ctrl+Y)" : 'Redo last action (Ctrl+Y)'}
+                          data-tooltip={t('Redo last action (Ctrl+Y)')}
                           data-tooltip-pos="bottom"
                           style={{ opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', padding: '4px 6px' }}
                           aria-label="Redo"
@@ -1449,7 +1449,7 @@ function estimateResumeHeightInPages(resumeData) {
                         <button
                           className="control-btn"
                           onClick={() => setIsAtsScoreModalOpen(true)}
-                          data-tooltip={language === 'fr' ? `Score ATS : ${atsScore.score}/100 — Cliquez pour voir l'analyse détaillée` : `ATS Score: ${atsScore.score}/100 — Click for detailed analysis`}
+                          data-tooltip={`Score ATS: ${atsScore.score}/100`}
                           data-tooltip-pos="bottom"
                           style={{
                             display: 'flex',
@@ -1496,7 +1496,7 @@ function estimateResumeHeightInPages(resumeData) {
                                onClick={() => setIsTemplateDropdownOpen(o => !o)}
                                aria-haspopup="listbox"
                                aria-expanded={isTemplateDropdownOpen}
-                               data-tooltip={language === 'fr' ? 'Changer le modèle de design du CV' : 'Choose resume design template'}
+                               data-tooltip={t('Choose resume design template')}
                                data-tooltip-pos="bottom"
                              >
                                <span className="tpl-trigger-name">{activeTpl.name}</span>
@@ -1517,7 +1517,7 @@ function estimateResumeHeightInPages(resumeData) {
                                        <button
                                          className={`tpl-option${isActive ? ' tpl-option--active' : ''}`}
                                          onClick={() => { setTemplate(tpl.id); setIsTemplateDropdownOpen(false); }}
-                                         data-tooltip={language === 'fr' ? `Activer le modèle ${tpl.name}` : `Activate ${tpl.name} template`}
+                                         data-tooltip={`${t('Activate')} ${tpl.name} ${t('template')}`}
                                          data-tooltip-pos="left"
                                        >
                                          <span className="tpl-option-name">{tpl.name}</span>
@@ -1551,7 +1551,7 @@ function estimateResumeHeightInPages(resumeData) {
                             sectionSpacing: prev.isCompact ? 10 : 4,
                             itemSpacing: prev.isCompact ? 8 : 4
                           }))}
-                          data-tooltip={language === 'fr' ? "Basculer entre l'espacement normal et le mode compact 1 page" : 'Toggle normal spacing vs 1-page compact layout'}
+                          data-tooltip={t('Toggle normal spacing vs 1-page compact layout')}
                           data-tooltip-pos="bottom"
                         >
                           📐 {layout.isCompact ? t('Normal') : t('Compact')}
@@ -1560,15 +1560,13 @@ function estimateResumeHeightInPages(resumeData) {
                           className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
                           onClick={() => setIsLayoutOpen(!isLayoutOpen)}
                           aria-expanded={isLayoutOpen}
-                          data-tooltip={language === 'fr' ? 'Ouvrir/fermer les réglages de mise en page (police, marges, espaces)' : 'Toggle layout settings panel (font, margins, spacing)'}
+                          data-tooltip={t('Toggle layout settings panel (font, margins, spacing)')}
                           data-tooltip-pos="bottom"
                         >
                           <i className="fi fi-rr-settings"></i>
                         </button>
 
                       </div>
-
-
 
                       {/* AI Tools Dropdown */}
                       <div className="tpl-dropdown-wrap" ref={aiToolsDropdownRef}>
@@ -1577,7 +1575,7 @@ function estimateResumeHeightInPages(resumeData) {
                           onClick={() => setIsAIToolsDropdownOpen(o => !o)}
                           aria-haspopup="menu"
                           aria-expanded={isAIToolsDropdownOpen}
-                          data-tooltip={language === 'fr' ? "Accéder à la suite d'outils IA (Analyse ATS, Adaptation, Traduction, Gras IA)" : 'Access AI suite (ATS Score, Tailor, Translate, Smart Bolding)'}
+                          data-tooltip={t('Access AI suite (ATS Score, Tailor, Translate, Smart Bolding)')}
                           data-tooltip-pos="bottom"
                           style={{
                             background: 'linear-gradient(135deg, rgba(var(--color-accent-rgb, 99, 102, 241), 0.1), rgba(var(--color-primary-rgb, 14, 165, 233), 0.1))',
@@ -1597,7 +1595,7 @@ function estimateResumeHeightInPages(resumeData) {
                               className="dropdown-item" 
                               onClick={() => { setIsAtsScoreModalOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
-                              data-tooltip={language === 'fr' ? 'Évaluer la compatibilité ATS avec une offre d\'emploi' : 'Evaluate ATS compatibility with a job posting'}
+                              data-tooltip={t('Evaluate ATS compatibility with a job posting')}
                               data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
@@ -1607,7 +1605,7 @@ function estimateResumeHeightInPages(resumeData) {
                               className="dropdown-item" 
                               onClick={() => { setIsTailorOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
-                              data-tooltip={language === 'fr' ? 'Optimiser le CV spécifiquement pour une offre d\'emploi' : 'Tailor resume for a specific job offer'}
+                              data-tooltip={t('Tailor resume for a specific job offer')}
                               data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
@@ -1617,7 +1615,7 @@ function estimateResumeHeightInPages(resumeData) {
                               className="dropdown-item" 
                               onClick={() => { setIsAIOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
-                              data-tooltip={language === 'fr' ? 'Traduire instantanément le CV dans une autre langue' : 'Instantly translate resume to another language'}
+                              data-tooltip={t('Instantly translate resume to another language')}
                               data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
@@ -1627,7 +1625,7 @@ function estimateResumeHeightInPages(resumeData) {
                               className="dropdown-item" 
                               onClick={() => { setIsBoldifyOpen(true); setIsAIToolsDropdownOpen(false); }} 
                               disabled={!hasContent} 
-                              data-tooltip={language === 'fr' ? 'Mettre en valeur intelligemment les mots-clés clés' : 'Smartly highlight key keywords in bold'}
+                              data-tooltip={t('Smartly highlight key keywords in bold')}
                               data-tooltip-pos="left"
                               style={{ opacity: hasContent ? 1 : 0.5, cursor: hasContent ? 'pointer' : 'not-allowed' }}
                             >
@@ -1640,7 +1638,7 @@ function estimateResumeHeightInPages(resumeData) {
                                 <button
                                   className="dropdown-item"
                                   onClick={() => { restoreSnapshot(); setIsAIToolsDropdownOpen(false); }}
-                                  data-tooltip={language === 'fr' ? 'Annuler les modifications IA et revenir au CV précédent' : 'Undo AI edits and restore previous resume version'}
+                                  data-tooltip={t('Undo AI edits and restore previous resume version')}
                                   data-tooltip-pos="left"
                                   style={{ color: 'var(--color-danger, #ef4444)' }}
                                 >
@@ -1657,7 +1655,7 @@ function estimateResumeHeightInPages(resumeData) {
                       <button 
                         className="control-btn"
                         onClick={() => setIsPreviewHeaderCollapsed(true)}
-                        data-tooltip={language === 'fr' ? 'Masquer la barre de contrôle' : 'Collapse controls bar'}
+                        data-tooltip={t('Collapse controls bar')}
                         data-tooltip-pos="bottom"
                         aria-label="Collapse Header"
                         style={{ padding: '4px 6px' }}
@@ -1670,7 +1668,7 @@ function estimateResumeHeightInPages(resumeData) {
 
                 {!isPreviewHeaderCollapsed && isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
                 
-                {/* S1: Direct export — no confirmation modal */}
+                {/* S1: Direct export — PDF and Word DOCX */}
                 {!isPreviewHeaderCollapsed && (
                   <div className="preview-export-bar" style={{ position: 'relative' }}>
                     <div className="export-split-button" style={{ display: 'flex', width: '100%', gap: '1px' }}>
@@ -1678,7 +1676,7 @@ function estimateResumeHeightInPages(resumeData) {
                         type="button"
                         className="btn-export btn-export-primary" 
                         onClick={() => setTimeout(() => window.print(), 100)}
-                        data-tooltip={language === 'fr' ? 'Générer et sauvegarder le CV en PDF haute définition' : 'Generate & save resume as HD PDF'}
+                        data-tooltip={t('Generate & save resume as HD PDF')}
                         data-tooltip-pos="top"
                         style={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                       >
@@ -1688,7 +1686,7 @@ function estimateResumeHeightInPages(resumeData) {
                         type="button"
                         className="btn-export btn-export-primary"
                         onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-                        data-tooltip={language === 'fr' ? 'Autres options d\'exportation (Word, Markdown, JSON)' : 'More export options (Word, Markdown, JSON)'}
+                        data-tooltip={t('More export options (Word)')}
                         data-tooltip-pos="top"
                         style={{ 
                           flex: '0 0 auto',
@@ -1712,28 +1710,10 @@ function estimateResumeHeightInPages(resumeData) {
                           type="button"
                           className="dropdown-item" 
                           onClick={() => { try { exportDocx(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
-                          data-tooltip={language === 'fr' ? 'Télécharger au format Word modifiable (.docx)' : 'Download as editable Word document (.docx)'}
+                          data-tooltip={t('Download as Word (.docx)')}
                           data-tooltip-pos="left"
                         >
-                          <i className="fi fi-rr-file-word"></i> {t('Download as Word (DOC)')}
-                        </button>
-                        <button 
-                          type="button"
-                          className="dropdown-item" 
-                          onClick={() => { try { exportMarkdown(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
-                          data-tooltip={language === 'fr' ? 'Télécharger au format texte Markdown (.md)' : 'Download raw Markdown file (.md)'}
-                          data-tooltip-pos="left"
-                        >
-                          <i className="fi fi-rr-file-code"></i> {t('Download as Markdown')}
-                        </button>
-                        <button 
-                          type="button"
-                          className="dropdown-item" 
-                          onClick={() => { try { exportJson(data); } catch (err) { alert('Export failed: ' + err.message); } setIsExportDropdownOpen(false); }}
-                          data-tooltip={language === 'fr' ? 'Télécharger la sauvegarde complète JSON' : 'Download full JSON data backup'}
-                          data-tooltip-pos="left"
-                        >
-                          <i className="fi fi-rr-disk"></i> {t('Download as JSON')}
+                          <i className="fi fi-rr-file-word"></i> {t('Download as Word (.docx)')}
                         </button>
                       </div>
                     )}

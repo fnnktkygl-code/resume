@@ -37,7 +37,7 @@ export default function LayoutControls({ layout, onChange }) {
         <button 
           className="btn-secondary" 
           onClick={resetLayout} 
-          data-tooltip={language === 'fr' ? 'Réinitialiser la mise en page aux valeurs par défaut' : 'Reset layout settings to default'}
+          data-tooltip={t('Reset layout settings to default')}
           data-tooltip-pos="top"
           style={{ padding: '4px 8px', fontSize: '11px' }}
         >
@@ -79,7 +79,7 @@ export default function LayoutControls({ layout, onChange }) {
             id="font-select"
             value={layout.fontFamily || 'Inter'}
             onChange={(e) => handleUpdate('fontFamily', e.target.value)}
-            data-tooltip={language === 'fr' ? 'Choisir la typographie du CV' : 'Choose resume font family'}
+            data-tooltip={t('Choose resume font family')}
             data-tooltip-pos="top"
             style={{
               padding: '6px 12px',
@@ -108,7 +108,7 @@ export default function LayoutControls({ layout, onChange }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? 'Ajuster la taille globale du texte' : 'Adjust main font size'}
+          data-tooltip={t('Adjust main font size')}
           data-tooltip-pos="top"
         >
           <label>{t('Font Size')}: {layout.fontSize}pt</label>
@@ -117,7 +117,7 @@ export default function LayoutControls({ layout, onChange }) {
 
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? 'Ajuster les marges haut et bas de page' : 'Adjust top and bottom page margins'}
+          data-tooltip={t('Adjust top and bottom page margins')}
           data-tooltip-pos="top"
         >
           <label>{t('Top/Bottom Padding')}: {layout.paddingY}in</label>
@@ -126,7 +126,7 @@ export default function LayoutControls({ layout, onChange }) {
 
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? 'Ajuster les marges gauche et droite' : 'Adjust left and right side margins'}
+          data-tooltip={t('Adjust left and right side margins')}
           data-tooltip-pos="top"
         >
           <label>{t('Side Padding')}: {layout.paddingX}in</label>
@@ -135,7 +135,7 @@ export default function LayoutControls({ layout, onChange }) {
 
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? "Ajuster l'interligne entre les phrases" : 'Adjust paragraph line spacing'}
+          data-tooltip={t('Adjust paragraph line spacing')}
           data-tooltip-pos="top"
         >
           <label>{t('Line Height')}: {layout.lineHeight}</label>
@@ -144,7 +144,7 @@ export default function LayoutControls({ layout, onChange }) {
 
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? "Ajuster l'espace entre les grandes rubriques" : 'Adjust spacing between sections'}
+          data-tooltip={t('Adjust spacing between sections')}
           data-tooltip-pos="top"
         >
           <label>{t('Section Spacing')}: {layout.sectionSpacing}px</label>
@@ -153,7 +153,7 @@ export default function LayoutControls({ layout, onChange }) {
 
         <div 
           style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
-          data-tooltip={language === 'fr' ? "Ajuster l'espace entre les éléments individuels" : 'Adjust spacing between items'}
+          data-tooltip={t('Adjust spacing between items')}
           data-tooltip-pos="top"
         >
           <label>{t('Item Spacing')}: {layout.itemSpacing}px</label>

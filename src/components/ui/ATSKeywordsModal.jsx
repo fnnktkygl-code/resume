@@ -54,8 +54,8 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
     <>
       <AILoadingOverlay 
         isGenerating={isAnalyzing} 
-        title={language === 'fr' ? 'Analyse ATS en cours...' : 'Analyzing ATS Match...'} 
-        initialStep={language === 'fr' ? '⚡ Comparaison des mots-clés...' : '⚡ Comparing keywords...'}
+        title={language === 'fr' ? 'Analyse ATS en cours...' : language === 'es' ? 'Análisis ATS en curso...' : 'Analyzing ATS Match...'} 
+        initialStep={language === 'fr' ? '⚡ Comparaison des mots-clés...' : language === 'es' ? '⚡ Comparando palabras clave...' : '⚡ Comparing keywords...'}
         language={language}
       />
       <Modal
@@ -187,7 +187,9 @@ export default function ATSKeywordsModal({ isOpen, onClose, data, dispatch, onAp
                           foundKeywords: updatedFound,
                           recommendation: language === 'fr' 
                             ? "Toutes les compétences sélectionnées ont été ajoutées à votre CV !" 
-                            : "All selected key skills have been added to your resume!"
+                            : language === 'es'
+                              ? "¡Todas las habilidades seleccionadas han sido añadidas a tu CV!"
+                              : "All selected key skills have been added to your resume!"
                         };
 
                         setResult(updatedAnalysis);

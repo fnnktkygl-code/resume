@@ -40,8 +40,8 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
     <>
       <AILoadingOverlay 
         isGenerating={isGenerating} 
-        title={language === 'fr' ? 'Génération de puces d\'expérience STAR...' : 'Generating STAR Experience Bullet Points...'} 
-        initialStep={language === 'fr' ? '⚡ Analyse de l\'expérience et extraction des métriques...' : '⚡ Analyzing experience & extracting metrics...'}
+        title={language === 'fr' ? 'Génération de puces d\'expérience STAR...' : language === 'es' ? 'Generando viñetas de experiencia STAR...' : 'Generating STAR Experience Bullet Points...'} 
+        initialStep={language === 'fr' ? '⚡ Analyse de l\'expérience et extraction des métriques...' : language === 'es' ? '⚡ Analizando experiencia y extrayendo métricas...' : '⚡ Analyzing experience & extracting metrics...'}
         language={language}
       />
       <Modal isOpen={isOpen} onClose={onClose} title={t('✨ AI STAR Bullet Points')}>

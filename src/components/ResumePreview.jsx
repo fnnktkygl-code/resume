@@ -69,7 +69,7 @@ function ResumePreview({
                   fontWeight: isAccent ? 600 : undefined,
                   transition: 'color 0.2s ease, font-weight 0.2s ease'
                 }}
-                data-tooltip={!printMode ? (isAccent ? (language === 'fr' ? 'Cliquer pour retirer la mise en valeur' : 'Click to remove highlight') : (language === 'fr' ? 'Cliquer pour mettre en valeur cette compétence' : 'Click to highlight skill')) : undefined}
+                data-tooltip={!printMode ? (isAccent ? t('Click to remove highlight') : t('Click to highlight skill')) : undefined}
               >
                 {si > 0 && ' • '}
                 {parseMarkdown(skill)}
@@ -86,7 +86,7 @@ function ResumePreview({
         <span key={si} className={`${cls} skill-toggleable`}
           onClick={() => handleSkillClick(skill)}
           style={{ cursor: printMode ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
-          data-tooltip={!printMode ? (cls.includes('-accent') ? (language === 'fr' ? 'Cliquer pour retirer la mise en valeur' : 'Click to remove highlight') : (language === 'fr' ? 'Cliquer pour mettre en valeur cette compétence' : 'Click to highlight skill')) : undefined}
+          data-tooltip={!printMode ? (cls.includes('-accent') ? t('Click to remove highlight') : t('Click to highlight skill')) : undefined}
         >
           {parseMarkdown(skill)}
         </span>
@@ -1213,12 +1213,10 @@ function ResumePreview({
                 }}>
                   <div style={{ fontSize: '28px', marginBottom: '8px' }}>📝</div>
                   <strong style={{ display: 'block', fontSize: '14px', color: 'var(--color-text, #1e293b)', marginBottom: '4px' }}>
-                    {language === 'fr' ? 'Votre Master Profile est en cours de création' : 'Your Master Profile is being created'}
+                    {t('Your Master Profile is being created')}
                   </strong>
                   <span>
-                    {language === 'fr'
-                      ? 'Renseignez votre titre de poste, vos coordonnées et vos expériences dans le panneau de gauche, ou cliquez sur « Importer » pour charger votre CV instantanément.'
-                      : 'Fill in your target title, contact details, and experiences on the left, or click "Import" to load your resume instantly.'}
+                    {t('Fill in your target title, contact details, and experiences on the left, or click "Import" to load your resume instantly.')}
                   </span>
                 </div>
               )}

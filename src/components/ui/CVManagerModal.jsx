@@ -38,7 +38,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
             {t('Manage different versions of your resumes to target different jobs.')}
           </p>
           <span style={{ fontSize: '11px', color: 'var(--color-accent)', fontWeight: 500 }}>
-            🔒 {language === 'fr' ? 'Chaque CV est automatiquement conservé. Charger une démo crée une nouvelle version sans écraser votre travail.' : 'Every CV is saved safely. Loading a demo creates a new entry without overwriting your work.'}
+            🔒 {t('Every CV is saved safely. Loading a demo creates a new entry without overwriting your work.')}
           </span>
         </div>
 
@@ -119,7 +119,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
                       >
                         {cv.name} 
                         {isActive && <span style={{ fontSize: '10px', backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)', padding: '2px 6px', borderRadius: '4px' }}>{t('Active')}</span>}
-                        {isRestored && <span style={{ fontSize: '10px', backgroundColor: 'var(--color-warning-light)', color: 'var(--color-warning)', padding: '2px 6px', borderRadius: '4px' }}>Restauré</span>}
+                        {isRestored && <span style={{ fontSize: '10px', backgroundColor: 'var(--color-warning-light)', color: 'var(--color-warning)', padding: '2px 6px', borderRadius: '4px' }}>{t('Restored')}</span>}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block', marginTop: '2px' }}>
                         {t('Modified')} {dateStr}
@@ -199,7 +199,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
               onClick={() => { onLoadDemo(1); onClose(); }}
               style={{ flex: 1, justifyContent: 'center', padding: '10px 12px', fontSize: '13px' }}
             >
-              📄 {language === 'fr' ? 'Charger une Démo' : 'Load a Demo'}
+              📄 {t('1-Page Demo')}
             </button>
           )}
         </div>

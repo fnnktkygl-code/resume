@@ -491,7 +491,7 @@ export default function CareerOpsHub({
             border: '1px solid rgba(16, 185, 129, 0.35)',
             letterSpacing: '0.5px'
           }}>
-            {language === 'fr' ? 'Bêta (En cours d\'amélioration)' : 'Beta (In development)'}
+            {t('Beta (In development)')}
           </span>
         </div>
       }

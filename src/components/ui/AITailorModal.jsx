@@ -67,8 +67,8 @@ export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, 
     <>
       <AILoadingOverlay 
         isGenerating={isLoading} 
-        title={language === 'fr' ? 'Adaptation du CV par l\'IA...' : 'Tailoring Resume with AI...'} 
-        initialStep={language === 'fr' ? '⚡ Analyse de l\'offre et comparaison du profil...' : '⚡ Analyzing job offer & comparing profile...'}
+        title={language === 'fr' ? 'Adaptation du CV par l\'IA...' : language === 'es' ? 'Adaptando currículum con IA...' : 'Tailoring Resume with AI...'} 
+        initialStep={language === 'fr' ? '⚡ Analyse de l\'offre et comparaison du profil...' : language === 'es' ? '⚡ Analizando la oferta y comparando el perfil...' : '⚡ Analyzing job offer & comparing profile...'}
         language={language}
       />
       <Modal

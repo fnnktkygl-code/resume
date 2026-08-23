@@ -79,9 +79,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
     if (extractedCompany || extractedRole) {
       setExtractionNotice(
-        language === 'fr'
-          ? `✨ Extrait de l'offre : Entreprise = "${extractedCompany || companyName}" • Poste = "${extractedRole || targetRole}"`
-          : `✨ Extracted: Company = "${extractedCompany || companyName}" • Role = "${extractedRole || targetRole}"`
+        language === 'fr' ? `✨ Extrait de l'offre : Entreprise = "${extractedCompany || companyName}" • Poste = "${extractedRole || targetRole}"` : language === 'es' ? `✨ Extraído de la oferta : Empresa = "${extractedCompany || companyName}" • Puesto = "${extractedRole || targetRole}"` : `✨ Extracted: Company = "${extractedCompany || companyName}" • Role = "${extractedRole || targetRole}"`
       );
       setTimeout(() => setExtractionNotice(null), 6000);
     }
@@ -443,7 +441,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     if (!jobDescription.trim()) return;
     setIsGenerating(true);
     setGenerationProgress(15);
-    setGenerationStep(language === 'fr' ? '⚡ Analyse de l\'offre d\'emploi...' : '⚡ Analyzing job description...');
+    setGenerationStep(language === 'fr' ? '⚡ Analyse de l\'offre d\'emploi...' : language === 'es' ? '⚡ Analizando la oferta de empleo...' : '⚡ Analyzing job description...');
     setError(null);
 
     // Smooth Progress Timer (advances smoothly while API request is in-flight)
@@ -458,16 +456,15 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       setGenerationProgress(currentProgress);
 
       if (currentProgress < 35) {
-        setGenerationStep(language === 'fr' ? '⚡ Analyse de l\'offre d\'emploi et des exigences...' : '⚡ Analyzing job description & requirements...');
+        setGenerationStep(language === 'fr' ? '⚡ Analyse de l\'offre d\'emploi et des exigences...' : language === 'es' ? '⚡ Analizando la oferta y los requisitos...' : '⚡ Analyzing job description & requirements...');
       } else if (currentProgress < 65) {
         setGenerationStep(useSearchGrounding 
-          ? (language === 'fr' ? '🌐 Recherche en direct des actualités et culture de l\'entreprise sur Google...' : '🌐 Researching company news & culture on Google...')
-          : (language === 'fr' ? '🧠 Alignement des compétences et de l\'expérience candidat...' : '🧠 Mapping skills & candidate experience...')
+          ? (language === 'fr' ? '🌐 Recherche en direct des actualités et culture de l\'entreprise sur Google...' : language === 'es' ? '🌐 Buscando noticias y cultura de la empresa en Google...' : '🌐 Researching company news & culture on Google...') : (language === 'fr' ? '🧠 Alignement des compétences et de l\'expérience candidat...' : language === 'es' ? '🧠 Alineando habilidades y experiencia del candidato...' : '🧠 Mapping skills & candidate experience...')
         );
       } else if (currentProgress < 90) {
-        setGenerationStep(language === 'fr' ? '✍️ Rédaction de la lettre sur-mesure par l\'IA...' : '✍️ Drafting tailored cover letter with AI...');
+        setGenerationStep(language === 'fr' ? '✍️ Rédaction de la lettre sur-mesure par l\'IA...' : language === 'es' ? '✍️ Redactando la carta a medida con IA...' : '✍️ Drafting tailored cover letter with AI...');
       } else {
-        setGenerationStep(language === 'fr' ? '✨ Polissage final et mise en forme...' : '✨ Final polishing & formatting...');
+        setGenerationStep(language === 'fr' ? '✨ Polissage final et mise en forme...' : language === 'es' ? '✨ Ajustes finales y formato...' : '✨ Final polishing & formatting...');
       }
     }, 350);
 
@@ -494,7 +491,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
       clearInterval(progressInterval);
       setGenerationProgress(100);
-      setGenerationStep(language === 'fr' ? '✨ Lettre générée avec succès !' : '✨ Cover letter generated successfully!');
+      setGenerationStep(language === 'fr' ? '✨ Lettre générée avec succès !' : language === 'es' ? '✨ ¡Carta generada con éxito!' : '✨ Cover letter generated successfully!');
 
       // Smooth 300ms pause to let user see 100% progress
       await new Promise(r => setTimeout(r, 300));
@@ -522,7 +519,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     setIsBoldifying(true);
     setError(null);
     setGenerationProgress(15);
-    setGenerationStep(language === 'fr' ? '⚡ Analyse de la lettre et mise en valeur des termes d\'impact...' : '⚡ Analyzing cover letter & highlighting impact terms...');
+    setGenerationStep(language === 'fr' ? '⚡ Analyse de la lettre et mise en valeur des termes d\'impact...' : language === 'es' ? '⚡ Analizando la carta y resaltando términos de impacto...' : '⚡ Analyzing cover letter & highlighting impact terms...');
 
     let currentProgress = 15;
     const progressInterval = setInterval(() => {
@@ -538,7 +535,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       const result = await boldifyCoverLetterWithProxy(coverLetter, jobDescription);
       clearInterval(progressInterval);
       setGenerationProgress(100);
-      setGenerationStep(language === 'fr' ? '✨ Mise en gras intelligente effectuée !' : '✨ Smart bolding applied!');
+      setGenerationStep(language === 'fr' ? '✨ Mise en gras intelligente effectuée !' : language === 'es' ? '✨ ¡Negrita inteligente aplicada!' : '✨ Smart bolding applied!');
       await new Promise(r => setTimeout(r, 250));
       updateLetterContent(result);
     } catch (err) {
@@ -559,9 +556,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
   const handleClearAll = useCallback(() => {
     if (coverLetter || companyName || targetRole || jobDescription || referenceLetter) {
-      const confirmMsg = language === 'fr' 
-        ? 'Voulez-vous vraiment effacer tous les paramètres et le texte de la lettre de motivation ?' 
-        : 'Are you sure you want to clear all cover letter settings and text?';
+      const confirmMsg = language === 'fr' ? 'Voulez-vous vraiment effacer tous les paramètres et le texte de la lettre de motivation ?' : language === 'es' ? '¿Realmente deseas borrar todos los ajustes y el texto de la carta de presentación?' : 'Are you sure you want to clear all cover letter settings and text?';
       if (!window.confirm(confirmMsg)) return;
     }
 
@@ -679,7 +674,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
             type="button"
             className="control-btn"
             onClick={handleClearAll}
-            data-tooltip={language === 'fr' ? "Réinitialise l'offre, la lettre et tous les champs de ciblage" : 'Reset job offer, cover letter, and target fields'}
+            data-tooltip={language === 'fr' ? "Réinitialise l'offre, la lettre et tous les champs de ciblage" : language === 'es' ? "Restablece la oferta, la carta y todos los campos" : 'Reset job offer, cover letter, and target fields'}
             data-tooltip-pos="bottom"
             style={{ 
               padding: '6px 12px', 
@@ -692,12 +687,12 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               backgroundColor: 'transparent'
             }}
           >
-            🧹 {language === 'fr' ? 'Tout effacer' : 'Clear All'}
+            🧹 {language === 'fr' ? 'Tout effacer' : language === 'es' ? 'Borrar todo' : 'Clear All'}
           </button>
           <button 
             className="cl-close-btn" 
             onClick={onClose}
-            data-tooltip={language === 'fr' ? "Fermer l'espace de travail de la lettre de motivation" : 'Close cover letter workspace'}
+            data-tooltip={language === 'fr' ? "Fermer l'espace de travail de la lettre de motivation" : language === 'es' ? "Cerrar espacio de trabajo de la carta" : 'Close cover letter workspace'}
             data-tooltip-pos="bottom"
           >
             <i className="fi fi-rr-cross"></i> {t('Close Workspace')}
@@ -713,7 +708,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           onClick={() => setMobileTab('form')}
         >
           <i className="fi fi-rr-settings-sliders"></i>
-          {language === 'fr' ? '1. Paramètres & Offre' : '1. Settings & Job'}
+          {language === 'fr' ? '1. Paramètres & Offre' : language === 'es' ? '1. Ajustes y Oferta' : '1. Settings & Job'}
         </button>
         <button 
           type="button"
@@ -721,7 +716,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           onClick={() => setMobileTab('preview')}
         >
           <i className="fi fi-rr-document"></i>
-          {language === 'fr' ? '2. Aperçu & Édition A4' : '2. Preview & A4 Edit'}
+          {language === 'fr' ? '2. Aperçu & Édition A4' : language === 'es' ? '2. Vista previa y Edición A4' : '2. Preview & A4 Edit'}
           {coverLetter && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-accent)' }} />}
         </button>
       </div>
@@ -733,13 +728,13 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           <div className="cl-sidebar-scroll">
             <div className="cl-sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>{language === 'fr' ? 'Paramètres de la Lettre' : 'Cover Letter Settings'}</h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--color-text-secondary)' }}>{language === 'fr' ? 'Ciblage, style IA et mise en page' : 'Tailor, style, and format your letter'}</p>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>{language === 'fr' ? 'Paramètres de la Lettre' : language === 'es' ? 'Ajustes de la Carta' : 'Cover Letter Settings'}</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--color-text-secondary)' }}>{language === 'fr' ? 'Ciblage, style IA et mise en page' : language === 'es' ? 'Objetivo, estilo IA y diseño' : 'Tailor, style, and format your letter'}</p>
               </div>
               <button 
                 type="button"
                 onClick={handleClearAll}
-                title={language === 'fr' ? 'Effacer tous les champs' : 'Clear all fields'}
+                title={language === 'fr' ? 'Effacer tous les champs' : language === 'es' ? 'Borrar todos los campos' : 'Clear all fields'}
                 style={{
                   background: 'var(--color-surface-alt)',
                   border: '1px solid var(--color-border)',
@@ -754,22 +749,22 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                   gap: '4px',
                   whiteSpace: 'nowrap'
                 }}
-                data-tooltip={language === 'fr' ? "Réinitialise le texte de l'offre et les champs entreprise/poste" : 'Reset job description and company/role fields'}
+                data-tooltip={language === 'fr' ? "Réinitialise le texte de l'offre et les champs entreprise/poste" : language === 'es' ? "Restablece el texto de la oferta y los campos empresa/puesto" : 'Reset job description and company/role fields'}
                 data-tooltip-pos="bottom"
               >
-                🧹 {language === 'fr' ? 'Effacer tout' : 'Clear'}
+                🧹 {language === 'fr' ? 'Effacer tout' : language === 'es' ? 'Borrar' : 'Clear'}
               </button>
             </div>
 
             {/* CARD 1: Cible & Entreprise */}
             <div className="cl-section-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span className="cl-section-title" style={{ margin: 0 }}>🎯 {language === 'fr' ? 'Poste & Entreprise Cible' : 'Target Role & Company'}</span>
+                <span className="cl-section-title" style={{ margin: 0 }}>🎯 {language === 'fr' ? 'Poste & Entreprise Cible' : language === 'es' ? 'Puesto y Empresa Objetivo' : 'Target Role & Company'}</span>
                 <button 
                   type="button"
                   onClick={() => handleAutoExtractInfo(jobDescription)}
                   disabled={!jobDescription || jobDescription.trim().length < 10}
-                  data-tooltip={language === 'fr' ? "Lit l'offre ci-dessous et remplit le nom de l'entreprise et du poste" : 'Reads job offer below and auto-fills company & role'}
+                  data-tooltip={language === 'fr' ? "Lit l'offre ci-dessous et remplit le nom de l'entreprise et du poste" : language === 'es' ? "Lee la oferta y completa automáticamente empresa y puesto" : 'Reads job offer below and auto-fills company & role'}
                   data-tooltip-pos="bottom"
                   style={{
                     background: 'rgba(99, 102, 241, 0.1)',
@@ -786,7 +781,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                     opacity: jobDescription && jobDescription.trim().length >= 10 ? 1 : 0.5
                   }}
                 >
-                  🪄 {language === 'fr' ? 'Auto-remplir depuis l\'offre' : 'Auto-fill from offer'}
+                  🪄 {language === 'fr' ? 'Auto-remplir depuis l\'offre' : language === 'es' ? 'Autocompletar desde la oferta' : 'Auto-fill from offer'}
                 </button>
               </div>
 
@@ -844,12 +839,10 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                 />
                 <label htmlFor="cl-search-grounding-check" style={{ cursor: 'pointer', margin: 0, flex: 1 }}>
                   <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text)', display: 'block' }}>
-                    🌐 {language === 'fr' ? 'Recherche Web en Direct (Google Search)' : 'Live Web Research (Google Search)'}
+                    🌐 {language === 'fr' ? 'Recherche Web en Direct (Google Search)' : language === 'es' ? 'Búsqueda Web en Vivo (Google Search)' : 'Live Web Research (Google Search)'}
                   </span>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', display: 'block', marginTop: '2px', lineHeight: '1.3' }}>
-                    {language === 'fr' 
-                      ? 'Recherche en direct les actualités et la culture de l’entreprise pour personnaliser la lettre.' 
-                      : 'Live researches company news & culture via Google for authentic customization.'}
+                    {language === 'fr' ? 'Recherche en direct les actualités et la culture de l’entreprise pour personnaliser la lettre.' : language === 'es' ? 'Busca en directo noticias y cultura de la empresa en Google para personalizar la carta.' : 'Live researches company news & culture via Google for authentic customization.'}
                   </span>
                 </label>
               </div>
@@ -857,10 +850,10 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               <div className="field-group" style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label className="field-label" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', margin: 0 }}>
-                    <i className="fi fi-rr-document"></i> {language === 'fr' ? "Description de l'offre d'emploi" : 'Target Job Description'} <span style={{ color: 'var(--color-danger)' }}>*</span>
+                    <i className="fi fi-rr-document"></i> {language === 'fr' ? "Description de l'offre d'emploi" : language === 'es' ? 'Descripción de la oferta de empleo' : 'Target Job Description'} <span style={{ color: 'var(--color-danger)' }}>*</span>
                   </label>
                   <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>
-                    {language === 'fr' ? '⚡ Auto-détection de l\'entreprise au collage' : '⚡ Auto-detects company on paste'}
+                    {language === 'fr' ? '⚡ Auto-détection de l\'entreprise au collage' : language === 'es' ? '⚡ Detección automática al pegar' : '⚡ Auto-detects company on paste'}
                   </span>
                 </div>
                 <textarea
@@ -882,7 +875,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
             {/* CARD 2: Style & Ton IA */}
             <div className="cl-section-card">
-              <span className="cl-section-title">✍️ {language === 'fr' ? 'Style IA & Persona' : 'AI Style & Voice'}</span>
+              <span className="cl-section-title">✍️ {language === 'fr' ? 'Style IA & Persona' : language === 'es' ? 'Estilo IA y Voz' : 'AI Style & Voice'}</span>
 
               <div className="cl-form-group" style={{ marginBottom: 0 }}>
                 <label className="cl-label" style={{ fontSize: '11px' }}>
@@ -971,20 +964,17 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                     type="button"
                     className={`cl-segment-btn ${clLength === 'Concise' ? 'active' : ''}`}
                     onClick={() => setClLength('Concise')}
-                    data-tooltip={language === 'fr' ? 'Lettre directe et synthétique (~200 mots)' : 'Short & direct letter (~200 words)'}
-                  >{language === 'fr' ? 'Concise' : 'Concise'}</button>
+                    data-tooltip={language === 'fr' ? 'Lettre directe et synthétique (~200 mots)' : language === 'es' ? 'Carta directa y sintética (~200 palabras)' : 'Short & direct letter (~200 words)'}>{language === 'fr' ? 'Concise' : language === 'es' ? 'Concisa' : 'Concise'}</button>
                   <button 
                     type="button"
                     className={`cl-segment-btn ${clLength === 'Standard' ? 'active' : ''}`}
                     onClick={() => setClLength('Standard')}
-                    data-tooltip={language === 'fr' ? 'Format optimal recommandé par les RH (~260 mots, <300 mots - Étude SHRM)' : 'Optimal HR recommended format (~260 words, <300 words - SHRM Study)'}
-                  >{language === 'fr' ? 'Standard' : 'Standard'}</button>
+                    data-tooltip={language === 'fr' ? 'Format optimal recommandé par les RH (~260 mots, <300 mots - Étude SHRM)' : language === 'es' ? 'Formato óptimo recomendado por RRHH (~260 palabras, <300 palabras)' : 'Optimal HR recommended format (~260 words, <300 words - SHRM Study)'}>{language === 'fr' ? 'Standard' : language === 'es' ? 'Estándar' : 'Standard'}</button>
                   <button 
                     type="button"
                     className={`cl-segment-btn ${clLength === 'Detailed' ? 'active' : ''}`}
                     onClick={() => setClLength('Detailed')}
-                    data-tooltip={language === 'fr' ? 'Lettre complète au seuil maximal (~300 mots - Limite de lisibilité RH)' : 'Detailed letter at upper threshold (~300 words - HR readability limit)'}
-                  >{language === 'fr' ? 'Détaillée' : 'Detailed'}</button>
+                    data-tooltip={language === 'fr' ? 'Lettre complète au seuil maximal (~300 mots - Limite de lisibilité RH)' : language === 'es' ? 'Carta completa (~300 palabras)' : 'Detailed letter at upper threshold (~300 words - HR readability limit)'}>{language === 'fr' ? 'Détaillée' : language === 'es' ? 'Detallada' : 'Detailed'}</button>
                 </div>
               </div>
 
@@ -1006,7 +996,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
             {/* CARD 3: Mise en page */}
             <div className="cl-section-card">
-              <span className="cl-section-title">🎨 {language === 'fr' ? 'Police & Texting' : 'Document Typography'}</span>
+              <span className="cl-section-title">🎨 {language === 'fr' ? 'Police & Texting' : language === 'es' ? 'Tipografía del Documento' : 'Document Typography'}</span>
 
               <div className="cl-form-group" style={{ marginBottom: 0 }}>
                 <label className="cl-label" style={{ fontSize: '11px' }}>
@@ -1032,7 +1022,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
 
               <div className="cl-form-group" style={{ marginBottom: 0 }}>
                 <label className="cl-label" style={{ fontSize: '11px' }}>
-                  <i className="fi fi-rr-bold"></i> {language === 'fr' ? 'Style des termes en gras' : 'Bold Highlight Style'}
+                  <i className="fi fi-rr-bold"></i> {language === 'fr' ? 'Style des termes en gras' : language === 'es' ? 'Estilo de términos en negrita' : 'Bold Highlight Style'}
                 </label>
                 <div className="cl-segment-group">
                   <button 
@@ -1040,7 +1030,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                     className={`cl-segment-btn ${boldStyle === 'standard' ? 'active' : ''}`}
                     onClick={() => setBoldStyle('standard')}
                   >
-                    ⬛ {language === 'fr' ? 'Standard (Noir)' : 'Standard (Dark)'}
+                    ⬛ {language === 'fr' ? 'Standard (Noir)' : language === 'es' ? 'Estándar (Negro)' : 'Standard (Dark)'}
                   </button>
                   <button 
                     type="button"
@@ -1051,7 +1041,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                       fontWeight: boldStyle === 'accent' ? 700 : 500
                     }}
                   >
-                    🎨 {language === 'fr' ? 'Couleur Accent' : 'Accent Color'}
+                    🎨 {language === 'fr' ? 'Couleur Accent' : language === 'es' ? 'Color de Acento' : 'Accent Color'}
                   </button>
                 </div>
               </div>
@@ -1077,13 +1067,13 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               className="cl-generate-btn-primary" 
               onClick={handleGenerate}
               disabled={!jobDescription.trim() || isGenerating || isResumeEmpty}
-              data-tooltip={language === 'fr' ? 'Générer la lettre sur-mesure par IA (Gemini)' : 'Generate tailored cover letter via Gemini AI'}
+              data-tooltip={language === 'fr' ? 'Générer la lettre sur-mesure par IA (Gemini)' : language === 'es' ? 'Generar carta a medida con IA (Gemini)' : 'Generate tailored cover letter via Gemini AI'}
               data-tooltip-pos="top"
             >
               {isGenerating ? (
                 <><i className="fi fi-rr-spinner cl-spin"></i> {t('Generating Magic...')}</>
               ) : (
-                <><i className="fi fi-rr-magic-wand"></i> {language === 'fr' ? 'Générer la Lettre par IA' : 'Generate Cover Letter'}</>
+                <><i className="fi fi-rr-magic-wand"></i> {language === 'fr' ? 'Générer la Lettre par IA' : language === 'es' ? 'Generar Carta con IA' : 'Generate Cover Letter'}</>
               )}
             </button>
             <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', textAlign: 'center', display: 'block' }}>Powered by Google Gemini AI</span>
@@ -1098,10 +1088,10 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                 <div className="cl-loading-spinner-ring"></div>
                 <div className="cl-loading-content">
                   <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text)' }}>
-                    {language === 'fr' ? 'Génération IA en cours...' : 'AI Generation in Progress...'}
+                    {language === 'fr' ? 'Génération IA en cours...' : language === 'es' ? 'Generación IA en curso...' : 'AI Generation in Progress...'}
                   </h4>
                   <p style={{ margin: '6px 0 14px 0', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600 }}>
-                    {generationStep || (language === 'fr' ? '⚡ Connexion aux serveurs Gemini...' : '⚡ Connecting to Gemini AI...')}
+                    {generationStep || (language === 'fr' ? '⚡ Connexion aux serveurs Gemini...' : language === 'es' ? '⚡ Conectando a Gemini AI...' : '⚡ Connecting to Gemini AI...')}
                   </p>
 
                   <div style={{ width: '100%', height: '6px', background: 'var(--color-border)', borderRadius: '10px', overflow: 'hidden' }}>
@@ -1116,7 +1106,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                     />
                   </div>
                   <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '8px', display: 'block' }}>
-                    {generationProgress}% • {language === 'fr' ? 'Vous pouvez naviguer, la tâche se poursuit en arrière-plan.' : 'You can navigate away, task runs in background.'}
+                    {generationProgress}% • {language === 'fr' ? 'Vous pouvez naviguer, la tâche se poursuit en arrière-plan.' : language === 'es' ? 'Puedes navegar, la tarea continúa en segundo plano.' : 'You can navigate away, task runs in background.'}
                   </span>
                 </div>
               </div>
@@ -1130,7 +1120,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={handleUndo}
               disabled={historyIndex <= 0}
               style={{ padding: '6px 10px', opacity: historyIndex <= 0 ? 0.4 : 1 }}
-              data-tooltip={language === 'fr' ? 'Annuler la dernière modification (Cmd+Z)' : 'Undo last change (Cmd+Z)'}
+              data-tooltip={language === 'fr' ? 'Annuler la dernière modification (Cmd+Z)' : language === 'es' ? 'Deshacer último cambio (Cmd+Z)' : 'Undo last change (Cmd+Z)'}
               data-tooltip-pos="bottom"
             >
               ↩️ {t('Undo')}
@@ -1141,7 +1131,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
               style={{ padding: '6px 10px', opacity: historyIndex >= history.length - 1 ? 0.4 : 1 }}
-              data-tooltip={language === 'fr' ? 'Rétablir la dernière modification (Cmd+Shift+Z)' : 'Redo change (Cmd+Shift+Z)'}
+              data-tooltip={language === 'fr' ? 'Rétablir la dernière modification (Cmd+Shift+Z)' : language === 'es' ? 'Rehacer cambio (Cmd+Shift+Z)' : 'Redo change (Cmd+Shift+Z)'}
               data-tooltip-pos="bottom"
             >
               ↪️ {t('Redo')}
@@ -1155,7 +1145,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               className="btn-secondary"
               onClick={handleManualBoldClick}
               style={{ padding: '6px 12px', fontWeight: 'bold' }}
-              data-tooltip={language === 'fr' ? 'Mettre en gras le texte sélectionné (Cmd+B)' : 'Bold selected text (Cmd+B)'}
+              data-tooltip={language === 'fr' ? 'Mettre en gras le texte sélectionné (Cmd+B)' : language === 'es' ? 'Poner en negrita el texto seleccionado (Cmd+B)' : 'Bold selected text (Cmd+B)'}
               data-tooltip-pos="bottom"
             >
               <b>B</b> {t('Bold')}
@@ -1166,7 +1156,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={handleBoldify} 
               disabled={!coverLetter || isBoldifying} 
               style={{ opacity: !coverLetter ? 0.5 : 1 }}
-              data-tooltip={language === 'fr' ? 'IA : Mettre en valeur automatiquement les mots-clés stratégiques' : 'AI: Highlight strategic skills & keywords'}
+              data-tooltip={language === 'fr' ? 'IA : Mettre en valeur automatiquement les mots-clés stratégiques' : language === 'es' ? 'IA: Resaltar automáticamente habilidades y palabras clave estratégicas' : 'AI: Highlight strategic skills & keywords'}
               data-tooltip-pos="bottom"
             >
               {isBoldifying ? (
@@ -1181,7 +1171,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               type="button"
               className="btn-secondary"
               onClick={() => setBoldStyle(prev => prev === 'accent' ? 'standard' : 'accent')}
-              data-tooltip={language === 'fr' ? 'Basculer le style du gras : Noir Standard ou Couleur Accent' : 'Toggle bold style: Standard Dark or Accent Color'}
+              data-tooltip={language === 'fr' ? 'Basculer le style du gras : Noir Standard ou Couleur Accent' : language === 'es' ? 'Alternar estilo de negrita: Estándar Oscuro o Color de Acento' : 'Toggle bold style: Standard Dark or Accent Color'}
               data-tooltip-pos="bottom"
               style={{
                 padding: '6px 10px',
@@ -1192,14 +1182,14 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                 fontWeight: 600
               }}
             >
-              🎨 {boldStyle === 'accent' ? (language === 'fr' ? 'Gras Accent' : 'Accent Bold') : (language === 'fr' ? 'Gras Standard' : 'Standard Bold')}
+              🎨 {boldStyle === 'accent' ? (language === 'fr' ? 'Gras Accent' : language === 'es' ? 'Negrita Acento' : 'Accent Bold') : (language === 'fr' ? 'Gras Standard' : language === 'es' ? 'Negrita Estándar' : 'Standard Bold')}
             </button>
 
             {hasBoldMarkers && (
               <button 
                 className="btn-secondary" 
                 onClick={handleRemoveBold} 
-                data-tooltip={language === 'fr' ? 'Effacer toutes les mises en gras' : 'Remove all bold formatting'}
+                data-tooltip={language === 'fr' ? 'Effacer toutes les mises en gras' : language === 'es' ? 'Quitar todo el formato de negrita' : 'Remove all bold formatting'}
                 data-tooltip-pos="bottom"
               >
                 <i className="fi fi-rr-eraser"></i> {t('Remove Bold')}
@@ -1211,7 +1201,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={handlePrint} 
               disabled={!coverLetter} 
               style={{ opacity: !coverLetter ? 0.5 : 1 }}
-              data-tooltip={language === 'fr' ? 'Télécharger la lettre au format PDF impression' : 'Export letter as PDF'}
+              data-tooltip={language === 'fr' ? 'Télécharger la lettre au format PDF impression' : language === 'es' ? 'Descargar la carta en formato PDF' : 'Export letter as PDF'}
               data-tooltip-pos="bottom"
             >
               <i className="fi fi-rr-print"></i> {t('Export PDF')}
@@ -1222,7 +1212,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={handleExportWord} 
               disabled={!coverLetter} 
               style={{ opacity: !coverLetter ? 0.5 : 1 }}
-              data-tooltip={language === 'fr' ? 'Télécharger au format Word (.docx)' : 'Export as Word (.docx)'}
+              data-tooltip={language === 'fr' ? 'Télécharger au format Word (.docx)' : language === 'es' ? 'Descargar en formato Word (.docx)' : 'Export as Word (.docx)'}
               data-tooltip-pos="bottom"
             >
               <i className="fi fi-rr-document-signed"></i> {t('Export Word')}
@@ -1233,7 +1223,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={() => coverLetter && navigator.clipboard.writeText(coverLetter)} 
               disabled={!coverLetter} 
               style={{ opacity: !coverLetter ? 0.5 : 1 }}
-              data-tooltip={language === 'fr' ? 'Copier le texte dans le presse-papier' : 'Copy text to clipboard'}
+              data-tooltip={language === 'fr' ? 'Copier le texte dans le presse-papier' : language === 'es' ? 'Copiar texto al portapapeles' : 'Copy text to clipboard'}
               data-tooltip-pos="bottom"
             >
               <i className="fi fi-rr-copy"></i> {t('Copy')}
@@ -1257,11 +1247,9 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
                   borderRadius: '12px',
                   border: `1px solid ${isOptimal ? 'var(--color-border)' : '#FEB2B2'}`
                 }}>
-                  <span>📝 {count} {language === 'fr' ? 'mots' : 'words'}</span>
+                  <span>📝 {count} {language === 'fr' ? 'mots' : language === 'es' ? 'palabras' : 'words'}</span>
                   <span style={{ fontSize: '10px', opacity: 0.9 }}>
-                    {isOptimal 
-                      ? (language === 'fr' ? '• Optimal RH (<300)' : '• HR Optimal (<300)')
-                      : (language === 'fr' ? '• ⚠️ SHRM: >300 mots (-83% de lecture)' : '• ⚠️ SHRM: >300 words (-83% reading rate)')}
+                    {isOptimal ? (language === 'fr' ? '• Optimal RH (<300)' : language === 'es' ? '• Óptimo RRHH (<300)' : '• HR Optimal (<300)') : (language === 'fr' ? '• ⚠️ SHRM: >300 mots (-83% de lecture)' : language === 'es' ? '• ⚠️ SHRM: >300 palabras (-83% lectura)' : '• ⚠️ SHRM: >300 words (-83% reading rate)')}
                   </span>
                 </div>
               );
@@ -1318,11 +1306,11 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
             {isGenerating ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <i className="fi fi-rr-spinner cl-spin"></i>
-                {language === 'fr' ? 'Génération IA...' : 'Generating AI...'}
+                {language === 'fr' ? 'Génération IA...' : language === 'es' ? 'Generación IA...' : 'Generating AI...'}
               </span>
             ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                ✨ {coverLetter ? (language === 'fr' ? 'Régénérer la Lettre' : 'Regenerate Letter') : (language === 'fr' ? 'Générer avec IA' : 'Generate with AI')}
+                ✨ {coverLetter ? (language === 'fr' ? 'Régénérer la Lettre' : language === 'es' ? 'Regenerar Carta' : 'Regenerate Letter') : (language === 'fr' ? 'Générer avec IA' : language === 'es' ? 'Generar con IA' : 'Generate with AI')}
               </span>
             )}
           </button>
@@ -1334,7 +1322,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
               onClick={() => setMobileTab('form')}
               style={{ flex: 1, minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              <i className="fi fi-rr-edit"></i> {language === 'fr' ? 'Paramètres' : 'Settings'}
+              <i className="fi fi-rr-edit"></i> {language === 'fr' ? 'Paramètres' : language === 'es' ? 'Ajustes' : 'Settings'}
             </button>
             <button 
               type="button"

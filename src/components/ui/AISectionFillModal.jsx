@@ -227,8 +227,8 @@ export default function AISectionFillModal({
     <>
       <AILoadingOverlay 
         isGenerating={isGenerating} 
-        title={language === 'fr' ? `Génération de la section "${sectionLabel}"...` : `Generating "${sectionLabel}" section...`}
-        initialStep={language === 'fr' ? '⚡ Analyse du contexte et création de suggestions sur-mesure...' : '⚡ Analyzing context & generating tailored suggestions...'}
+        title={language === 'fr' ? `Génération de la section "${sectionLabel}"...` : language === 'es' ? `Generando sección "${sectionLabel}"...` : `Generating "${sectionLabel}" section...`}
+        initialStep={language === 'fr' ? '⚡ Analyse du contexte et création de suggestions sur-mesure...' : language === 'es' ? '⚡ Analizando contexto y generando sugerencias a medida...' : '⚡ Analyzing context & generating tailored suggestions...'}
         language={language}
       />
       <Modal isOpen={isOpen} onClose={onClose} maxWidth="620px" title={`✨ ${t('AI Suggestions')}: ${sectionLabel}`}>
