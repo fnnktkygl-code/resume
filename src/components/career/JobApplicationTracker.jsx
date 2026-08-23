@@ -14,7 +14,10 @@ export default function JobApplicationTracker({
   onUpdateStatus,
   onDeleteApplication,
   onLoadTailoredResume,
-  onViewCoverLetter
+  onViewCoverLetter,
+  onOpenFollowUp,
+  onOpenInterviewPrep,
+  onOpenUpskill
 }) {
   const { t, language } = useTranslation();
   const [filterStatus, setFilterStatus] = useState('all');
@@ -151,12 +154,12 @@ export default function JobApplicationTracker({
                 </div>
 
                 {/* Card Actions */}
-                <div className="career-tracker-actions">
+                <div className="career-tracker-actions" style={{ flexWrap: 'wrap', gap: '6px' }}>
                   {app.tailoredResume && (
                     <button
                       onClick={() => onLoadTailoredResume(app.tailoredResume)}
                       className="career-icon-btn"
-                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, justifyContent: 'center' }}
+                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, minWidth: '85px', justifyContent: 'center' }}
                       title={t('Charger ce CV personnalisé dans l\'éditeur')}
                     >
                       <span>📝</span>
@@ -168,7 +171,7 @@ export default function JobApplicationTracker({
                     <button
                       onClick={() => onViewCoverLetter(app.coverLetter)}
                       className="career-icon-btn"
-                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, justifyContent: 'center' }}
+                      style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, minWidth: '85px', justifyContent: 'center' }}
                       title={t('Afficher la lettre de motivation')}
                     >
                       <span>✉️</span>
@@ -177,9 +180,39 @@ export default function JobApplicationTracker({
                   )}
 
                   <button
+                    onClick={() => onOpenInterviewPrep && onOpenInterviewPrep(app)}
+                    className="career-icon-btn"
+                    style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, minWidth: '85px', justifyContent: 'center', color: 'var(--color-accent)' }}
+                    title={t("Pack de questions STAR et simulateur d'entretien")}
+                  >
+                    <span>🎤</span>
+                    <span>{t("Entretien")}</span>
+                  </button>
+
+                  <button
+                    onClick={() => onOpenFollowUp && onOpenFollowUp(app)}
+                    className="career-icon-btn"
+                    style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, minWidth: '85px', justifyContent: 'center' }}
+                    title={t("Générer un email de relance ou de remerciement")}
+                  >
+                    <span>✉️</span>
+                    <span>{app.status === 'interview' ? t("Remerciement") : t("Relance")}</span>
+                  </button>
+
+                  <button
+                    onClick={() => onOpenUpskill && onOpenUpskill(app)}
+                    className="career-icon-btn"
+                    style={{ fontSize: '11.5px', padding: '6px 10px', flex: 1, minWidth: '85px', justifyContent: 'center' }}
+                    title={t("Matrice de compétences et plan d'apprentissage")}
+                  >
+                    <span>🚀</span>
+                    <span>{t("Upskill")}</span>
+                  </button>
+
+                  <button
                     onClick={() => onDeleteApplication(app.id)}
                     className="career-icon-btn"
-                    style={{ padding: '6px 10px', color: 'var(--color-danger)' }}
+                    style={{ padding: '6px 10px', color: 'var(--color-danger)', marginLeft: 'auto' }}
                     title={t('Supprimer de mon suivi')}
                   >
                     🗑️

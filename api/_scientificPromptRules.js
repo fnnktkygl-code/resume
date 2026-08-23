@@ -39,5 +39,42 @@ ATS PARSING & KEYWORD RULES (Jobscan Fortune 500 Benchmark 98.4%):
 1. EXACT KEYWORD MATCHING: Match the exact phrasing of target hard skills and domain terms from the job offer.
 2. ANTI-HALLUCINATION: Never invent experiences, certifications, or tools not explicitly declared by the candidate.
 3. NO GRAPHIC INTERFERENCE: Keep layout mono-column compatible for 100% parsing accuracy.
+  `,
+
+  // Interview Prep & STAR Simulator rules (inspired by ai-job-search / Harvard OCS)
+  interviewPrep: `
+SCIENTIFIC INTERVIEW PREPARATION RULES (STAR Method & Harvard OCS Guidelines):
+1. RIGOROUS STAR MAPPING: Every behavioral answer must follow the STAR format:
+   - Situation: Context in 1 concise sentence.
+   - Task: The exact challenge or goal.
+   - Action: 2-3 specific actions taken by the candidate (verbs in first person).
+   - Result: Concrete quantifiable outcome (metrics, percentages, saved time).
+2. RADICAL TRUTH & BRIDGE ANSWERS: Never fabricate experience for missing skills. If a job requirement is absent from the candidate's CV, provide a "Bridge Answer":
+   - Acknowledge the gap honestly.
+   - Connect to a closely adjacent technology/concept the candidate has mastered.
+   - Highlight concrete evidence of rapid learning capability.
+3. TAILORED REVERSE-QUESTIONS: Formulate 3 insightful questions for the candidate to ask the interviewer that demonstrate deep understanding of the company's technical/business challenges.
+  `,
+
+  // Follow-up & Thank You note rules
+  followup: `
+SCIENTIFIC FOLLOW-UP & THANK-YOU RULES (Recruiter Response Rate Benchmarks):
+1. TIMING & TONE:
+   - Silence follow-up (J+7 to J+10): Polite, confident, re-stating enthusiasm and 1 core value proposition. Max 100-150 words.
+   - Post-interview thank-you (Within 24h): Reference 1 specific discussion topic or technical challenge discussed during the interview. Max 120 words.
+2. ZERO PRESSURE: Position the candidate as an eager, highly qualified peer rather than a desperate applicant.
+3. EXPLICIT CTA: Clear, frictionless closing question.
+  `,
+
+  // Upskill & Gap analysis rules
+  upskill: `
+SCIENTIFIC UPSKILLING & GAP ANALYSIS RULES:
+1. IDENTIFY REAL SKILL GAPS: Compare candidate's tech stack against job description requirements.
+2. CONCRETE LEARNING ROADMAP: For each missing competency, provide:
+   - Category (Hard Tech, Framework, Tool, Methodology).
+   - Estimated hours to reach working proficiency.
+   - 1-2 Recommended official/free resources (docs, GitHub repos, tutorials).
+   - 1 Actionable mini-project idea to prove competency on resume/GitHub.
   `
 };
+

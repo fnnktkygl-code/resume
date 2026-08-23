@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../ui/Modal';
 import JobCard from './JobCard';
 import JobApplicationTracker from './JobApplicationTracker';
+import FollowUpModal from './FollowUpModal';
+import InterviewPrepModal from './InterviewPrepModal';
+import UpskillModal from './UpskillModal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { matchResumeWithJob, evaluateJobWithCareerOpsRubric } from '../../utils/careerOpsMatcher';
 import {
@@ -116,6 +119,11 @@ export default function CareerOpsHub({
   const [adaptationProgress, setAdaptationProgress] = useState(null);
   const [pendingReview, setPendingReview] = useState(null); // { job, tailoredResume, coverLetter }
   const [viewingCoverLetter, setViewingCoverLetter] = useState(null);
+
+  // New CareerOps Modals (FollowUp, InterviewPrep, Upskill)
+  const [activeFollowUpApp, setActiveFollowUpApp] = useState(null);
+  const [activeInterviewApp, setActiveInterviewApp] = useState(null);
+  const [activeUpskillApp, setActiveUpskillApp] = useState(null);
 
   // Candidate CV context
   const cleanJobTitle = useMemo(() => extractCleanJobTitle(resumeData), [resumeData]);
@@ -911,6 +919,9 @@ export default function CareerOpsHub({
             onViewCoverLetter={(letter) => {
               setViewingCoverLetter(letter);
             }}
+            onOpenFollowUp={(app) => setActiveFollowUpApp(app)}
+            onOpenInterviewPrep={(app) => setActiveInterviewApp(app)}
+            onOpenUpskill={(app) => setActiveUpskillApp(app)}
           />
         )}
 
@@ -1093,6 +1104,34 @@ export default function CareerOpsHub({
           </div>
         )}
       </div>
+
+      {/* CareerOps Extended Modals */}
+      {activeFollowUpApp && (
+        <FollowUpModal
+          isOpen={Boolean(activeFollowUpApp)}
+          onClose={() => setActiveFollowUpApp(null)}
+          application={activeFollowUpApp}
+          candidateName={resumeData?.personal?.name || ''}
+        />
+      )}
+
+      {activeInterviewApp && (
+        <InterviewPrepModal
+          isOpen={Boolean(activeInterviewApp)}
+          onClose={() => setActiveInterviewApp(null)}
+          application={activeInterviewApp}
+          resumeData={resumeData}
+        />
+      )}
+
+      {activeUpskillApp && (
+        <UpskillModal
+          isOpen={Boolean(activeUpskillApp)}
+          onClose={() => setActiveUpskillApp(null)}
+          application={activeUpskillApp}
+          resumeData={resumeData}
+        />
+      )}
 
       <div className="modal-actions" style={{ marginTop: '16px' }}>
         <button onClick={onClose} className="btn-secondary">

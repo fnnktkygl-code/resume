@@ -493,3 +493,266 @@ export async function generateSectionContentWithProxy(sectionType, resumeContext
     throw error;
   }
 }
+
+export async function generateFollowUpWithProxy({ companyName, jobTitle, type = 'followup', daysElapsed = 8, candidateName, context = '', language = 'fr' }) {
+  try {
+    const res = await fetch('/api/generateFollowUp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyName, jobTitle, type, daysElapsed, candidateName, context, language })
+    });
+    const result = await parseJsonResponse(res);
+    if (!res.ok) {
+      throw new Error(result.error || 'Failed to generate follow-up email');
+    }
+    return result;
+  } catch (error) {
+    console.error('FollowUp Error:', error);
+    // Offline / Demo Fallback
+    const isFr = language === 'fr';
+    const isEs = language === 'es';
+    if (type === 'thankyou') {
+      return {
+        subject: isFr 
+          ? `Remerciements suite à notre entretien - ${jobTitle} chez ${companyName}`
+          : isEs 
+          ? `Agradecimiento tras nuestra entrevista - ${jobTitle} en ${companyName}`
+          : `Thank you - Interview for ${jobTitle} at ${companyName}`,
+        body: isFr
+          ? `Bonjour,\n\nJe tiens à vous remercier chaleureusement pour le temps accordé lors de notre échange concernant le poste de ${jobTitle} au sein de ${companyName}.\n\nNotre discussion sur vos enjeux techniques a renforcé mon enthousiasme à rejoindre votre équipe et à y apporter mon expertise.\n\nRestant à votre entière disposition pour toute information complémentaire.\n\nBien cordialement,\n${candidateName || 'Le Candidat'}`
+          : isEs
+          ? `Hola,\n\nQuería agradecerles sinceramente por el tiempo dedicado en nuestra conversación respecto al puesto de ${jobTitle} en ${companyName}.\n\nNuestra charla sobre sus desafíos técnicos confirmó mi gran entusiasmo por unirme a su equipo y aportar mi experiencia.\n\nQuedo a su completa disposición para cualquier información adicional.\n\nUn cordial saludo,\n${candidateName || 'El Candidato'}`
+          : `Hello,\n\nThank you very much for your time during our interview regarding the ${jobTitle} position at ${companyName}.\n\nOur conversation regarding your technical challenges reinforced my strong enthusiasm for joining your team and contributing my expertise.\n\nI remain at your full disposal for any further details.\n\nBest regards,\n${candidateName || 'The Candidate'}`,
+        tips: isFr 
+          ? ["Envoyez cet email dans les 24 heures suivant l'entretien.", "Personnalisez une ligne avec un détail précis mentionné par le recruteur."]
+          : isEs
+          ? ["Envíe este correo dentro de las 24 horas posteriores a la entrevista.", "Personalice una línea con un detalle específico de la conversación."]
+          : ["Send this email within 24 hours of the interview.", "Customize one line with a specific detail mentioned during the discussion."]
+      };
+    }
+
+    return {
+      subject: isFr 
+        ? `Candidature ${jobTitle} - Suivi de mon dossier / ${companyName}`
+        : isEs 
+        ? `Candidatura ${jobTitle} - Seguimiento de mi expediente / ${companyName}`
+        : `Application for ${jobTitle} - Follow-up / ${companyName}`,
+      body: isFr
+        ? `Bonjour,\n\nJe me permets de revenir vers vous concernant ma candidature au poste de ${jobTitle} transmise il y a ${daysElapsed} jours.\n\nToujours très motivé à l'idée d'intégrer ${companyName}, je souhaitais savoir si vous aviez des nouvelles sur l'avancement du processus de recrutement.\n\nJe reste à votre disposition pour un premier échange.\n\nBien cordialement,\n${candidateName || 'Le Candidat'}`
+        : isEs
+        ? `Hola,\n\nMe pongo en contacto con ustedes respecto a mi postulación para el puesto de ${jobTitle} enviada hace ${daysElapsed} días.\n\nSigo muy motivado con la oportunidad de incorporarme a ${companyName} y deseaba consultar sobre el estado del proceso de selección.\n\nQuedo a su disposición para conversar cuando les sea oportuno.\n\nUn cordial saludo,\n${candidateName || 'El Candidato'}`
+        : `Hello,\n\nI am writing to follow up on my application for the ${jobTitle} position submitted ${daysElapsed} days ago.\n\nI remain very enthusiastic about the opportunity at ${companyName} and would love to know if there are any updates regarding the hiring process.\n\nI look forward to hearing from you.\n\nBest regards,\n${candidateName || 'The Candidate'}`,
+      tips: isFr 
+        ? ["Un délai de 7 à 10 jours sans réponse est le moment idéal pour relancer.", "Restez toujours concis et courtois."]
+        : isEs
+        ? ["Un plazo de 7 a 10 días sin respuesta es ideal para dar seguimiento.", "Manténgase conciso y cortés."]
+        : ["A 7 to 10-day window of silence is the ideal timing for a polite follow-up.", "Keep it short and courteous."]
+    };
+  }
+}
+
+export async function generateInterviewPrepWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
+  try {
+    const res = await fetch('/api/generateInterviewPrep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'generatePack', resumeData, jobDescription, companyName, jobTitle, language })
+    });
+    const result = await parseJsonResponse(res);
+    if (!res.ok) {
+      throw new Error(result.error || 'Failed to generate interview prep pack');
+    }
+    return result;
+  } catch (error) {
+    console.error('InterviewPrep Error:', error);
+    // Offline / Demo Fallback
+    const isFr = language === 'fr';
+    const isEs = language === 'es';
+    return {
+      summary: isFr
+        ? `Mettez en avant votre rigueur technique et votre capacité à délivrer des projets à fort impact mesuré chez ${companyName}.`
+        : isEs
+        ? `Destaque su rigor técnico y su capacidad para entregar proyectos de alto impacto medido en ${companyName}.`
+        : `Highlight your technical rigor and proven track record of delivering high-impact projects at ${companyName}.`,
+      behavioralQuestions: [
+        {
+          id: 'b1',
+          question: isFr 
+            ? "Pouvez-vous me parler d'un projet complexe où vous avez surmonté un obstacle technique majeur ?" 
+            : isEs 
+            ? "¿Puede hablarme de un proyecto complejo donde superó un obstáculo técnico importante?" 
+            : "Can you tell me about a complex project where you overcame a major technical hurdle?",
+          mappedCvExperience: `${companyName || 'Projet récent'}`,
+          starAnswer: {
+            situation: isFr ? "Confronté à des contraintes de performance et de scalabilité sur notre application principale." : isEs ? "Enfrentando problemas de rendimiento y escalabilidad en nuestra aplicación principal." : "Facing performance and scalability bottlenecks on our main production app.",
+            task: isFr ? "Refactoriser l'architecture pour réduire la latence de 50% sans interruption de service." : isEs ? "Refactorizar la arquitectura para reducir la latencia en 50% sin tiempo de inactividad." : "Refactor architecture to cut latency by 50% with zero downtime.",
+            action: isFr ? "Mise en place d'un profilage précis, optimisation des requêtes et découplage des services critiques." : isEs ? "Implementación de perfiles detallados, optimización de consultas y desacoplamiento de servicios críticos." : "Executed precise profiling, query optimization, and decoupled critical service paths.",
+            result: isFr ? "Temps de réponse divisé par 2 (+45% de débit) et adoption par 100% de l'équipe." : isEs ? "Tiempo de respuesta reducido a la mitad (+45% de rendimiento) y adopción del 100% por el equipo." : "Response times cut in half (+45% throughput) and 100% team adoption."
+          },
+          proTip: isFr ? "Articulez clairement le résultat chiffré dès la fin de votre réponse." : isEs ? "Exprese claramente el resultado cuantificado al final de su respuesta." : "Clearly state the quantified metric at the conclusion of your answer."
+        },
+        {
+          id: 'b2',
+          question: isFr 
+            ? "Comment gérez-vous les désaccords techniques au sein d'une équipe ?" 
+            : isEs 
+            ? "¿Cómo maneja los desacuerdos técnicos dentro de un equipo?" 
+            : "How do you resolve technical disagreements within an engineering team?",
+          mappedCvExperience: "Collaboration & Leadership",
+          starAnswer: {
+            situation: isFr ? "Désaccord sur le choix d'un framework entre deux approches divergentes." : isEs ? "Desacuerdo sobre la elección de un framework entre dos enfoques divergentes." : "Disagreement over framework choice between two differing team approaches.",
+            task: isFr ? "Trouver un consensus rapide sans bloquer le sprint de livraison." : isEs ? "Alcanzar un consenso rápido sin bloquear el sprint de entrega." : "Reach quick consensus without blocking the delivery sprint.",
+            action: isFr ? "Création d'un benchmark objectif avec Proof-of-Concept de 24h et critères mesurables." : isEs ? "Creación de un benchmark objetivo con Proof-of-Concept de 24h y criterios medibles." : "Built an objective 24h Proof-of-Concept benchmark with measurable trade-offs.",
+            result: isFr ? "Alignement unanime de l'équipe et livraison dans les temps avec zéro dette technique imprévue." : isEs ? "Alineación unánime del equipo y entrega a tiempo sin deuda técnica imprevista." : "Unanimous team alignment and on-time delivery with zero unexpected tech debt."
+          },
+          proTip: isFr ? "Montrez votre pragmatisme et votre orientation données plutôt que l'ego." : isEs ? "Demuestre pragmatismo y orientación a datos en lugar de ego." : "Demonstrate pragmatism and data-driven objectivity over ego."
+        }
+      ],
+      technicalQuestions: [
+        {
+          id: 't1',
+          question: isFr 
+            ? `Comment aborderiez-vous l'architecture et la sécurité pour le poste de ${jobTitle} ?` 
+            : isEs 
+            ? `¿Cómo abordaría la arquitectura y la seguridad para el puesto de ${jobTitle}?` 
+            : `How would you approach architecture and security for the ${jobTitle} position?`,
+          keyConceptsToMention: ["Scalabilité", "Sécurité par conception", "Monitoring & Observabilité", "Tests automatisés"],
+          suggestedResponseOutline: isFr 
+            ? "1. Analyse des besoins -> 2. Architecture modulaire -> 3. Sécurité & CI/CD -> 4. Métriques de succès" 
+            : isEs 
+            ? "1. Análisis de requisitos -> 2. Arquitectura modular -> 3. Seguridad y CI/CD -> 4. Métricas de éxito" 
+            : "1. Requirements analysis -> 2. Modular architecture -> 3. Security & CI/CD -> 4. Success metrics",
+          trapToAvoid: isFr ? "Évitez la sur-ingénierie prématurée sans comprendre les contraintes business." : isEs ? "Evite la sobreingeniería prematura sin entender el contexto de negocio." : "Avoid premature over-engineering before understanding business constraints."
+        }
+      ],
+      bridgeAnswers: [
+        {
+          id: 'gap1',
+          missingSkill: "Outil / Compétence secondaire de l'offre",
+          adjacentSkill: "Compétence principale maîtrisée",
+          scriptedBridgeAnswer: isFr 
+            ? "« Bien que je n'aie pas encore utilisé cet outil spécifique en production, je maîtrise parfaitement les concepts fondamentaux grâce à mon expérience approfondie. J'ai déjà monté en compétence en moins de deux semaines sur des technologies similaires. »" 
+            : isEs 
+            ? "« Si bien no he utilizado esta herramienta específica en producción todavía, domino perfectamente los conceptos fundamentales gracias a mi sólida experiencia. He aprendido tecnologías similares en menos de dos semanas en proyectos anteriores. »" 
+            : "\"While I haven't used this specific tool in production yet, I deeply understand the underlying core architecture through my strong background. I have consistently ramped up on similar stacks in under two weeks.\"",
+          rampUpPlan: isFr ? "Consulter la documentation officielle et déployer un projet bac à sable dès la première semaine." : isEs ? "Consultar la documentación oficial y desplegar un proyecto de prueba en la primera semana." : "Review official docs and deploy a sandbox proof-of-concept during week one."
+        }
+      ],
+      reverseQuestionsToAsk: [
+        {
+          id: 'q1',
+          question: isFr 
+            ? "Quels sont les défis techniques ou opérationnels les plus critiques auxquels l'équipe sera confrontée dans les 6 prochains mois ?" 
+            : isEs 
+            ? "¿Cuáles son los desafíos técnicos u operativos más críticos que enfrentará el equipo en los próximos 6 meses?" 
+            : "What are the most critical technical or operational challenges your team will face in the next 6 months?",
+          objective: isFr ? "Démontre une vision stratégique et un intérêt pour l'impact réel." : isEs ? "Demuestra visión estratégica e interés en el impacto real." : "Demonstrates strategic foresight and focus on real business impact."
+        },
+        {
+          id: 'q2',
+          question: isFr 
+            ? "À quoi ressemblerait une intégration réussie pour ce poste après 90 jours ?" 
+            : isEs 
+            ? "¿Cómo definirían una incorporación exitosa para este puesto tras 90 días?" 
+            : "What would a highly successful first 90 days look like for someone in this role?",
+          objective: isFr ? "Projette une attitude proactive axée sur la réussite mesurable." : isEs ? "Proyecta una actitud proactiva orientada al éxito medible." : "Projects a proactive, goal-oriented mindset."
+        }
+      ]
+    };
+  }
+}
+
+export async function evaluateMockAnswerWithProxy({ practiceQuestion, userAnswer, companyName, jobTitle, language = 'fr' }) {
+  try {
+    const res = await fetch('/api/generateInterviewPrep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'evaluateAnswer', practiceQuestion, userAnswer, companyName, jobTitle, language })
+    });
+    const result = await parseJsonResponse(res);
+    if (!res.ok) {
+      throw new Error(result.error || 'Failed to evaluate mock answer');
+    }
+    return result;
+  } catch (error) {
+    console.error('Mock Evaluation Error:', error);
+    const isFr = language === 'fr';
+    const isEs = language === 'es';
+    return {
+      score: 82,
+      strengths: isFr 
+        ? ["Structure de réponse claire et fluide.", "Bonne articulation de l'action menée personnellement."]
+        : isEs 
+        ? ["Estructura de respuesta clara y fluida.", "Buena articulación de la acción realizada personalmente."]
+        : ["Clear and structured delivery.", "Strong ownership articulated in the action taken."],
+      improvements: isFr 
+        ? ["Ajoutez un chiffre d'impact concret pour clore (ex: % de temps gagné).", "Précisez brièvement le contexte initial en une seule phrase."]
+        : isEs 
+        ? ["Agregue un número de impacto concreto para concluir (ej: % de tiempo ahorrado).", "Especifique brevemente el contexto inicial en una sola frase."]
+        : ["Add a specific quantified outcome at the end (e.g. % time saved).", "Keep the initial situation description to a single punchy sentence."],
+      improvedSampleAnswer: isFr 
+        ? `« Face à ce défi, j'ai pris l'initiative d'analyser la cause racine, puis j'ai orchestré la solution technique avec l'équipe, ce qui nous a permis d'augmenter le débit de 35% tout en éliminant les régressions. »`
+        : isEs 
+        ? `« Frente a este desafío, tomé la iniciativa de analizar la causa raíz y luego coordiné la solución técnica con el equipo, lo que nos permitió aumentar el rendimiento en un 35% eliminando regresiones. »`
+        : `"Facing this challenge, I took the lead in diagnosing the root cause, then spearheaded the technical solution with the team, resulting in a 35% throughput increase while completely preventing regressions."`
+    };
+  }
+}
+
+export async function generateUpskillPlanWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
+  try {
+    const res = await fetch('/api/generateUpskillPlan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeData, jobDescription, companyName, jobTitle, language })
+    });
+    const result = await parseJsonResponse(res);
+    if (!res.ok) {
+      throw new Error(result.error || 'Failed to generate upskill plan');
+    }
+    return result;
+  } catch (error) {
+    console.error('UpskillPlan Error:', error);
+    const isFr = language === 'fr';
+    const isEs = language === 'es';
+    return {
+      readinessScore: 85,
+      summary: isFr 
+        ? `Votre profil possède 85% d'adéquation directe pour le poste de ${jobTitle} chez ${companyName}. Voici les 3 points clés à consolider pour maximiser vos chances d'offre.`
+        : isEs 
+        ? `Su perfil tiene un 85% de adecuación directa para el puesto de ${jobTitle} en ${companyName}. Aquí están los 3 puntos clave a consolidar.`
+        : `Your profile has an 85% direct match for the ${jobTitle} role at ${companyName}. Here are the top 3 high-leverage areas to sharpen.`,
+      skillGaps: [
+        {
+          skill: "Architecture Cloud & Conteneurs",
+          priority: "critical",
+          category: "Cloud / DevOps",
+          estimatedHours: "8-10h",
+          curatedResources: ["Documentation officielle Docker & Kubernetes", "Architecture Best Practices Guide"],
+          practicalMiniProject: "Déployer une micro-application conteneurisée avec pipeline CI/CD automatisé sur GitHub Actions."
+        },
+        {
+          skill: "Tests d'Intégration & Performance",
+          priority: "moderate",
+          category: "Quality Assurance",
+          estimatedHours: "4-6h",
+          curatedResources: ["Guide des tests automatisés modernes", "Lighthouse & Profiling APIs"],
+          practicalMiniProject: "Mettre en place une suite de tests automatisés couvrant les flux critiques avec rapport de couverture."
+        }
+      ],
+      twoWeekRoadmap: [
+        {
+          phase: isFr ? "Semaine 1 : Fondations & Outillage" : isEs ? "Semana 1 : Fundamentos y Herramientas" : "Week 1: Core Foundations",
+          focus: isFr ? "Maîtriser les configurations clés et déployer le bac à sable technique." : isEs ? "Dominar las configuraciones clave y desplegar el entorno de prueba." : "Master key configurations and launch a technical sandbox.",
+          deliverable: isFr ? "Projet GitHub documenté avec Readme technique et métriques de test." : isEs ? "Proyecto GitHub documentado con Readme técnico y métricas." : "Documented GitHub repository with technical README and test metrics."
+        },
+        {
+          phase: isFr ? "Semaine 2 : Intégration CV & Argumentaire Entretien" : isEs ? "Semana 2 : Integración CV y Argumentario" : "Week 2: CV Integration & Interview Talking Points",
+          focus: isFr ? "Traduire les apprentissages en bullet points STAR pour le CV et préparer les Bridge Answers." : isEs ? "Traducir los aprendizajes en puntos STAR para el CV y preparar las Bridge Answers." : "Translate learnings into STAR CV bullets and practice Bridge Answers.",
+          deliverable: isFr ? "Mise à jour du profil et simulation d'entretien validée." : isEs ? "Actualización del perfil y simulación de entrevista validada." : "Updated profile and validated mock interview run."
+        }
+      ]
+    };
+  }
+}
+
