@@ -4206,7 +4206,8 @@ input[type="range"] {
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -4223,6 +4224,72 @@ input[type="range"] {
   background: var(--color-warning-light);
   color: var(--color-warning);
   border-color: rgba(245, 158, 11, 0.4);
+}
+
+.career-link-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.career-link-btn:hover {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.career-ats-pill.score-neutral {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.career-report-panel {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.career-report-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-accent);
+}
+
+.career-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.career-report-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.career-btn-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .career-btn-1click {

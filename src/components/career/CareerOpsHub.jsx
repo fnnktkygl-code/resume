@@ -118,6 +118,7 @@ export default function CareerOpsHub({
       let parsedSalary = 'Selon profil / marché';
       let parsedContract = 'CDI';
       let parsedUrl = '#';
+      let parsedSource = 'Fiche de Poste (JD)';
 
       // 1. Detect if an URL is present in the text
       const urlMatch = textInput.match(/https?:\/\/[^\s]+/i);
@@ -125,16 +126,52 @@ export default function CareerOpsHub({
         parsedUrl = urlMatch[0];
         try {
           const u = new URL(parsedUrl);
-          parsedCompany = u.hostname.replace(/^www\./, '').split('.')[0].toUpperCase();
-          const cleanPath = u.pathname.replace(/\.(html|php|aspx)$/, '');
-          const pathSegments = cleanPath.split('/').filter(Boolean);
-          if (pathSegments.length > 0) {
-            const rawSlug = decodeURIComponent(pathSegments[pathSegments.length - 1])
-              .replace(/^(q-|job-|offre-)/i, '')
-              .replace(/[-_]/g, ' ');
-            if (rawSlug.length > 3) {
-              parsedTitle = rawSlug.charAt(0).toUpperCase() + rawSlug.slice(1);
+          const hostname = u.hostname.toLowerCase();
+
+          if (hostname.includes('indeed.')) {
+            parsedCompany = 'Indeed France';
+            parsedSource = 'Indeed (Auto-Pipeline)';
+            // Parse Indeed URL slug like: /q-data-analyst-l-montpellier-(34)-emplois.html
+            const pathname = decodeURIComponent(u.pathname);
+            const indeedMatch = pathname.match(/q-(.+?)(?:-l-(.+?))?(?:-(?:emplois|jobs))?\.html/i);
+            if (indeedMatch) {
+              const rawTitle = (indeedMatch[1] || '').replace(/[-_]/g, ' ').trim();
+              if (rawTitle) {
+                parsedTitle = rawTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+              }
+              if (indeedMatch[2]) {
+                parsedLocation = indeedMatch[2].replace(/[-_]/g, ' ').replace(/\((\d+)\)/, '($1)').trim();
+                parsedLocation = parsedLocation.charAt(0).toUpperCase() + parsedLocation.slice(1);
+              }
             }
+          } else if (hostname.includes('linkedin.')) {
+            parsedCompany = 'LinkedIn Jobs';
+            parsedSource = 'LinkedIn (Auto-Pipeline)';
+          } else if (hostname.includes('welcometothejungle.')) {
+            parsedCompany = 'Welcome to the Jungle';
+            parsedSource = 'WTTJ (Auto-Pipeline)';
+            const parts = u.pathname.split('/').filter(Boolean);
+            const compIdx = parts.indexOf('companies');
+            if (compIdx !== -1 && parts[compIdx + 1]) {
+              parsedCompany = parts[compIdx + 1].replace(/[-_]/g, ' ').toUpperCase();
+            }
+            const jobIdx = parts.indexOf('jobs');
+            if (jobIdx !== -1 && parts[jobIdx + 1]) {
+              parsedTitle = parts[jobIdx + 1].replace(/[-_]/g, ' ');
+              parsedTitle = parsedTitle.charAt(0).toUpperCase() + parsedTitle.slice(1);
+            }
+          } else if (hostname.includes('francetravail.')) {
+            parsedCompany = 'France Travail';
+            parsedSource = 'France Travail (Auto-Pipeline)';
+          } else if (hostname.includes('greenhouse.io') || hostname.includes('lever.co') || hostname.includes('ashbyhq.com')) {
+            const parts = u.pathname.split('/').filter(Boolean);
+            if (parts.length > 0) {
+              parsedCompany = parts[0].toUpperCase();
+            }
+            parsedSource = 'ATS Direct (Auto-Pipeline)';
+          } else {
+            parsedCompany = u.hostname.replace(/^www\./, '').split('.')[0].toUpperCase();
+            parsedSource = 'Auto-Pipeline URL';
           }
         } catch {
           // Fallback ignored
@@ -147,10 +184,10 @@ export default function CareerOpsHub({
           // Line with URL and possible title attached
           const withoutUrl = line.replace(/https?:\/\/[^\s]+/i, '').replace(/[-–—]/g, ' ').trim();
           if (withoutUrl.length > 3 && withoutUrl.length < 80) {
-            parsedTitle = withoutUrl.replace(/\bjob\s+post\b/i, '').trim();
+            parsedTitle = withoutUrl.replace(/\bjob\s+post\b/i, '').replace(/\bemplois?\b/i, '').trim();
           }
-        } else if (!parsedCompany || parsedCompany === 'Entreprise' || parsedCompany === 'FR') {
-          if (/^[A-Z0-9\s&.-]{2,40}$/.test(line) && !/CDI|CDD|Stage|PAR AN|PAR MOIS/i.test(line)) {
+        } else if (!parsedCompany || parsedCompany === 'Entreprise' || parsedCompany === 'FR' || parsedCompany.includes('Indeed')) {
+          if (/^[A-Z0-9\s&.-]{2,40}$/.test(line) && !/CDI|CDD|Stage|PAR AN|PAR MOIS|MONTPELLIER|PARIS|LYON/i.test(line)) {
             parsedCompany = line;
           }
         }
@@ -172,7 +209,14 @@ export default function CareerOpsHub({
         }
       }
 
-      // 3. Extract skills tokens from whole text
+      // Clean title from common noisy affixes
+      parsedTitle = parsedTitle
+        .replace(/\b(emplois?|recrutement|job post|h\/f|f\/h)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!parsedTitle) parsedTitle = 'Poste Ciblé';
+
+      // 3. Extract skills tokens from whole text & title
       const skillMatches = [];
       const commonTerms = [
         'react', 'node', 'javascript', 'typescript', 'python', 'java', 'sql', 'data analyst', 'power bi',
@@ -180,10 +224,16 @@ export default function CareerOpsHub({
         'comptabilité', 'rh', 'recrutement', 'marketing', 'seo', 'gestion de projet', 'agile', 'scrum', 'anglais'
       ];
       commonTerms.forEach(term => {
-        if (textInput.toLowerCase().includes(term)) {
+        if (textInput.toLowerCase().includes(term) || parsedTitle.toLowerCase().includes(term)) {
           skillMatches.push(term.charAt(0).toUpperCase() + term.slice(1));
         }
       });
+
+      // Formulate a clean description
+      let cleanDesc = lines.filter(l => !/^https?:\/\//i.test(l)).join(' \n ').slice(0, 800);
+      if (!cleanDesc || cleanDesc.length < 20) {
+        cleanDesc = `Offre d'emploi « ${parsedTitle} » chez ${parsedCompany} (${parsedLocation}). Évaluée via le rubric CareerOps. Cliquez sur "Voir l'offre" pour consulter l'annonce d'origine ou postulez directement.`;
+      }
 
       const syntheticJob = {
         id: `pipeline-${Date.now()}`,
@@ -192,10 +242,10 @@ export default function CareerOpsHub({
         location: parsedLocation,
         contractType: parsedContract,
         salary: parsedSalary,
-        skills: skillMatches.length > 0 ? skillMatches : ['Compétences clés du poste', 'Expérience requise', 'Rigueur'],
-        description: lines.join('\n').slice(0, 800) + '...',
+        skills: skillMatches,
+        description: cleanDesc,
         url: parsedUrl,
-        source: urlMatch ? 'Auto-Pipeline URL' : 'Fiche de Poste (JD)'
+        source: parsedSource
       };
 
       const match = matchResumeWithJob(resumeData, syntheticJob, {
