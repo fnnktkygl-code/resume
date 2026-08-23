@@ -152,10 +152,10 @@ export const enhanceWithProxy = async (textData, contextType) => {
 
 export const rewriteWithProxy = async (textData, contextType, language) => {
   try {
-    const response = await fetch('/api/rewrite', {
+    const response = await fetch('/api/enhance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ textData, contextType, language }),
+      body: JSON.stringify({ action: 'rewrite', textData, contextType, language }),
     });
     const data = await parseJsonResponse(response);
     if (!response.ok) {
@@ -236,10 +236,10 @@ export const enhanceResumeWithProxy = async (resumeData, language) => {
 
 export const translateTextWithProxy = async (text, language) => {
   try {
-    const response = await fetch('/api/translate', {
+    const response = await fetch('/api/enhance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, language }),
+      body: JSON.stringify({ action: 'translate', text, language }),
     });
 
     const data = await parseJsonResponse(response);
@@ -296,10 +296,10 @@ export const boldifyResumeWithProxy = async (resumeData) => {
 
 export const translateWithProxy = async (resumeData, language) => {
   try {
-    const response = await fetch('/api/translate', {
+    const response = await fetch('/api/enhance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeData, language }),
+      body: JSON.stringify({ action: 'translate', resumeData, language }),
     });
     const data = await parseJsonResponse(response);
     if (!response.ok) {
@@ -496,10 +496,10 @@ export async function generateSectionContentWithProxy(sectionType, resumeContext
 
 export async function generateFollowUpWithProxy({ companyName, jobTitle, type = 'followup', daysElapsed = 8, candidateName, context = '', language = 'fr' }) {
   try {
-    const res = await fetch('/api/generateFollowUp', {
+    const res = await fetch('/api/careerOpsAssist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ companyName, jobTitle, type, daysElapsed, candidateName, context, language })
+      body: JSON.stringify({ action: 'followup', companyName, jobTitle, type, daysElapsed, candidateName, context, language })
     });
     const result = await parseJsonResponse(res);
     if (!res.ok) {
@@ -553,10 +553,10 @@ export async function generateFollowUpWithProxy({ companyName, jobTitle, type = 
 
 export async function generateInterviewPrepWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/generateInterviewPrep', {
+    const res = await fetch('/api/careerOpsAssist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'generatePack', resumeData, jobDescription, companyName, jobTitle, language })
+      body: JSON.stringify({ action: 'interviewPrep', resumeData, jobDescription, companyName, jobTitle, language })
     });
     const result = await parseJsonResponse(res);
     if (!res.ok) {
@@ -664,10 +664,10 @@ export async function generateInterviewPrepWithProxy({ resumeData, jobDescriptio
 
 export async function evaluateMockAnswerWithProxy({ practiceQuestion, userAnswer, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/generateInterviewPrep', {
+    const res = await fetch('/api/careerOpsAssist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'evaluateAnswer', practiceQuestion, userAnswer, companyName, jobTitle, language })
+      body: JSON.stringify({ action: 'evaluateMockAnswer', practiceQuestion, userAnswer, companyName, jobTitle, language })
     });
     const result = await parseJsonResponse(res);
     if (!res.ok) {
@@ -701,10 +701,10 @@ export async function evaluateMockAnswerWithProxy({ practiceQuestion, userAnswer
 
 export async function generateUpskillPlanWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/generateUpskillPlan', {
+    const res = await fetch('/api/careerOpsAssist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resumeData, jobDescription, companyName, jobTitle, language })
+      body: JSON.stringify({ action: 'upskill', resumeData, jobDescription, companyName, jobTitle, language })
     });
     const result = await parseJsonResponse(res);
     if (!res.ok) {
