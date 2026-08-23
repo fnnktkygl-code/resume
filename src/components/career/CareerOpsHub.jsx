@@ -51,6 +51,8 @@ export default function CareerOpsHub({
   onClose,
   resumeData,
   onApplyTailoredResume,
+  onOpenImport,
+  onLoadDemo,
   language = 'fr'
 }) {
   const { t } = useTranslation();
@@ -87,6 +89,19 @@ export default function CareerOpsHub({
   // Candidate CV context
   const candidateTagline = resumeData?.personal?.tagline?.trim() || '';
   const candidateLocation = resumeData?.personal?.location?.trim() || '';
+
+  // Master Profile validation
+  const hasProfileData = useMemo(() => {
+    if (!resumeData) return false;
+    const hasSkills = Boolean(
+      (typeof resumeData.skills === 'string' && resumeData.skills.trim()) ||
+      (Array.isArray(resumeData.skills) && resumeData.skills.length > 0) ||
+      (typeof resumeData.skills === 'object' && (resumeData.skills?.technical?.trim() || resumeData.skills?.soft?.trim() || resumeData.skills?.languages?.trim()))
+    );
+    const hasExp = Array.isArray(resumeData.experience) && resumeData.experience.some(e => e.company || e.title);
+    const hasTagline = Boolean(resumeData.personal?.tagline?.trim());
+    return hasSkills || hasExp || hasTagline;
+  }, [resumeData]);
 
   // Initialize search criteria from user resume data
   useEffect(() => {
@@ -490,6 +505,53 @@ export default function CareerOpsHub({
             >
               ✕
             </button>
+          </div>
+        )}
+
+        {/* Master Profile Gate Banner when resume is empty */}
+        {!hasProfileData && (
+          <div style={{
+            background: 'var(--color-surface-alt)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '26px' }}>📋</span>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: 700, color: 'var(--color-text)' }}>
+                  {t('Master Profile requis pour une analyse pertinente')}
+                </h4>
+                <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
+                  {t('Pour calculer un score ATS fiable, détecter les écarts de compétences et adapter votre CV avec la formule Harvard XYZ, chargez d\'abord votre CV de référence.')}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
+              {onOpenImport && (
+                <button
+                  onClick={onOpenImport}
+                  className="btn-primary"
+                  style={{ fontSize: '12.5px', padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>📄</span>
+                  <span>{t('Importer mon CV (PDF / Texte)')}</span>
+                </button>
+              )}
+              {onLoadDemo && (
+                <button
+                  onClick={onLoadDemo}
+                  className="btn-secondary"
+                  style={{ fontSize: '12.5px', padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>✨</span>
+                  <span>{t('Charger un profil Démo')}</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

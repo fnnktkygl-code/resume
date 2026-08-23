@@ -1951,6 +1951,13 @@ export default function App() {
               onOpenCoverLetter={(letter) => {
                 setIsCoverLetterModalOpen(true);
               }}
+              onOpenImport={() => {
+                setIsCareerOpsOpen(false);
+                setShowImportModal(true);
+              }}
+              onLoadDemo={() => {
+                loadDemoData(1);
+              }}
               language={language}
             />
           )}

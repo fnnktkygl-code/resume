@@ -109,13 +109,15 @@ function ResumePreview({
     s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
   );
 
-  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const hasContent = hasContact || data.summary ||
+  const hasSkills = data.skills?.technical || data.skills?.soft || (data.skills?.languages && !hasCustomLangues);
+  const hasStructuredContent = hasContact || Boolean(data.summary?.trim()) ||
     data.experience.some(e => e.company || e.title) ||
     data.education.some(e => e.institution || e.degree) ||
     hasSkills ||
     data.projects.some(pr => pr.name) ||
     data.certifications.some(c => c.name);
+
+  const hasContent = Boolean(p?.name?.trim()) || hasStructuredContent;
 
   const h = data.headings || {};
   const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
@@ -1195,6 +1197,31 @@ function ResumePreview({
                   </div>
                 );
               })}
+
+              {!hasStructuredContent && !printMode && (
+                <div style={{
+                  margin: '32px auto',
+                  padding: '24px',
+                  maxWidth: '480px',
+                  textAlign: 'center',
+                  background: 'rgba(0,0,0,0.02)',
+                  border: '1.5px dashed var(--color-border, #cbd5e1)',
+                  borderRadius: '12px',
+                  color: 'var(--color-text-secondary, #64748b)',
+                  fontSize: '12.5px',
+                  lineHeight: '1.5'
+                }}>
+                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>📝</div>
+                  <strong style={{ display: 'block', fontSize: '14px', color: 'var(--color-text, #1e293b)', marginBottom: '4px' }}>
+                    {language === 'fr' ? 'Votre Master Profile est en cours de création' : 'Your Master Profile is being created'}
+                  </strong>
+                  <span>
+                    {language === 'fr'
+                      ? 'Renseignez votre titre de poste, vos coordonnées et vos expériences dans le panneau de gauche, ou cliquez sur « Importer » pour charger votre CV instantanément.'
+                      : 'Fill in your target title, contact details, and experiences on the left, or click "Import" to load your resume instantly.'}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
