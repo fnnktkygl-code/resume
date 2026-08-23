@@ -323,9 +323,11 @@ export default function CareerOpsHub({
   const rankedJobs = useMemo(() => {
     if (!jobs || !jobs.length) return [];
 
+    const searchLoc = (location || candidateLocation || '').trim();
+
     const scored = jobs.map((job) => {
       const match = matchResumeWithJob(resumeData || {}, job, {
-        userCity: location || candidateLocation,
+        userCity: searchLoc,
         maxRadiusKm: radiusKm
       });
       return {
@@ -334,8 +336,20 @@ export default function CareerOpsHub({
       };
     });
 
-    return scored.sort((a, b) => (Number(b.matchDetails?.scoreRating) || 0) - (Number(a.matchDetails?.scoreRating) || 0));
-  }, [jobs, resumeData, location, candidateLocation, radiusKm]);
+    let filtered = scored;
+    // If a search location is specified and remote-only is unchecked, filter out jobs out of range
+    if (searchLoc && !remoteOnly) {
+      filtered = scored.filter((job) => {
+        // If job failed location match (e.g. distance > radiusKm), exclude it
+        if (job.matchDetails?.locationMatch === false) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return filtered.sort((a, b) => (Number(b.matchDetails?.scoreRating) || 0) - (Number(a.matchDetails?.scoreRating) || 0));
+  }, [jobs, resumeData, location, candidateLocation, radiusKm, remoteOnly]);
 
   // Handle Save Job
   const handleSaveJob = (job) => {

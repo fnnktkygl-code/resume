@@ -283,20 +283,41 @@ export default async function handler(req, res) {
       });
     }
 
-    // 1. Query live APIs in parallel
-    const [arbeitnowResults, remotiveResults, adzunaResults] = await Promise.all([
-      fetchArbeitnowJobs(cleanQuery),
-      fetchRemotiveJobs(cleanQuery),
-      fetchAdzunaJobs(cleanQuery, cleanLocation)
-    ]);
+    // 1. Query relevant live APIs based on search location
+    const locLower = cleanLocation.toLowerCase();
+    const isRemoteSearch = locLower.includes('remote') || locLower.includes('teletravail') || locLower.includes('distanciel') || remoteOnly === true || remoteOnly === 'true';
+    const isGermanSearch = locLower.includes('berlin') || locLower.includes('germany') || locLower.includes('allemagne') || locLower.includes('deutschland') || locLower.includes('munich');
 
-    let combinedJobs = [...adzunaResults, ...arbeitnowResults, ...remotiveResults];
+    const apiPromises = [fetchAdzunaJobs(cleanQuery, cleanLocation)];
+
+    if (isGermanSearch || (!cleanLocation && !remoteOnly)) {
+      apiPromises.push(fetchArbeitnowJobs(cleanQuery));
+    }
+    if (isRemoteSearch || (!cleanLocation && remoteOnly)) {
+      apiPromises.push(fetchRemotiveJobs(cleanQuery));
+    }
+
+    const apiResultsArrays = await Promise.all(apiPromises);
+    let combinedJobs = apiResultsArrays.flat();
 
     // 2. Add verified direct portal deep-links for French and global sites
     const directSearchListings = generateDirectJobBoardLinks(cleanQuery, cleanLocation);
     combinedJobs = [...combinedJobs, ...directSearchListings];
 
-    // 3. Filter by contract type if specified
+    // 3. Strict location filter on results if a specific local city is specified
+    if (cleanLocation && !isRemoteSearch) {
+      combinedJobs = combinedJobs.filter((job) => {
+        if (!job.location) return false;
+        const jobLoc = job.location.toLowerCase();
+        // If job location mentions another distant country or city (e.g., Berlin, Germany, Israel), filter out
+        if (jobLoc.includes('berlin') || jobLoc.includes('germany') || jobLoc.includes('israel') || jobLoc.includes('munich')) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    // 4. Filter by contract type if specified
     if (contractType && contractType !== 'all') {
       combinedJobs = combinedJobs.filter((job) =>
         String(job.contractType || '').toLowerCase().includes(contractType.toLowerCase())
