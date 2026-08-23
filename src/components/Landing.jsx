@@ -88,14 +88,7 @@ export default function Landing({ onStart, onNavigate }) {
     <div className="landing-page">
       <nav className={`landing-nav ${scrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-logo">Resu<span>Me</span></div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            className="landing-cta-small" 
-            style={{ background: 'var(--landing-bg)', color: 'var(--landing-text)', border: '1px solid var(--landing-text-secondary)' }} 
-            onClick={() => setShowImportModal(true)}
-          >
-            <i className="fi fi-rr-magic-wand"></i> Import CV
-          </button>
+        <div className="landing-nav-actions">
           <button className="landing-cta-small" onClick={onStart}>
             ✨ {t('Open Studio')}
           </button>
