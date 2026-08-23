@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Header({
   t,
@@ -19,12 +20,30 @@ export default function Header({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [menuCoords, setMenuCoords] = useState({ top: 60, right: 16 });
   const menuRef = useRef(null);
   const langRef = useRef(null);
 
+  const toggleMenu = () => {
+    if (!mobileMenuOpen && menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect();
+      setMenuCoords({
+        top: rect.bottom + 8,
+        right: Math.max(16, window.innerWidth - rect.right)
+      });
+    }
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      // Check if click was inside menuRef or inside the portal
+      const portalEl = document.getElementById('header-menu-portal-root');
+      if (
+        menuRef.current && 
+        !menuRef.current.contains(e.target) &&
+        (!portalEl || !portalEl.contains(e.target))
+      ) {
         setMobileMenuOpen(false);
       }
       if (langRef.current && !langRef.current.contains(e.target)) {
@@ -148,120 +167,16 @@ export default function Header({
           <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
         </button>
 
-        {/* Overflow Menu (More Options Button & Responsive Menu Container) */}
+        {/* Overflow Menu (More Options Button) */}
         <div className="header-overflow-menu" ref={menuRef}>
           <button
             className="mobile-menu-btn header-more-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={toggleMenu}
             aria-label={t('More options')}
             aria-expanded={mobileMenuOpen}
           >
             <i className="fi fi-rr-menu-dots"></i>
           </button>
-          
-          {mobileMenuOpen && (
-            <>
-              {/* Backdrop for mobile drawer dismissal */}
-              <div 
-                className="mobile-drawer-backdrop mobile-only" 
-                onClick={() => setMobileMenuOpen(false)} 
-                aria-hidden="true"
-              />
-              
-              <div className="header-menu-container" role="menu">
-                {/* Mobile Drawer Header with Close Button */}
-                <div className="mobile-drawer-header mobile-only">
-                  <div className="mobile-drawer-handle" />
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <div className="mobile-drawer-title">
-                      <i className="fi fi-rr-apps" style={{ color: 'var(--color-accent)' }}></i>
-                      <span>{t('Actions & Tools')}</span>
-                    </div>
-                    <button 
-                      className="mobile-drawer-close-btn"
-                      onClick={() => setMobileMenuOpen(false)}
-                      aria-label={t('Close')}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                <div className="header-menu-body">
-                  {/* Premier Plan (Mobile Actions) */}
-                  <div className="mobile-only">
-                    <div className="dropdown-section-label">⚡ {t('Actions')}</div>
-                    <button 
-                      className="btn-demo dropdown-item" 
-                      onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
-                    >
-                      <i className="fi fi-rr-folder"></i> 
-                      <span>{t('My Resumes')}</span>
-                    </button>
-                    <button 
-                      className="btn-demo dropdown-item" 
-                      onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}
-                    >
-                      <i className="fi fi-rr-magic-wand"></i> 
-                      <span>{t('Import CV')}</span>
-                    </button>
-                    <button 
-                      className="btn-demo dropdown-item" 
-                      style={{ color: '#10B981', fontWeight: '600' }}
-                      onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
-                    >
-                      <span>🎯 CareerOps ({t('Beta')})</span>
-                    </button>
-                    <button 
-                      className="btn-demo dropdown-item" 
-                      onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}
-                    >
-                      <i className="fi fi-rr-document-signed"></i> 
-                      <span>{t('Cover Letter')}</span>
-                    </button>
-                    
-                    <div className="dropdown-divider" />
-                  </div>
-
-                  {/* Second Plan (Outils & Modèles) */}
-                  <div className="dropdown-section-label">💡 {t('Tools & Templates')}</div>
-                  <button 
-                    className="btn-demo dropdown-item" 
-                    onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}
-                  >
-                    <i className="fi fi-rr-bulb"></i> 
-                    <span>{t('Daily Pro Tip')}</span>
-                  </button>
-                  <button 
-                    className="btn-demo dropdown-item" 
-                    onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}
-                  >
-                    <i className="fi fi-rr-document"></i> 
-                    <span>{t('1-Page Demo')}</span>
-                  </button>
-                  <button 
-                    className="btn-demo dropdown-item" 
-                    onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}
-                  >
-                    <i className="fi fi-rr-copy"></i> 
-                    <span>{t('2-Page Demo')}</span>
-                  </button>
-                  
-                  <div className="dropdown-divider" />
-                  
-                  {/* Danger Zone */}
-                  <button
-                    className="btn-demo dropdown-item dropdown-danger"
-                    onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}
-                    disabled={!hasContent}
-                  >
-                    <i className="fi fi-rr-trash"></i> 
-                    <span>{t('Clear')}</span>
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
         </div>
 
         {/* Language Selector */}
@@ -319,6 +234,119 @@ export default function Header({
           {theme === 'light' ? '🌙' : '☀️'}
         </button>
       </div>
+
+      {/* PORTALED MENU CONTAINER (Directly attached to document.body, free from header stacking contexts) */}
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div id="header-menu-portal-root">
+          {/* Backdrop on mobile */}
+          <div 
+            className="mobile-drawer-backdrop mobile-only" 
+            onClick={() => setMobileMenuOpen(false)} 
+            aria-hidden="true"
+          />
+          
+          <div 
+            className="header-menu-portal" 
+            style={{ 
+              top: `${menuCoords.top}px`, 
+              right: `${menuCoords.right}px` 
+            }}
+            role="menu"
+          >
+            {/* Mobile Drawer Top Drag Handle & Header */}
+            <div className="mobile-drawer-header mobile-only">
+              <div className="mobile-drawer-handle" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div className="mobile-drawer-title">
+                  <i className="fi fi-rr-apps" style={{ color: 'var(--color-accent)' }}></i>
+                  <span>{t('Actions & Tools')}</span>
+                </div>
+                <button 
+                  className="mobile-drawer-close-btn"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label={t('Close')}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="header-menu-body">
+              {/* Premier Plan (Mobile Actions) */}
+              <div className="mobile-only">
+                <div className="dropdown-section-label">⚡ {t('Actions')}</div>
+                <button 
+                  className="btn-demo dropdown-item" 
+                  onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
+                >
+                  <i className="fi fi-rr-folder"></i> 
+                  <span>{t('My Resumes')}</span>
+                </button>
+                <button 
+                  className="btn-demo dropdown-item" 
+                  onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}
+                >
+                  <i className="fi fi-rr-magic-wand"></i> 
+                  <span>{t('Import CV')}</span>
+                </button>
+                <button 
+                  className="btn-demo dropdown-item" 
+                  style={{ color: '#10B981', fontWeight: '600' }}
+                  onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
+                >
+                  <span>🎯 CareerOps ({t('Beta')})</span>
+                </button>
+                <button 
+                  className="btn-demo dropdown-item" 
+                  onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}
+                >
+                  <i className="fi fi-rr-document-signed"></i> 
+                  <span>{t('Cover Letter')}</span>
+                </button>
+                
+                <div className="dropdown-divider" />
+              </div>
+
+              {/* Second Plan (Outils & Modèles) */}
+              <div className="dropdown-section-label">💡 {t('Tools & Templates')}</div>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-bulb"></i> 
+                <span>{t('Daily Pro Tip')}</span>
+              </button>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-document"></i> 
+                <span>{t('1-Page Demo')}</span>
+              </button>
+              <button 
+                className="btn-demo dropdown-item" 
+                onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}
+              >
+                <i className="fi fi-rr-copy"></i> 
+                <span>{t('2-Page Demo')}</span>
+              </button>
+              
+              <div className="dropdown-divider" />
+              
+              {/* Danger Zone */}
+              <button
+                className="btn-demo dropdown-item dropdown-danger"
+                onClick={() => { setShowClearConfirm(true); setMobileMenuOpen(false); }}
+                disabled={!hasContent}
+              >
+                <i className="fi fi-rr-trash"></i> 
+                <span>{t('Clear')}</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }
