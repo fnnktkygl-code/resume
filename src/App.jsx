@@ -244,6 +244,7 @@ export default function App() {
   const {
     cvList,
     activeCvId,
+    handleSaveCv,
     handleLoadCv,
     handleCreateCv,
     handleDuplicateCv,
@@ -262,6 +263,15 @@ export default function App() {
     language,
     t
   });
+
+  const [saveStatus, setSaveStatus] = useState('idle');
+  const handleManualSave = useCallback(() => {
+    handleSaveCv();
+    setSaveStatus('saved');
+    setTimeout(() => {
+      setSaveStatus('idle');
+    }, 2200);
+  }, [handleSaveCv]);
 
   const [viewportSize, setViewportSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1200,
@@ -931,6 +941,8 @@ function estimateResumeHeightInPages(resumeData) {
           language={language}
           handleLanguageChange={handleLanguageChange}
           hasContent={hasContent}
+          onSave={handleManualSave}
+          saveStatus={saveStatus}
           setIsCoverLetterModalOpen={setIsCoverLetterModalOpen}
           setIsCareerOpsOpen={setIsCareerOpsOpen}
           setShowImportModal={setShowImportModal}

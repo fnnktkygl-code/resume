@@ -45,6 +45,8 @@ export const TRANSLATIONS = {
 
     // Header
     'All data stays in your browser': 'All data stays in your browser',
+    'Save': 'Save',
+    'Saved!': 'Saved!',
     '1-Page Demo': '1-Page Demo',
     '2-Page Demo': '2-Page Demo',
     'Clear': 'Clear',
@@ -719,6 +721,8 @@ export const TRANSLATIONS = {
     'Content overflows by just a few lines. Try Compact mode or shorten a section.': 'Le contenu dépasse de quelques lignes. Essayez le mode Compact ou réduisez une section.',
     'Please fill out your resume first': "Veuillez d'abord remplir ou importer votre CV",
     'All data stays in your browser': 'Les données restent dans le navigateur',
+    'Save': 'Enregistrer',
+    'Saved!': 'Enregistré !',
     '1-Page Demo': 'Démo 1 Page',
     '2-Page Demo': 'Démo 2 Pages',
     'Clear': 'Effacer',
@@ -1370,6 +1374,8 @@ export const TRANSLATIONS = {
     'Content overflows by just a few lines. Try Compact mode or shorten a section.': 'El contenido se desborda por solo unas líneas. Prueba el modo Compacto o reduce una sección.',
     'Please fill out your resume first': 'Por favor, completa tu currículum primero',
     'All data stays in your browser': 'Todos los datos permanecen en tu navegador',
+    'Save': 'Guardar',
+    'Saved!': '¡Guardado!',
     '1-Page Demo': 'Demo de 1 página',
     '2-Page Demo': 'Demo de 2 páginas',
     'Clear': 'Borrar',

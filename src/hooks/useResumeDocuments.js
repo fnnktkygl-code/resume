@@ -61,6 +61,27 @@ export default function useResumeDocuments({
       return updated;
     });
   }, [data, activeCvId, importSnapshot]);
+  
+  const handleSaveCv = useCallback(() => {
+    setCvList(prev => {
+      const updated = prev.map(cv => {
+        if (cv.id === activeCvId) {
+          return {
+            ...cv,
+            lastModified: Date.now(),
+            data: data,
+            importSnapshot: importSnapshot
+          };
+        }
+        return cv;
+      });
+      try {
+        localStorage.setItem('resume-builder-cv-list', JSON.stringify(updated));
+        localStorage.setItem('resume-builder-data', JSON.stringify(data));
+      } catch {}
+      return updated;
+    });
+  }, [activeCvId, data, importSnapshot]);
 
   const handleLoadCv = useCallback((id) => {
     const target = cvList.find(c => c.id === id);
@@ -274,6 +295,7 @@ export default function useResumeDocuments({
   return {
     cvList,
     activeCvId,
+    handleSaveCv,
     handleLoadCv,
     handleCreateCv,
     handleDuplicateCv,

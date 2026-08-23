@@ -183,7 +183,7 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
           })}
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
           <button 
             type="button"
             className="btn-primary" 
@@ -202,46 +202,6 @@ export default function CVManagerModal({ isOpen, onClose, cvList, activeCvId, on
               📄 {language === 'fr' ? 'Charger une Démo' : 'Load a Demo'}
             </button>
           )}
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-          <button 
-            type="button"
-            className="btn-secondary" 
-            onClick={onExportData}
-            style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
-          >
-            💾 {t('Export Backup')}
-          </button>
-          <button 
-            type="button"
-            className="btn-secondary" 
-            onClick={() => fileInputRef.current?.click()}
-            style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
-          >
-            📥 {t('Import Backup')}
-          </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            accept=".json" 
-            style={{ display: 'none' }} 
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                try {
-                  const importedData = JSON.parse(event.target.result);
-                  onImportData(importedData);
-                } catch (err) {
-                  alert(t('Invalid backup file.'));
-                }
-              };
-              reader.readAsText(file);
-              e.target.value = '';
-            }} 
-          />
         </div>
       </div>
     </Modal>

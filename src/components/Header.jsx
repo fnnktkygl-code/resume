@@ -7,6 +7,8 @@ export default function Header({
   language,
   handleLanguageChange,
   hasContent,
+  onSave,
+  saveStatus,
   setIsCoverLetterModalOpen,
   setIsCareerOpsOpen,
   setShowImportModal,
@@ -69,7 +71,19 @@ export default function Header({
           <i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}
         </span>
 
-        {/* 1. Primary Action: Manage Resumes */}
+        {/* 1. Primary Action: Save Resume */}
+        <button
+          className={`btn-demo btn-save-resume desktop-only ${saveStatus === 'saved' ? 'btn-save-success' : ''}`}
+          style={{ marginRight: '6px' }}
+          onClick={onSave}
+          data-tooltip={language === 'fr' ? 'Enregistrer vos modifications dans Mes CVs' : 'Save changes to My Resumes'}
+          data-tooltip-pos="bottom"
+        >
+          <i className={`fi ${saveStatus === 'saved' ? 'fi-rr-check' : 'fi-rr-disk'}`}></i>
+          <span>{saveStatus === 'saved' ? t('Saved!') : t('Save')}</span>
+        </button>
+
+        {/* 2. Primary Action: Manage Resumes */}
         <button
           className="btn-demo desktop-only"
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }}
@@ -80,7 +94,7 @@ export default function Header({
           <i className="fi fi-rr-folder"></i> {language === 'fr' ? 'Mes CVs' : t('Manage My Resumes')}
         </button>
 
-        {/* 2. Primary Action: Import CV */}
+        {/* 3. Primary Action: Import CV */}
         <button 
           className="btn-demo btn-import-primary desktop-only" 
           style={{ marginRight: '6px' }}
@@ -91,7 +105,7 @@ export default function Header({
           <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
         </button>
 
-        {/* 3. Core Feature: CareerOps with Beta Badge */}
+        {/* 4. Core Feature: CareerOps with Beta Badge */}
         <button
           className="btn-demo desktop-only"
           style={{ 
@@ -123,7 +137,7 @@ export default function Header({
           </span>
         </button>
 
-        {/* 4. Cover Letter Generator */}
+        {/* 5. Cover Letter Generator */}
         <button 
           className="btn-demo desktop-only" 
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }} 
@@ -151,6 +165,13 @@ export default function Header({
             {/* Mobile Only Quick Actions */}
             <div className="mobile-only">
               <div className="dropdown-section-label">{t('Actions')}</div>
+              <button 
+                className={`btn-demo dropdown-item ${saveStatus === 'saved' ? 'btn-save-success' : ''}`} 
+                onClick={() => { onSave && onSave(); setMobileMenuOpen(false); }}
+              >
+                <i className={`fi ${saveStatus === 'saved' ? 'fi-rr-check' : 'fi-rr-disk'}`}></i>
+                <span>{saveStatus === 'saved' ? t('Saved!') : t('Save')}</span>
+              </button>
               <button 
                 className="btn-demo dropdown-item" 
                 onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
