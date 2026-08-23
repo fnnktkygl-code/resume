@@ -236,11 +236,13 @@ export function evaluateJobWithCareerOpsRubric(resumeData, jobOffer, userPrefere
     locationDistanceKm = 0;
     locationMatch = true;
   } else {
-    const candidateLocation = resolveLocationCoordinates(userPreferences.location || resumeData.personal?.location);
-    const jobLocation = resolveLocationCoordinates(jobOffer.location);
-    if (candidateLocation?.lat && jobLocation?.lat) {
-      locationDistanceKm = calculateHaversineDistance(candidateLocation.lat, candidateLocation.lng, jobLocation.lat, jobLocation.lng);
-      const maxRadius = userPreferences.radiusKm || 80;
+    const targetSearchLoc = userPreferences.location || userPreferences.userCity || resumeData.personal?.location;
+    const searchCoordinates = resolveLocationCoordinates(targetSearchLoc);
+    const jobCoordinates = resolveLocationCoordinates(jobOffer.location || jobOffer.city);
+
+    if (searchCoordinates?.lat && jobCoordinates?.lat) {
+      locationDistanceKm = calculateHaversineDistance(searchCoordinates.lat, searchCoordinates.lng, jobCoordinates.lat, jobCoordinates.lng);
+      const maxRadius = Number(userPreferences.radiusKm || userPreferences.maxRadiusKm) || 100;
       if (locationDistanceKm > maxRadius) locationMatch = false;
     }
   }
@@ -309,6 +311,8 @@ export function matchResumeWithJob(resumeData, jobOffer, userPreferences = {}) {
   const evalResult = evaluateJobWithCareerOpsRubric(resumeData, jobOffer, userPreferences);
   const matched = Array.isArray(evalResult?.matchedSkills) ? evalResult.matchedSkills : [];
   const missing = Array.isArray(evalResult?.missingSkills) ? evalResult.missingSkills : [];
+  const maxRadius = Number(userPreferences.radiusKm || userPreferences.maxRadiusKm) || 100;
+
   return {
     score: evalResult?.scoreAts ?? 0,
     scoreRating: evalResult?.score ?? 1.0,
@@ -316,7 +320,7 @@ export function matchResumeWithJob(resumeData, jobOffer, userPreferences = {}) {
     matchedSkills: matched,
     missingSkills: missing,
     locationDistanceKm: evalResult?.locationDistanceKm ?? null,
-    locationMatch: evalResult?.locationDistanceKm == null || evalResult.locationDistanceKm <= 80,
+    locationMatch: evalResult?.locationDistanceKm == null || evalResult.locationDistanceKm <= maxRadius,
     strengths: matched.map(s => `Maîtrise validée : ${typeof s === 'string' ? s : s?.name || String(s)}`),
     advice: evalResult?.advice || (evalResult?.score >= 4.0 ? 'Excellente opportunité : postulez sans hésiter.' : 'Ajustez votre CV avec les mots-clés manquants avant d\'envoyer.'),
     careerOpsBlocks: evalResult?.blocks || {}

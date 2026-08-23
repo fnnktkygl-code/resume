@@ -359,7 +359,9 @@ export default function CareerOpsHub({
     const scored = jobs.map((job) => {
       const match = matchResumeWithJob(resumeData || {}, job, {
         userCity: searchLoc,
-        maxRadiusKm: radiusKm
+        location: searchLoc,
+        maxRadiusKm: Number(radiusKm) || 100,
+        radiusKm: Number(radiusKm) || 100
       });
       return {
         ...job,
@@ -371,8 +373,8 @@ export default function CareerOpsHub({
     // If a search location is specified and remote-only is unchecked, filter out jobs out of range
     if (searchLoc && !remoteOnly) {
       filtered = scored.filter((job) => {
-        // If job failed location match (e.g. distance > radiusKm), exclude it
-        if (job.matchDetails?.locationMatch === false) {
+        // If distance was calculated and is greater than radiusKm, filter out
+        if (job.matchDetails?.locationDistanceKm != null && job.matchDetails.locationDistanceKm > Number(radiusKm)) {
           return false;
         }
         return true;
