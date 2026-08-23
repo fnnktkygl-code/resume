@@ -13,6 +13,13 @@ import '@fontsource/lora'
 import '@fontsource/merriweather'
 import '@fontsource/outfit'
 import './index.css'
+import { globalTooltipManager } from './utils/tooltipManager'
+
+try {
+  globalTooltipManager.init();
+} catch (e) {
+  console.warn('Tooltip manager init warning:', e);
+}
 
 import { polyfill } from 'mobile-drag-drop';
 import { scrollBehaviourDragImageTranslateOverride } from 'mobile-drag-drop/scroll-behaviour';

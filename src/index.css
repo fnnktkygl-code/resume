@@ -3697,140 +3697,18 @@ input[type="range"] {
 }
 
 /* ============================================
-   Global Premium Tooltip System [data-tooltip]
+   Global Floating Tooltip Theme Variables
    ============================================ */
-
-[data-tooltip] {
-  position: relative;
+:root {
+  --tooltip-bg: rgba(15, 23, 42, 0.94);
+  --tooltip-text: #ffffff;
+  --tooltip-border: rgba(255, 255, 255, 0.16);
 }
 
-[data-tooltip]::before {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px) scale(0.95);
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--tooltip-bg, rgba(15, 23, 42, 0.94));
-  color: var(--tooltip-text, #ffffff);
-  font-family: var(--font-body, inherit);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.015em;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
-  z-index: 10000;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--tooltip-border, rgba(255, 255, 255, 0.15));
-  line-height: 1.35;
-  text-transform: none;
-}
-
-/* Caret Arrow */
-[data-tooltip]::after {
-  content: '';
-  position: absolute;
-  bottom: calc(100% + 2px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  border-width: 6px 6px 0 6px;
-  border-style: solid;
-  border-color: var(--tooltip-bg, rgba(15, 23, 42, 0.94)) transparent transparent transparent;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
-  z-index: 10000;
-}
-
-[data-tooltip]:hover::before,
-[data-tooltip]:focus-visible::before {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-[data-tooltip]:hover::after,
-[data-tooltip]:focus-visible::after {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* Position Variants */
-[data-tooltip-pos="bottom"]::before {
-  bottom: auto;
-  top: calc(100% + 8px);
-  transform: translateX(-50%) translateY(-4px) scale(0.95);
-}
-[data-tooltip-pos="bottom"]::after {
-  bottom: auto;
-  top: calc(100% + 2px);
-  transform: translateX(-50%) translateY(-4px);
-  border-width: 0 6px 6px 6px;
-  border-color: transparent transparent var(--tooltip-bg, rgba(15, 23, 42, 0.94)) transparent;
-}
-[data-tooltip-pos="bottom"]:hover::before,
-[data-tooltip-pos="bottom"]:focus-visible::before {
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-[data-tooltip-pos="bottom"]:hover::after,
-[data-tooltip-pos="bottom"]:focus-visible::after {
-  transform: translateX(-50%) translateY(0);
-}
-
-[data-tooltip-pos="left"]::before {
-  bottom: auto;
-  top: 50%;
-  right: calc(100% + 8px);
-  left: auto;
-  transform: translateY(-50%) translateX(4px) scale(0.95);
-}
-[data-tooltip-pos="left"]::after {
-  bottom: auto;
-  top: 50%;
-  right: calc(100% + 2px);
-  left: auto;
-  transform: translateY(-50%) translateX(4px);
-  border-width: 6px 0 6px 6px;
-  border-color: transparent transparent transparent var(--tooltip-bg, rgba(15, 23, 42, 0.94));
-}
-[data-tooltip-pos="left"]:hover::before,
-[data-tooltip-pos="left"]:focus-visible::before {
-  transform: translateY(-50%) translateX(0) scale(1);
-}
-[data-tooltip-pos="left"]:hover::after,
-[data-tooltip-pos="left"]:focus-visible::after {
-  transform: translateY(-50%) translateX(0);
-}
-
-[data-tooltip-pos="right"]::before {
-  bottom: auto;
-  top: 50%;
-  left: calc(100% + 8px);
-  transform: translateY(-50%) translateX(-4px) scale(0.95);
-}
-[data-tooltip-pos="right"]::after {
-  bottom: auto;
-  top: 50%;
-  left: calc(100% + 2px);
-  transform: translateY(-50%) translateX(-4px);
-  border-width: 6px 6px 6px 0;
-  border-color: transparent var(--tooltip-bg, rgba(15, 23, 42, 0.94)) transparent transparent;
-}
-[data-tooltip-pos="right"]:hover::before,
-[data-tooltip-pos="right"]:focus-visible::before {
-  transform: translateY(-50%) translateX(0) scale(1);
-}
-[data-tooltip-pos="right"]:hover::after,
-[data-tooltip-pos="right"]:focus-visible::after {
-  transform: translateY(-50%) translateX(0);
+[data-theme="dark"] {
+  --tooltip-bg: rgba(30, 41, 59, 0.96);
+  --tooltip-text: #f8fafc;
+  --tooltip-border: rgba(255, 255, 255, 0.2);
 }
 
 /* WYSIWYG Input & Textarea Styling */
