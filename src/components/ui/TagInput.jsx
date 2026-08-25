@@ -95,8 +95,8 @@ export default function TagInput({ value, onChange, placeholder }) {
               gap: '4px',
               fontWeight: isBold ? '700' : '400',
               border: isBold ? '1px solid var(--color-accent, #1B6B3A)' : '1px solid var(--color-border, #ddd)',
-              backgroundColor: isBold ? 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.12)' : 'var(--color-surface-alt, #f5f5f5)',
-              color: isBold ? 'var(--color-accent, #1B6B3A)' : 'var(--color-text, #333)',
+              backgroundColor: isBold ? 'rgba(var(--color-accent-rgb, 27, 107, 58), 0.12)' : 'var(--color-surface-alt)',
+              color: isBold ? 'var(--color-accent)' : 'var(--color-text)',
               padding: '2px 8px',
               borderRadius: '4px',
               fontSize: '12px',
@@ -109,9 +109,9 @@ export default function TagInput({ value, onChange, placeholder }) {
               onClick={(e) => { e.stopPropagation(); toggleBoldTag(i); }}
               title="Mettre en gras / Retirer le gras"
               style={{
-                background: isBold ? 'var(--color-accent, #1B6B3A)' : 'transparent',
-                color: isBold ? '#fff' : 'var(--color-text-secondary, #777)',
-                border: isBold ? 'none' : '1px solid var(--color-border, #ccc)',
+                background: isBold ? 'var(--color-accent)' : 'transparent',
+                color: isBold ? '#fff' : 'var(--color-text-secondary)',
+                border: isBold ? 'none' : '1px solid var(--color-border)',
                 borderRadius: '3px',
                 padding: '0 4px',
                 fontSize: '10px',
@@ -165,7 +165,7 @@ export default function TagInput({ value, onChange, placeholder }) {
           background: 'transparent',
           flex: '1 1 120px',
           fontSize: '13px',
-          color: 'var(--color-text, #333)'
+          color: 'var(--color-text)'
         }}
       />
     </div>

@@ -13,8 +13,9 @@ export default function AtsScoreModal({ isOpen, onClose, data, dispatch, onTrigg
       isOpen={isOpen}
       onClose={onClose}
       title={`🎯 ${t('ATS Score & Analysis')}`}
+      maxWidth="580px"
     >
-      <div style={{ padding: '0 8px 16px 8px' }}>
+      <div style={{ padding: '0 4px 12px 4px' }}>
         <AtsScore data={data} dispatch={dispatch} onTriggerAction={onTriggerAction} />
       </div>
     </Modal>
