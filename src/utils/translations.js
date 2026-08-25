@@ -274,6 +274,8 @@ export const TRANSLATIONS = {
     "Job Title": "Job Title",
     "Top/Bottom Padding": "Top/Bottom Padding",
     "Reset Layout": "Reset Layout",
+    "Fit to 1 Page": "Fit to 1 Page",
+    "Automatically calibrate margins, font size and spacing to fit exactly onto 1 page": "Automatically calibrate margins, font size and spacing to fit exactly onto 1 page",
     "Profile Completion": "Profile Completion",
     "Accent Color": "Accent Color",
     "Font Family": "Font Family",
@@ -1345,6 +1347,8 @@ export const TRANSLATIONS = {
     "Mirror the exact phrasing from target job descriptions. Modern AI parses understand synonyms, but legacy ATS still relies on exact matches.": "Reprenez la formulation exacte de la fiche de poste. Les IA modernes comprennent les synonymes, mais les ATS traditionnels exigent les termes exacts.",
     "Top/Bottom Padding": "Marges haut/bas",
     "Reset Layout": "Réinitialiser la mise en page",
+    "Fit to 1 Page": "Ajuster sur 1 page",
+    "Automatically calibrate margins, font size and spacing to fit exactly onto 1 page": "Calibrer automatiquement les marges, la taille de police et les espacements pour tenir exactement sur 1 page",
     "This action will remove the section from your resume. You can add it back later.": "Cette action retirera la rubrique de votre CV. Vous pourrez la réactiver ultérieurement."
   },
   "es": {
@@ -2001,6 +2005,8 @@ export const TRANSLATIONS = {
     "All skills and experiences match the job description. No further edits are needed.": "Todas las habilidades y experiencias coinciden con la oferta. No se requieren cambios.",
     "Top/Bottom Padding": "Márgenes superior/inferior",
     "Reset Layout": "Restablecer diseño",
+    "Fit to 1 Page": "Ajustar en 1 página",
+    "Automatically calibrate margins, font size and spacing to fit exactly onto 1 page": "Calibrar automáticamente márgenes, tamaño de fuente y espaciado para que quepa exactamente en 1 página",
     "This action will remove the section from your resume. You can add it back later.": "Esta acción eliminará la sección de tu CV. Puedes volver a añadirla más tarde.",
     "Enhance with AI": "Mejorar con IA",
     "✨ AI STAR Bullet Points": "✨ Viñetas STAR con IA",

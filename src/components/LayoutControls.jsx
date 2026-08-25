@@ -30,19 +30,45 @@ export default function LayoutControls({ layout, onChange }) {
     });
   };
 
+  const fitToSinglePage = () => {
+    onChange({
+      ...layout,
+      isCompact: true,
+      fontSize: 9.75,
+      lineHeight: 1.3,
+      paddingX: 0.5,
+      paddingY: 0.5,
+      sectionSpacing: 5,
+      itemSpacing: 6
+    });
+  };
+
   return (
     <div className="layout-controls-panel">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ fontWeight: 600, fontSize: '13px' }}>⚙️ {t('Layout Settings')}</div>
-        <button 
-          className="btn-secondary" 
-          onClick={resetLayout} 
-          data-tooltip={t('Reset layout settings to default')}
-          data-tooltip-pos="top"
-          style={{ padding: '4px 8px', fontSize: '11px' }}
-        >
-          {t('Reset Layout')}
-        </button>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button 
+            type="button"
+            className="btn-primary" 
+            onClick={fitToSinglePage} 
+            data-tooltip={t('Automatically calibrate margins, font size and spacing to fit exactly onto 1 page')}
+            data-tooltip-pos="top"
+            style={{ padding: '4px 10px', fontSize: '11.5px', gap: '4px' }}
+          >
+            ⚡ {t('Fit to 1 Page')}
+          </button>
+          <button 
+            type="button"
+            className="btn-secondary" 
+            onClick={resetLayout} 
+            data-tooltip={t('Reset layout settings to default')}
+            data-tooltip-pos="top"
+            style={{ padding: '4px 8px', fontSize: '11px' }}
+          >
+            {t('Reset Layout')}
+          </button>
+        </div>
       </div>
 
       {/* Accent Color & Font Family */}
