@@ -112,7 +112,7 @@ describe('Responsive & Mobile End-to-End Audit Suite', () => {
     const onTranslate = vi.fn();
     const onTitleChange = vi.fn();
 
-    render(
+    const { container } = render(
       <TranslationContext.Provider value="fr">
         <SectionHeader
           title="Expérience Professionnelle"
@@ -132,6 +132,10 @@ describe('Responsive & Mobile End-to-End Audit Suite', () => {
         />
       </TranslationContext.Provider>
     );
+
+    // Open section options menu
+    const optionsBtn = container.querySelector('button.control-btn') || screen.getByRole('button', { name: /⚙️/i });
+    fireEvent.click(optionsBtn);
 
     const translateBtn = screen.getByRole('button', { name: /Traduire cette section/i });
     expect(translateBtn).toBeTruthy();

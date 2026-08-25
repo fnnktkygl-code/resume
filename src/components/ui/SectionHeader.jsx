@@ -1,9 +1,10 @@
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 
 /**
- * Standardized SectionHeader component for all resume builder steps.
- * Provides consistent layout, typography, section title input, optional style dropdowns,
- * and section-level AI action buttons (e.g. Translate Section).
+ * Minimalist Japandi / Apple SectionHeader component.
+ * Provides a clean inline section title, discreet rename & styling drawer,
+ * and contextual AI translation without cluttering the screen.
  */
 export default function SectionHeader({
   title,
@@ -14,123 +15,179 @@ export default function SectionHeader({
   isTranslating = false
 }) {
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowOptions(false);
+      }
+    };
+    if (showOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showOptions]);
+
+  const hasAdvancedOptions = !!styleControls || !!onTranslate || !!onTitleChange;
 
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-      background: 'var(--color-surface-alt, #fafafa)',
-      padding: '14px 16px',
-      borderRadius: '8px',
-      border: '1px solid var(--color-border, #e5e7eb)',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '4px 0 12px 0',
+      borderBottom: '1px solid var(--color-border)',
       marginBottom: '16px'
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        {styleControls && (
-          <div style={{ flex: 1, minWidth: '260px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '11px',
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+        {onTitleChange ? (
+          <input
+            type="text"
+            value={title || ''}
+            onChange={(e) => onTitleChange(e.target.value)}
+            placeholder={titlePlaceholder}
+            aria-label={t('Section Title')}
+            style={{
+              fontSize: '18px',
               fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--color-text-secondary, #666)',
-              marginBottom: '6px'
-            }}>
-              {styleControls.label}
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {styleControls.dropdowns.map((drop, i) => (
-                <select
-                  key={i}
-                  value={drop.value}
-                  onChange={(e) => drop.onChange(e.target.value)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--color-border, #ccc)',
-                    backgroundColor: 'var(--color-surface, #fff)',
-                    color: 'var(--color-text, #333)',
-                    fontSize: '13px',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                    flex: 1
-                  }}
-                >
-                  {drop.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {onTitleChange && (
-          <div style={{ minWidth: '180px', flex: styleControls ? '0 0 auto' : '1' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '11px',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--color-text-secondary, #666)',
-              marginBottom: '6px'
-            }}>
-              {t('Section Title')}
-            </label>
-            <input
-              type="text"
-              value={title || ''}
-              onChange={(e) => onTitleChange(e.target.value)}
-              placeholder={titlePlaceholder}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid var(--color-border, #ccc)',
-                backgroundColor: 'var(--color-surface, #fff)',
-                color: 'var(--color-text, #333)',
-                fontSize: '13px',
-                fontFamily: 'inherit'
-              }}
-            />
-          </div>
-        )}
-
-        {onTranslate && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', marginLeft: 'auto' }}>
-            <button
-              type="button"
-              onClick={onTranslate}
-              disabled={isTranslating}
-              className="btn-demo"
-              style={{
-                padding: '8px 14px',
-                fontSize: '12.5px',
-                fontWeight: '600',
-                color: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.35)',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: isTranslating ? 'wait' : 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              data-tooltip={t('Translate only this section with AI')}
-              data-tooltip-pos="bottom"
-            >
-              <span>🌐</span>
-              <span>{isTranslating ? t('Translating...') : t('Traduire cette section')}</span>
-            </button>
-          </div>
+              fontFamily: 'inherit',
+              padding: '4px 6px',
+              borderRadius: '6px',
+              border: '1px solid transparent',
+              backgroundColor: 'transparent',
+              color: 'var(--color-text)',
+              outline: 'none',
+              width: '100%',
+              maxWidth: '360px',
+              transition: 'border-color 0.15s ease, background-color 0.15s ease'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'var(--color-border)';
+              e.target.style.backgroundColor = 'var(--color-surface)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'transparent';
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          />
+        ) : (
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+            margin: 0,
+            letterSpacing: '-0.2px'
+          }}>
+            {title || titlePlaceholder}
+          </h2>
         )}
       </div>
+
+      {hasAdvancedOptions && (
+        <div style={{ position: 'relative' }} ref={menuRef}>
+          <button
+            type="button"
+            className="control-btn"
+            onClick={() => setShowOptions(!showOptions)}
+            data-tooltip={t('Section settings & translation')}
+            data-tooltip-pos="left"
+            style={{
+              padding: '6px 10px',
+              fontSize: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              borderRadius: '6px',
+              backgroundColor: showOptions ? 'var(--color-surface-alt)' : 'transparent',
+              border: '1px solid var(--color-border)',
+              cursor: 'pointer',
+              color: 'var(--color-text-secondary)'
+            }}
+          >
+            <span>⚙️</span>
+            <span style={{ fontSize: '11px', fontWeight: '600' }}>{t('Options')}</span>
+          </button>
+
+          {showOptions && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              right: 0,
+              zIndex: 100,
+              minWidth: '240px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              boxShadow: 'var(--shadow-md)',
+              padding: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {onTranslate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOptions(false);
+                    onTranslate();
+                  }}
+                  disabled={isTranslating}
+                  className="btn-demo"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    gap: '8px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    color: '#10B981',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    borderRadius: '6px'
+                  }}
+                >
+                  <span>🌐</span>
+                  <span>{isTranslating ? t('Translating...') : t('Traduire cette section')}</span>
+                </button>
+              )}
+
+              {styleControls && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
+                    {styleControls.label}
+                  </label>
+                  {styleControls.dropdowns.map((drop, i) => (
+                    <select
+                      key={i}
+                      value={drop.value}
+                      onChange={(e) => drop.onChange(e.target.value)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        fontSize: '12px',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer',
+                        width: '100%'
+                      }}
+                    >
+                      {drop.options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
