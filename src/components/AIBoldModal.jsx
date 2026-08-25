@@ -3,6 +3,7 @@ import { useTranslation } from '../utils/TranslationContext';
 import Modal from './ui/Modal';
 import { enhanceWithProxy, translateTextWithProxy, rewriteWithProxy } from '../services/geminiService';
 import { parseMarkdown } from '../utils/formatText';
+import { TRANSLATION_LANGUAGES } from '../utils/languageSwitcher';
 
 export default function AIBoldModal({ isOpen, onClose, textData, contextType, initialTab, onUpdate }) {
   const { t, language } = useTranslation();
@@ -72,11 +73,7 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, in
     onClose();
   };
 
-  const languagesOptions = [
-    { code: 'en', label: 'English' },
-    { code: 'fr', label: 'Français' },
-    { code: 'es', label: 'Español' }
-  ];
+  const languagesOptions = TRANSLATION_LANGUAGES;
 
   const modalTitle = activeTab === 'bold'
     ? `<b>B</b> ${t('Mise en gras IA')}`

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { markdownToHtml, htmlToMarkdown } from '../../utils/formatText';
 import { translateTextWithProxy } from '../../services/geminiService';
+import { TRANSLATION_LANGUAGES } from '../../utils/languageSwitcher';
 
 export function Field({ label, children, full }) {
   return (
@@ -31,6 +32,7 @@ export function WysiwygEditor({
   const [selectionRange, setSelectionRange] = useState(null);
   const [bubblePosition, setBubblePosition] = useState(null);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   // Synchronize when value changes externally (e.g. from AI, reset, undo)
   useEffect(() => {
@@ -57,6 +59,16 @@ export function WysiwygEditor({
       lastMarkdownRef.current = md;
       onChange(md);
     }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    const html = markdownToHtml(text);
+    if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+      document.execCommand('insertHTML', false, html);
+    }
+    handleInput();
   };
 
   const handleKeyDown = (e) => {
@@ -108,8 +120,10 @@ export function WysiwygEditor({
   const handleSelect = () => {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || !editorRef.current || !editorRef.current.contains(sel.anchorNode)) {
-      setSelectionRange(null);
-      setBubblePosition(null);
+      if (!showLangMenu) {
+        setSelectionRange(null);
+        setBubblePosition(null);
+      }
       return;
     }
 
@@ -132,8 +146,10 @@ export function WysiwygEditor({
         left: Math.max(4, Math.min(Math.max(10, editorRect.width - 150), leftPos))
       });
     } else {
-      setSelectionRange(null);
-      setBubblePosition(null);
+      if (!showLangMenu) {
+        setSelectionRange(null);
+        setBubblePosition(null);
+      }
     }
   };
 
@@ -144,11 +160,12 @@ export function WysiwygEditor({
       if (editorRef.current && !editorRef.current.contains(e.target) && !e.target.closest('.floating-selection-bubble')) {
         setBubblePosition(null);
         setSelectionRange(null);
+        setShowLangMenu(false);
       }
     };
     const handleDocSelection = () => {
       const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !editorRef.current || !editorRef.current.contains(sel.anchorNode)) {
+      if (!showLangMenu && (!sel || sel.isCollapsed || !editorRef.current || !editorRef.current.contains(sel.anchorNode))) {
         setBubblePosition(null);
         setSelectionRange(null);
       }
@@ -159,23 +176,25 @@ export function WysiwygEditor({
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('selectionchange', handleDocSelection);
     };
-  }, [bubblePosition]);
+  }, [bubblePosition, showLangMenu]);
 
-  const handleTranslateSelection = async () => {
+  const handleTranslateSelection = async (targetLangCode) => {
     if (onAITranslate) {
       setBubblePosition(null);
+      setShowLangMenu(false);
       onAITranslate();
       return;
     }
     if (!selectionRange || !selectionRange.text) return;
     
     setIsTranslating(true);
+    setShowLangMenu(false);
     const selText = selectionRange.text;
     const savedRange = selectionRange.range;
 
     try {
       const currentDocLang = typeof window !== 'undefined' ? (localStorage.getItem('resume_language') || 'fr') : 'fr';
-      const targetLang = currentDocLang === 'fr' ? 'en' : 'fr';
+      const targetLang = targetLangCode || (currentDocLang === 'fr' ? 'en' : 'fr');
       
       const translated = await translateTextWithProxy(selText, targetLang);
       if (translated && editorRef.current) {
@@ -195,6 +214,7 @@ export function WysiwygEditor({
     } finally {
       setIsTranslating(false);
       setBubblePosition(null);
+      setShowLangMenu(false);
     }
   };
 
@@ -285,6 +305,7 @@ export function WysiwygEditor({
             type="button"
             onClick={() => {
               setBubblePosition(null);
+              setShowLangMenu(false);
               if (onAIRewrite || onAIAssist) {
                 (onAIRewrite || onAIAssist)();
               } else if (onAIBold) {
@@ -315,10 +336,10 @@ export function WysiwygEditor({
 
           <button
             type="button"
-            onClick={handleTranslateSelection}
+            onClick={() => setShowLangMenu(!showLangMenu)}
             disabled={isTranslating}
             style={{
-              background: 'none',
+              background: showLangMenu ? 'var(--color-surface-alt)' : 'none',
               border: 'none',
               color: 'var(--color-text-secondary, #737373)',
               cursor: isTranslating ? 'wait' : 'pointer',
@@ -331,8 +352,10 @@ export function WysiwygEditor({
               transition: 'background-color 0.12s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire la sélection (FR ↔ EN)")}
+            onMouseLeave={(e) => {
+              if (!showLangMenu) e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire dans la langue de votre choix")}
             data-tooltip-pos="top"
           >
             {isTranslating ? (
@@ -343,6 +366,61 @@ export function WysiwygEditor({
               </svg>
             )}
           </button>
+
+          {/* Micro Language Picker Popover */}
+          {showLangMenu && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                right: 0,
+                backgroundColor: 'var(--color-surface, #FFFFFF)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                padding: '4px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                minWidth: '150px',
+                maxHeight: '220px',
+                overflowY: 'auto',
+                zIndex: 1001
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', padding: '4px 8px', color: 'var(--color-text-muted)' }}>
+                {t('Traduire en :')}
+              </div>
+              {TRANSLATION_LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => handleTranslateSelection(lang.code)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 8px',
+                    borderRadius: '5px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    color: 'var(--color-text)',
+                    fontFamily: 'inherit',
+                    transition: 'background-color 0.1s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span style={{ fontSize: '14px' }}>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -351,11 +429,14 @@ export function WysiwygEditor({
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
+        onPaste={handlePaste}
         onKeyDown={handleKeyDown}
         onBlur={(e) => {
           if (!e.relatedTarget || !e.relatedTarget.closest('.floating-selection-bubble')) {
-            setBubblePosition(null);
-            setSelectionRange(null);
+            if (!showLangMenu) {
+              setBubblePosition(null);
+              setSelectionRange(null);
+            }
           }
         }}
         data-placeholder={placeholder}
@@ -404,6 +485,7 @@ export function TextInput({
   const [bubblePosition, setBubblePosition] = useState(null);
   const [selectionRange, setSelectionRange] = useState(null);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   // Auto-dismiss floating bubble on outside click
   useEffect(() => {
@@ -412,13 +494,14 @@ export function TextInput({
       if (inputRef.current && !inputRef.current.contains(e.target) && !e.target.closest('.floating-selection-bubble')) {
         setBubblePosition(null);
         setSelectionRange(null);
+        setShowLangMenu(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
     };
-  }, [bubblePosition]);
+  }, [bubblePosition, showLangMenu]);
 
   const handleSelect = () => {
     if (!inputRef.current) return;
@@ -435,30 +518,35 @@ export function TextInput({
           left: Math.max(4, Math.min(Math.max(10, inputRect.width - 90), (inputRect.width / 2) - 45))
         });
       } else {
+        if (!showLangMenu) {
+          setBubblePosition(null);
+          setSelectionRange(null);
+        }
+      }
+    } else {
+      if (!showLangMenu) {
         setBubblePosition(null);
         setSelectionRange(null);
       }
-    } else {
-      setBubblePosition(null);
-      setSelectionRange(null);
     }
   };
 
-  const handleTranslate = async (e) => {
-    e.preventDefault();
+  const handleTranslate = async (targetLangCode) => {
     if (onAITranslate) {
       setBubblePosition(null);
+      setShowLangMenu(false);
       onAITranslate();
       return;
     }
     if (!selectionRange || !inputRef.current) return;
     
     setIsTranslating(true);
+    setShowLangMenu(false);
     const { start, end, text } = selectionRange;
 
     try {
       const currentDocLang = typeof window !== 'undefined' ? (localStorage.getItem('resume_language') || 'fr') : 'fr';
-      const targetLang = currentDocLang === 'fr' ? 'en' : 'fr';
+      const targetLang = targetLangCode || (currentDocLang === 'fr' ? 'en' : 'fr');
       const translated = await translateTextWithProxy(text, targetLang);
       if (translated) {
         const val = value || '';
@@ -470,6 +558,7 @@ export function TextInput({
     } finally {
       setIsTranslating(false);
       setBubblePosition(null);
+      setShowLangMenu(false);
     }
   };
 
@@ -499,6 +588,7 @@ export function TextInput({
             type="button"
             onClick={() => {
               setBubblePosition(null);
+              setShowLangMenu(false);
               if (onAIRewrite || onAIAssist) {
                 (onAIRewrite || onAIAssist)();
               } else if (onAIBold) {
@@ -529,10 +619,10 @@ export function TextInput({
 
           <button
             type="button"
-            onClick={handleTranslate}
+            onClick={() => setShowLangMenu(!showLangMenu)}
             disabled={isTranslating}
             style={{
-              background: 'none',
+              background: showLangMenu ? 'var(--color-surface-alt)' : 'none',
               border: 'none',
               color: 'var(--color-text-secondary, #737373)',
               cursor: isTranslating ? 'wait' : 'pointer',
@@ -545,8 +635,10 @@ export function TextInput({
               transition: 'background-color 0.12s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire la sélection (FR ↔ EN)")}
+            onMouseLeave={(e) => {
+              if (!showLangMenu) e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire dans la langue de votre choix")}
             data-tooltip-pos="top"
           >
             {isTranslating ? (
@@ -557,6 +649,61 @@ export function TextInput({
               </svg>
             )}
           </button>
+
+          {/* Micro Language Picker Popover */}
+          {showLangMenu && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                right: 0,
+                backgroundColor: 'var(--color-surface, #FFFFFF)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                padding: '4px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                minWidth: '150px',
+                maxHeight: '220px',
+                overflowY: 'auto',
+                zIndex: 1001
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', padding: '4px 8px', color: 'var(--color-text-muted)' }}>
+                {t('Traduire en :')}
+              </div>
+              {TRANSLATION_LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => handleTranslate(lang.code)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 8px',
+                    borderRadius: '5px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    color: 'var(--color-text)',
+                    fontFamily: 'inherit',
+                    transition: 'background-color 0.1s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span style={{ fontSize: '14px' }}>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
       <input
@@ -569,8 +716,10 @@ export function TextInput({
         onKeyUp={handleSelect}
         onBlur={(e) => {
           if (!e.relatedTarget || !e.relatedTarget.closest('.floating-selection-bubble')) {
-            setBubblePosition(null);
-            setSelectionRange(null);
+            if (!showLangMenu) {
+              setBubblePosition(null);
+              setSelectionRange(null);
+            }
           }
         }}
         placeholder={placeholder}

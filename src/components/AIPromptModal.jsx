@@ -4,6 +4,7 @@ import Modal from './ui/Modal';
 import { translateWithProxy } from '../services/geminiService';
 import VisualDiff from './ui/VisualDiff';
 import { mergeSelected } from '../utils/mergeSelected';
+import { TRANSLATION_LANGUAGES } from '../utils/languageSwitcher';
 
 export default function AIPromptModal({ isOpen, onClose, data, language, onTranslationSuccess }) {
   const { t } = useTranslation();
@@ -13,11 +14,7 @@ export default function AIPromptModal({ isOpen, onClose, data, language, onTrans
   const [targetLang, setTargetLang] = useState('');
   const selectedRef = useRef(new Set());
 
-  const languageOptions = [
-    { code: 'en', label: 'English (Anglais)' },
-    { code: 'fr', label: 'Français (French)' },
-    { code: 'es', label: 'Español (Spanish)' }
-  ];
+  const languageOptions = TRANSLATION_LANGUAGES;
 
   useEffect(() => {
     if (isOpen) {

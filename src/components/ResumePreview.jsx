@@ -793,9 +793,16 @@ function ResumePreview({
                         {edu.startYear}{edu.startYear && edu.endYear && ' — '}{edu.endYear}
                       </span>
                     </div>
-                    <div className="resume-title">
-                      {parseMarkdown([edu.degree, edu.field].filter(Boolean).join(', '))}
-                    </div>
+                    {edu.degree && (
+                      <div className="resume-title" style={{ fontWeight: 600, fontSize: '0.95em', color: 'var(--resume-text, #1a1a1a)' }}>
+                        {parseMarkdown(typeof edu.degree === 'string' ? edu.degree.replace(/\*\*/g, '') : edu.degree)}
+                      </div>
+                    )}
+                    {edu.field && (
+                      <div style={{ fontSize: '0.88em', color: 'var(--resume-text-secondary, #666)', fontStyle: 'italic', marginTop: '1px' }}>
+                        {parseMarkdown(typeof edu.field === 'string' ? edu.field.replace(/\*\*/g, '') : edu.field)}
+                      </div>
+                    )}
                   </div>
                 );
 

@@ -487,10 +487,15 @@ function NjmTemplate({
                       {edu.endYear && <div>{edu.current ? t('PRESENT') : edu.endYear}</div>}
                     </div>
                     <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
-                      <div style={{ fontSize: '1.05em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {parseMarkdown([edu.degree, edu.field].filter(Boolean).join(' EN '))}
+                      <div style={{ fontSize: '1.0em', fontWeight: 'bold', color: primaryColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {parseMarkdown(typeof edu.degree === 'string' ? edu.degree.replace(/\*\*/g, '') : (edu.degree || edu.institution))}
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.95em', color: grayColor, marginTop: '2px' }}>
+                      {edu.field && (
+                        <div style={{ fontSize: '0.9em', color: textColor, fontStyle: 'italic', marginTop: '1px' }}>
+                          {parseMarkdown(typeof edu.field === 'string' ? edu.field.replace(/\*\*/g, '') : edu.field)}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '0.9em', color: grayColor, marginTop: '2px' }}>
                         <span style={{ color: grayColor, fontWeight: 'bold', fontSize: '1.2em', lineHeight: '0.8' }}>›</span>
                         {edu.institution}
                       </div>

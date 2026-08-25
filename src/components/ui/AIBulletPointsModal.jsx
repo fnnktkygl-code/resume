@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateBulletPointsWithProxy } from '../../services/geminiService';
+import { parseMarkdown } from '../../utils/formatText';
 import AILoadingOverlay from './AILoadingOverlay';
 
 export default function AIBulletPointsModal({ isOpen, onClose, experienceText, onSelectBullet }) {
@@ -50,21 +51,24 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
         initialStep={language === 'fr' ? '⚡ Analyse de l\'expérience et extraction des métriques...' : language === 'es' ? '⚡ Analizando experiencia y extrayendo métricas...' : '⚡ Analyzing experience & extracting metrics...'}
         language={language}
       />
-      <Modal isOpen={isOpen} onClose={onClose} title={t('✨ AI STAR Bullet Points')}>
+      <Modal isOpen={isOpen} onClose={onClose} title={t('✨ AI STAR Bullet Points')} maxWidth="580px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: '1.4' }}>
           {t('The AI will transform your description into 3 high-impact bullet points using the Action → Context → Result (STAR) method.')}
         </p>
 
         <div style={{ 
-          background: 'var(--color-bg-alt)', 
-          padding: '12px', 
+          background: 'var(--color-surface-alt)', 
+          padding: '14px', 
           borderRadius: '8px', 
-          fontSize: '0.85rem',
-          border: '1px solid var(--color-border)'
+          fontSize: '0.88rem',
+          border: '1px solid var(--color-border)',
+          color: 'var(--color-text)'
         }}>
-          <strong>{t('Original Text')}:</strong>
-          <p style={{ marginTop: '4px', fontStyle: 'italic' }}>{experienceText || t('No description provided yet.')}</p>
+          <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '4px' }}>{t('Original Text')}:</strong>
+          <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
+            {parseMarkdown(experienceText) || t('No description provided yet.')}
+          </p>
         </div>
 
         {error && (
@@ -77,10 +81,10 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
           <button
             onClick={handleGenerate}
             disabled={!experienceText || experienceText.trim().length < 5}
-            className="btn btn-primary"
+            className="btn-primary"
             style={{ alignSelf: 'flex-start' }}
           >
-            <i className="fi fi-rr-magic-wand"></i> {t('Generate Bullet Points')}
+            ✨ {t('Generate Bullet Points')}
           </button>
         )}
 
@@ -95,35 +99,44 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
         )}
 
         {bulletOptions.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ margin: 0, fontSize: '0.95rem' }}>{t('Select an option to apply:')}</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h4 style={{ margin: '4px 0 0 0', fontSize: '0.92rem', color: 'var(--color-text)' }}>{t('Select an option to apply:')}</h4>
             {bulletOptions.map((bullet, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => handleSelect(bullet)}
                 style={{
                   textAlign: 'left',
-                  padding: '12px',
+                  padding: '14px',
                   background: 'var(--color-surface)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  fontSize: '0.9rem',
-                  lineHeight: '1.4'
+                  transition: 'all 0.15s ease',
+                  fontSize: '0.92rem',
+                  lineHeight: '1.5',
+                  color: 'var(--color-text)',
+                  fontFamily: 'inherit'
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.borderColor = 'var(--color-accent)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)';
+                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.borderColor = 'var(--color-border)';
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                  <div style={{ color: 'var(--color-accent)', fontWeight: 'bold', flexShrink: 0 }}>{t('Option')} {idx + 1}</div>
-                  <div style={{ textAlign: 'left' }}>{bullet}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ color: 'var(--color-accent)', fontWeight: '700', fontSize: '11.5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    ✨ {t('Option')} {idx + 1}
+                  </div>
+                  <div style={{ textAlign: 'left', color: 'var(--color-text)' }}>
+                    {parseMarkdown(bullet)}
+                  </div>
                 </div>
               </button>
             ))}

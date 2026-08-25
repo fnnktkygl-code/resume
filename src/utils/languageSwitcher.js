@@ -6,6 +6,20 @@
  * used when switching the UI language.
  */
 
+export const TRANSLATION_LANGUAGES = [
+  { code: 'en', label: 'English (Anglais)', flag: '🇬🇧' },
+  { code: 'fr', label: 'Français (French)', flag: '🇫🇷' },
+  { code: 'es', label: 'Español (Espagnol)', flag: '🇪🇸' },
+  { code: 'de', label: 'Deutsch (Allemand)', flag: '🇩🇪' },
+  { code: 'it', label: 'Italiano (Italien)', flag: '🇮🇹' },
+  { code: 'pt', label: 'Português (Portugais)', flag: '🇵🇹' },
+  { code: 'nl', label: 'Nederlands (Néerlandais)', flag: '🇳🇱' },
+  { code: 'zh', label: '中文 (Chinois)', flag: '🇨🇳' },
+  { code: 'ja', label: '日本語 (Japonais)', flag: '🇯🇵' },
+  { code: 'ar', label: 'العربية (Arabe)', flag: '🇸🇦' },
+  { code: 'ru', label: 'Русский (Russe)', flag: '🇷🇺' }
+];
+
 // Default heading values per language — used to detect "stock" headings
 // that should be translated vs. user-customized headings that should be preserved.
 const HEADING_DEFAULTS = {

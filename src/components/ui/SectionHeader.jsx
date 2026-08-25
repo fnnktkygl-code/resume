@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { CustomSelect } from './FormFields';
+import { TRANSLATION_LANGUAGES } from '../../utils/languageSwitcher';
 
 /**
  * Minimalist Japandi / Apple SectionHeader component.
@@ -16,10 +17,14 @@ export default function SectionHeader({
   isTranslating = false,
   onDelete
 }) {
-  const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
+  const { t, language } = useTranslation();
   const [showOptions, setShowOptions] = useState(false);
+  const [sectionTargetLang, setSectionTargetLang] = useState(language === 'fr' ? 'en' : 'fr');
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    setSectionTargetLang(language === 'fr' ? 'en' : 'fr');
+  }, [language]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -51,7 +56,7 @@ export default function SectionHeader({
             value={title || ''}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder={titlePlaceholder}
-            aria-label={t('Section Title')}
+            aria-label="Section Title"
             style={{
               fontSize: '18px',
               fontWeight: '700',
@@ -119,7 +124,7 @@ export default function SectionHeader({
               top: 'calc(100% + 6px)',
               right: 0,
               zIndex: 100,
-              minWidth: '240px',
+              minWidth: '260px',
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
               borderRadius: '10px',
@@ -130,29 +135,39 @@ export default function SectionHeader({
               gap: '12px'
             }}>
               {onTranslate && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOptions(false);
-                    onTranslate();
-                  }}
-                  disabled={isTranslating}
-                  className="btn-demo"
-                  style={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    gap: '8px',
-                    backgroundColor: 'var(--color-accent-light)',
-                    color: 'var(--color-accent)',
-                    border: '1px solid var(--color-accent)',
-                    borderRadius: '6px'
-                  }}
-                >
-                  <span>🌐</span>
-                  <span>{isTranslating ? t('Translating...') : t('Traduire cette section')}</span>
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
+                    🌎 {t('Traduire cette section')}
+                  </label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <CustomSelect
+                        value={sectionTargetLang}
+                        onChange={(val) => setSectionTargetLang(val)}
+                        options={TRANSLATION_LANGUAGES.map(l => ({ value: l.code, label: `${l.flag} ${l.label}` }))}
+                        size="sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={t('Traduire cette section')}
+                      onClick={() => {
+                        setShowOptions(false);
+                        onTranslate(sectionTargetLang);
+                      }}
+                      disabled={isTranslating}
+                      className="btn-primary"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: '11.5px',
+                        borderRadius: '6px',
+                        flexShrink: 0
+                      }}
+                    >
+                      {isTranslating ? '⏳' : t('Traduire')}
+                    </button>
+                  </div>
+                </div>
               )}
 
               {styleControls && (

@@ -912,8 +912,8 @@ function estimateResumeHeightInPages(resumeData) {
     }
   };
 
-  const handleTranslateSection = async (sectionId, sectionData) => {
-    const targetLang = language === 'fr' ? 'en' : language === 'es' ? 'en' : 'fr';
+  const handleTranslateSection = async (sectionId, sectionData, targetLangOverride) => {
+    const targetLang = targetLangOverride || (language === 'fr' ? 'en' : language === 'es' ? 'en' : 'fr');
     setTranslatingSectionId(sectionId);
     try {
       saveSnapshot();
@@ -1231,7 +1231,7 @@ function estimateResumeHeightInPages(resumeData) {
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   layout={layout}
                   onLayoutChange={setLayout}
-                  onTranslateSection={() => handleTranslateSection('experience', data.experience)}
+                  onTranslateSection={(targetLang) => handleTranslateSection('experience', data.experience, targetLang)}
                   isTranslating={translatingSectionId === 'experience'}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBulletConfig({
@@ -1249,7 +1249,7 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_EDUCATION', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
-                  onTranslateSection={() => handleTranslateSection('education', data.education)}
+                  onTranslateSection={(targetLang) => handleTranslateSection('education', data.education, targetLang)}
                   isTranslating={translatingSectionId === 'education'}
                 />
               )}
@@ -1261,7 +1261,7 @@ function estimateResumeHeightInPages(resumeData) {
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   layout={layout}
                   onLayoutChange={setLayout}
-                  onTranslateSection={() => handleTranslateSection('skills', data.skills)}
+                  onTranslateSection={(targetLang) => handleTranslateSection('skills', data.skills, targetLang)}
                   isTranslating={translatingSectionId === 'skills'}
                   onAISectionFill={(subSection) => {
                     const readiness = checkResumeReadiness(data);
@@ -1303,7 +1303,7 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_PROJECTS', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
-                  onTranslateSection={() => handleTranslateSection('projects', data.projects)}
+                  onTranslateSection={(targetLang) => handleTranslateSection('projects', data.projects, targetLang)}
                   isTranslating={translatingSectionId === 'projects'}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBoldConfig({
@@ -1333,7 +1333,7 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_CERTIFICATIONS', payload: v })}
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
-                  onTranslateSection={() => handleTranslateSection('certifications', data.certifications)}
+                  onTranslateSection={(targetLang) => handleTranslateSection('certifications', data.certifications, targetLang)}
                   isTranslating={translatingSectionId === 'certifications'}
                   onAISectionFill={() => {
                     const readiness = checkResumeReadiness(data);
@@ -1370,7 +1370,7 @@ function estimateResumeHeightInPages(resumeData) {
                     dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
                   }} 
                   onDelete={() => setSectionToDelete(currentId)}
-                  onTranslateSection={() => handleTranslateSection(currentId, data.customSections.find(s => s.id === currentId))}
+                  onTranslateSection={(targetLang) => handleTranslateSection(currentId, data.customSections.find(s => s.id === currentId), targetLang)}
                   isTranslating={translatingSectionId === currentId}
                   onAIAssist={(text, index, field) => {
                     setAiBoldConfig({
