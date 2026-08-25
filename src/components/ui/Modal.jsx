@@ -81,40 +81,47 @@ export default function Modal({ isOpen, onClose, title, children, actions, ariaL
         {onClose && (
           <button
             type="button"
+            className="modal-close-btn"
             onClick={onClose}
+            aria-label="Close"
             style={{
               position: 'absolute',
               top: '16px',
               right: '16px',
-              background: 'transparent',
-              border: 'none',
-              fontSize: '22px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--color-surface-alt, rgba(0, 0, 0, 0.04))',
+              border: '1px solid var(--color-border, rgba(0, 0, 0, 0.08))',
               color: 'var(--color-text-secondary)',
               cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              lineHeight: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'background-color 0.15s ease, color 0.15s ease'
+              padding: 0,
+              transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 10
             }}
-            aria-label="Close"
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)';
+              e.currentTarget.style.backgroundColor = 'var(--color-border)';
               e.currentTarget.style.color = 'var(--color-text)';
+              e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, rgba(0, 0, 0, 0.04))';
               e.currentTarget.style.color = 'var(--color-text-secondary)';
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            ×
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         )}
-        {title && <h2 id={ariaLabelledby} style={{ paddingRight: onClose ? '24px' : '0' }}>{title}</h2>}
+        {title && <h2 id={ariaLabelledby} style={{ paddingRight: onClose ? '36px' : '0', fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--color-text)', letterSpacing: '-0.2px' }}>{title}</h2>}
         {children}
-        {actions && <div className="modal-actions">{actions}</div>}
+        {actions && <div className="modal-actions" style={{ marginTop: '20px' }}>{actions}</div>}
       </div>
     </div>
   );

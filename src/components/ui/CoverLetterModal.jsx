@@ -692,10 +692,15 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
           <button 
             className="cl-close-btn" 
             onClick={onClose}
-            data-tooltip={language === 'fr' ? "Fermer l'espace de travail de la lettre de motivation" : language === 'es' ? "Cerrar espacio de trabajo de la carta" : 'Close cover letter workspace'}
+            data-tooltip={language === 'fr' ? "Fermer l'espace de travail de la lettre de motivation" : language === 'es' ? "Cerrar espacio de travail de la carta" : 'Close cover letter workspace'}
             data-tooltip-pos="bottom"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <i className="fi fi-rr-cross"></i> {t('Close Workspace')}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span>{t('Close Workspace')}</span>
           </button>
         </div>
       </div>
