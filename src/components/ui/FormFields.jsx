@@ -137,6 +137,30 @@ export function WysiwygEditor({
     }
   };
 
+  // Auto-dismiss floating bubble on outside click or selection collapse
+  useEffect(() => {
+    if (!bubblePosition) return;
+    const handleOutsideClick = (e) => {
+      if (editorRef.current && !editorRef.current.contains(e.target) && !e.target.closest('.floating-selection-bubble')) {
+        setBubblePosition(null);
+        setSelectionRange(null);
+      }
+    };
+    const handleDocSelection = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !editorRef.current || !editorRef.current.contains(sel.anchorNode)) {
+        setBubblePosition(null);
+        setSelectionRange(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('selectionchange', handleDocSelection);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('selectionchange', handleDocSelection);
+    };
+  }, [bubblePosition]);
+
   const handleTranslateSelection = async () => {
     setBubblePosition(null);
     if (onAITranslate) {
@@ -303,6 +327,12 @@ export function WysiwygEditor({
         suppressContentEditableWarning
         onInput={handleInput}
         onKeyDown={handleKeyDown}
+        onBlur={(e) => {
+          if (!e.relatedTarget || !e.relatedTarget.closest('.floating-selection-bubble')) {
+            setBubblePosition(null);
+            setSelectionRange(null);
+          }
+        }}
         data-placeholder={placeholder}
         className={`input wysiwyg-editor ${className || ''}`.trim()}
         style={{
@@ -348,6 +378,21 @@ export function TextInput({
   const inputRef = useRef(null);
   const [bubblePosition, setBubblePosition] = useState(null);
   const [selectionRange, setSelectionRange] = useState(null);
+
+  // Auto-dismiss floating bubble on outside click
+  useEffect(() => {
+    if (!bubblePosition) return;
+    const handleOutsideClick = (e) => {
+      if (inputRef.current && !inputRef.current.contains(e.target) && !e.target.closest('.floating-selection-bubble')) {
+        setBubblePosition(null);
+        setSelectionRange(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [bubblePosition]);
 
   const handleSelect = () => {
     if (!inputRef.current) return;
@@ -557,6 +602,12 @@ export function TextInput({
         onSelect={handleSelect}
         onMouseUp={handleSelect}
         onKeyUp={handleSelect}
+        onBlur={(e) => {
+          if (!e.relatedTarget || !e.relatedTarget.closest('.floating-selection-bubble')) {
+            setBubblePosition(null);
+            setSelectionRange(null);
+          }
+        }}
         placeholder={placeholder}
         className={`input ${className || ''}`.trim()}
         style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
