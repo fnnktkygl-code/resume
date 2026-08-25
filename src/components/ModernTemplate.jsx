@@ -352,9 +352,9 @@ function ModernTemplate({
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                             <span style={{ fontWeight: 'bold', fontSize: '0.85em' }}>•</span>
                             <span>
-                              {item.title && <strong>{item.title}</strong>}
+                              {item.title && <strong>{typeof item.title === 'string' ? item.title.replace(/\*\*/g, '').replace(/<[^>]+>/g, '') : item.title}</strong>}
                               {item.title && item.subtitle && ' — '}
-                              {item.subtitle && <em style={{ fontWeight: 'normal' }}>{item.subtitle}</em>}
+                              {item.subtitle && <em style={{ fontWeight: 'normal' }}>{typeof item.subtitle === 'string' ? item.subtitle.replace(/\*\*/g, '').replace(/<[^>]+>/g, '') : item.subtitle}</em>}
                             </span>
                           </div>
                           {item.description && <div style={{ marginLeft: '12px', marginTop: '2px', whiteSpace: 'pre-line', fontSize: '0.9em' }}>{parseMarkdown(item.description)}</div>}

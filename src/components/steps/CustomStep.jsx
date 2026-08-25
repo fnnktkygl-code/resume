@@ -129,7 +129,8 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
         {visibleItems.map((item, ii) => {
           const realIdx = section.items.findIndex(x => x.id === item.id);
           const isCollapsed = !!collapsedMap[item.id];
-          const displayTitle = item.title || `${section.label || t('Item')} #${ii + 1}`;
+          const rawTitle = typeof item.title === 'string' ? item.title.replace(/\*\*/g, '').replace(/<[^>]+>/g, '').trim() : '';
+          const displayTitle = rawTitle || `${section.label || t('Item')} #${ii + 1}`;
 
           return (
             <div key={item.id} className="card">

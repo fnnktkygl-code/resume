@@ -28,6 +28,9 @@ export function WysiwygEditor({
   const { t } = useTranslation();
   const editorRef = useRef(null);
   const lastMarkdownRef = useRef(value || '');
+  const [selectionRange, setSelectionRange] = useState(null);
+  const [bubblePosition, setBubblePosition] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Synchronize when value changes externally (e.g. from AI, reset, undo)
   useEffect(() => {
@@ -101,9 +104,6 @@ export function WysiwygEditor({
     }
   };
 
-  const [selectionRange, setSelectionRange] = useState(null);
-  const [bubblePosition, setBubblePosition] = useState(null);
-
   // Detect selection inside the editor
   const handleSelect = () => {
     const sel = window.getSelection();
@@ -124,12 +124,12 @@ export function WysiwygEditor({
         range: range.cloneRange()
       });
 
-      const topPos = rect.top - editorRect.top - 38;
-      const leftPos = rect.left - editorRect.left + (rect.width / 2) - 65;
+      const topPos = rect.top - editorRect.top - 42;
+      const leftPos = rect.left - editorRect.left + (rect.width / 2) - 75;
 
       setBubblePosition({
-        top: topPos < 0 ? -38 : topPos,
-        left: Math.max(4, Math.min(Math.max(10, editorRect.width - 135), leftPos))
+        top: topPos < 0 ? -42 : topPos,
+        left: Math.max(4, Math.min(Math.max(10, editorRect.width - 150), leftPos))
       });
     } else {
       setSelectionRange(null);
@@ -162,17 +162,29 @@ export function WysiwygEditor({
   }, [bubblePosition]);
 
   const handleTranslateSelection = async () => {
-    setBubblePosition(null);
     if (onAITranslate) {
+      setBubblePosition(null);
       onAITranslate();
       return;
     }
     if (!selectionRange || !selectionRange.text) return;
+    
+    setIsTranslating(true);
+    const selText = selectionRange.text;
+    const savedRange = selectionRange.range;
+
     try {
-      const targetLang = 'en';
-      const translated = await translateTextWithProxy(selectionRange.text, targetLang);
+      const currentDocLang = typeof window !== 'undefined' ? (localStorage.getItem('resume_language') || 'fr') : 'fr';
+      const targetLang = currentDocLang === 'fr' ? 'en' : 'fr';
+      
+      const translated = await translateTextWithProxy(selText, targetLang);
       if (translated && editorRef.current) {
         editorRef.current.focus();
+        const sel = window.getSelection();
+        if (sel && savedRange) {
+          sel.removeAllRanges();
+          sel.addRange(savedRange);
+        }
         if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
           document.execCommand('insertText', false, translated);
         }
@@ -180,6 +192,9 @@ export function WysiwygEditor({
       }
     } catch (err) {
       console.error("Inline translate error:", err);
+    } finally {
+      setIsTranslating(false);
+      setBubblePosition(null);
     }
   };
 
@@ -190,7 +205,7 @@ export function WysiwygEditor({
       onMouseUp={handleSelect}
       onKeyUp={handleSelect}
     >
-      {/* Floating Selection Toolbar (Pure Notion & Japandi Washi Style) */}
+      {/* Floating Selection Toolbar (Pure Notion & Japandi Washi Style with Tooltips) */}
       {bubblePosition && (
         <div 
           className="floating-selection-bubble"
@@ -231,7 +246,8 @@ export function WysiwygEditor({
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Bold (Cmd+B)")}
+            data-tooltip={t("Gras (Cmd+B)")}
+            data-tooltip-pos="top"
           >
             B
           </button>
@@ -257,7 +273,8 @@ export function WysiwygEditor({
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Italic (Cmd+I)")}
+            data-tooltip={t("Italique (Cmd+I)")}
+            data-tooltip-pos="top"
           >
             i
           </button>
@@ -290,7 +307,8 @@ export function WysiwygEditor({
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+            data-tooltip={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+            data-tooltip-pos="top"
           >
             ✨
           </button>
@@ -298,25 +316,32 @@ export function WysiwygEditor({
           <button
             type="button"
             onClick={handleTranslateSelection}
+            disabled={isTranslating}
             style={{
               background: 'none',
               border: 'none',
               color: 'var(--color-text-secondary, #737373)',
-              cursor: 'pointer',
+              cursor: isTranslating ? 'wait' : 'pointer',
               width: '28px',
               height: '28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '13px',
               borderRadius: '6px',
               transition: 'background-color 0.12s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Traduire la sélection")}
+            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire la sélection (FR ↔ EN)")}
+            data-tooltip-pos="top"
           >
-            🌐
+            {isTranslating ? (
+              <span style={{ fontSize: '11px', animation: 'spin 1s linear infinite' }}>⏳</span>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.87 15.07l-2.54-2.51.03-.08c1.77-1.97 3.01-4.21 3.73-6.48H18v-2h-7V2h-2v2H2v2h9.72c-.65 1.83-1.64 3.63-2.85 5.09-.81-.97-1.5-2.03-2.02-3.09H4.7c.66 1.57 1.59 3.07 2.76 4.41L2.24 19.64 3.66 21l5.22-5.22 3.4 3.4.59-4.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+              </svg>
+            )}
           </button>
         </div>
       )}
@@ -378,6 +403,7 @@ export function TextInput({
   const inputRef = useRef(null);
   const [bubblePosition, setBubblePosition] = useState(null);
   const [selectionRange, setSelectionRange] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Auto-dismiss floating bubble on outside click
   useEffect(() => {
@@ -405,8 +431,8 @@ export function TextInput({
         setSelectionRange({ start, end, text: selectedText });
         const inputRect = input.getBoundingClientRect();
         setBubblePosition({
-          top: -38,
-          left: Math.max(4, Math.min(Math.max(10, inputRect.width - 135), (inputRect.width / 2) - 65))
+          top: -42,
+          left: Math.max(4, Math.min(Math.max(10, inputRect.width - 90), (inputRect.width / 2) - 45))
         });
       } else {
         setBubblePosition(null);
@@ -418,48 +444,32 @@ export function TextInput({
     }
   };
 
-  const applyBold = (e) => {
-    e.preventDefault();
-    if (!selectionRange || !inputRef.current) return;
-    const { start, end, text } = selectionRange;
-    const val = value || '';
-    const isBold = text.startsWith('**') && text.endsWith('**');
-    const newText = isBold ? text.slice(2, -2) : `**${text}**`;
-    const updated = val.substring(0, start) + newText + val.substring(end);
-    onChange(updated);
-    setBubblePosition(null);
-  };
-
-  const applyItalic = (e) => {
-    e.preventDefault();
-    if (!selectionRange || !inputRef.current) return;
-    const { start, end, text } = selectionRange;
-    const val = value || '';
-    const isItalic = text.startsWith('*') && text.endsWith('*') && !text.startsWith('**');
-    const newText = isItalic ? text.slice(1, -1) : `*${text}*`;
-    const updated = val.substring(0, start) + newText + val.substring(end);
-    onChange(updated);
-    setBubblePosition(null);
-  };
-
   const handleTranslate = async (e) => {
     e.preventDefault();
-    setBubblePosition(null);
     if (onAITranslate) {
+      setBubblePosition(null);
       onAITranslate();
       return;
     }
     if (!selectionRange || !inputRef.current) return;
+    
+    setIsTranslating(true);
+    const { start, end, text } = selectionRange;
+
     try {
-      const targetLang = 'en';
-      const translated = await translateTextWithProxy(selectionRange.text, targetLang);
+      const currentDocLang = typeof window !== 'undefined' ? (localStorage.getItem('resume_language') || 'fr') : 'fr';
+      const targetLang = currentDocLang === 'fr' ? 'en' : 'fr';
+      const translated = await translateTextWithProxy(text, targetLang);
       if (translated) {
         const val = value || '';
-        const updated = val.substring(0, selectionRange.start) + translated + val.substring(selectionRange.end);
+        const updated = val.substring(0, start) + translated + val.substring(end);
         onChange(updated);
       }
     } catch (err) {
-      console.error("Translate error:", err);
+      console.error("Translate error in TextInput:", err);
+    } finally {
+      setIsTranslating(false);
+      setBubblePosition(null);
     }
   };
 
@@ -487,59 +497,6 @@ export function TextInput({
         >
           <button
             type="button"
-            onClick={applyBold}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-text, #1A1918)',
-              cursor: 'pointer',
-              width: '28px',
-              height: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontWeight: '700',
-              borderRadius: '6px',
-              transition: 'background-color 0.12s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Bold (Cmd+B)")}
-          >
-            B
-          </button>
-          <button
-            type="button"
-            onClick={applyItalic}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-text, #1A1918)',
-              cursor: 'pointer',
-              width: '28px',
-              height: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              fontStyle: 'italic',
-              fontWeight: '600',
-              fontFamily: 'serif',
-              borderRadius: '6px',
-              transition: 'background-color 0.12s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Italic (Cmd+I)")}
-          >
-            i
-          </button>
-          
-          <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />
-          
-          <button
-            type="button"
             onClick={() => {
               setBubblePosition(null);
               if (onAIRewrite || onAIAssist) {
@@ -564,7 +521,8 @@ export function TextInput({
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+            data-tooltip={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+            data-tooltip-pos="top"
           >
             ✨
           </button>
@@ -572,25 +530,32 @@ export function TextInput({
           <button
             type="button"
             onClick={handleTranslate}
+            disabled={isTranslating}
             style={{
               background: 'none',
               border: 'none',
               color: 'var(--color-text-secondary, #737373)',
-              cursor: 'pointer',
+              cursor: isTranslating ? 'wait' : 'pointer',
               width: '28px',
               height: '28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '13px',
               borderRadius: '6px',
               transition: 'background-color 0.12s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title={t("Traduire la sélection")}
+            data-tooltip={isTranslating ? t("Traduction en cours...") : t("Traduire la sélection (FR ↔ EN)")}
+            data-tooltip-pos="top"
           >
-            🌐
+            {isTranslating ? (
+              <span style={{ fontSize: '11px', animation: 'spin 1s linear infinite' }}>⏳</span>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.87 15.07l-2.54-2.51.03-.08c1.77-1.97 3.01-4.21 3.73-6.48H18v-2h-7V2h-2v2H2v2h9.72c-.65 1.83-1.64 3.63-2.85 5.09-.81-.97-1.5-2.03-2.02-3.09H4.7c.66 1.57 1.59 3.07 2.76 4.41L2.24 19.64 3.66 21l5.22-5.22 3.4 3.4.59-4.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+              </svg>
+            )}
           </button>
         </div>
       )}

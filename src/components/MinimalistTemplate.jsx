@@ -369,9 +369,9 @@ function MinimalistTemplate({
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', fontSize: `${fontSize}pt` }}>
                             <span style={{ fontWeight: 'bold' }}>•</span>
                             <span>
-                              {item.title && <strong style={{ color: textColor }}>{item.title}</strong>}
+                              {item.title && <strong style={{ color: textColor }}>{typeof item.title === 'string' ? item.title.replace(/\*\*/g, '').replace(/<[^>]+>/g, '') : item.title}</strong>}
                               {item.title && item.subtitle && ' — '}
-                              {item.subtitle && <em style={{ color: primaryColor }}>{item.subtitle}</em>}
+                              {item.subtitle && <em style={{ color: primaryColor }}>{typeof item.subtitle === 'string' ? item.subtitle.replace(/\*\*/g, '').replace(/<[^>]+>/g, '') : item.subtitle}</em>}
                             </span>
                           </div>
                           {item.description && <div style={{ marginLeft: '12px', marginTop: '2px', whiteSpace: 'pre-line' }}>{parseMarkdown(item.description)}</div>}
