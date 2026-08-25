@@ -177,8 +177,9 @@ body {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   position: relative;
+  min-width: 0;
 }
 
 .privacy-note {
@@ -186,14 +187,32 @@ body {
   color: var(--color-accent);
   background-color: var(--color-accent-light);
   border: 1px solid rgba(var(--color-accent-rgb, 16, 185, 129), 0.35);
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   gap: 6px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
   transition: all var(--transition-fast);
   box-shadow: 0 0 12px rgba(var(--color-accent-rgb, 16, 185, 129), 0.12);
+}
+
+@media (max-width: 1260px) {
+  .privacy-note-text {
+    display: none;
+  }
+  .privacy-note {
+    padding: 5px 8px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .header-btn-secondary {
+    display: none !important;
+  }
 }
 
 .privacy-note i {

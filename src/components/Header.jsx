@@ -1,6 +1,40 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+function FlagIcon({ lang, size = 16 }) {
+  if (lang === 'fr') {
+    return (
+      <svg width={size} height={Math.round(size * 0.75)} viewBox="0 0 3 2" style={{ borderRadius: '2px', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.3)', verticalAlign: 'middle' }}>
+        <rect width="1" height="2" fill="#002395" />
+        <rect width="1" height="2" x="1" fill="#FFFFFF" />
+        <rect width="1" height="2" x="2" fill="#ED2939" />
+      </svg>
+    );
+  }
+  if (lang === 'es') {
+    return (
+      <svg width={size} height={Math.round(size * 0.75)} viewBox="0 0 3 2" style={{ borderRadius: '2px', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.3)', verticalAlign: 'middle' }}>
+        <rect width="3" height="0.5" fill="#AA151B" />
+        <rect width="3" height="1" y="0.5" fill="#F1BF00" />
+        <rect width="3" height="0.5" y="1.5" fill="#AA151B" />
+      </svg>
+    );
+  }
+  return (
+    <svg width={size} height={Math.round(size * 0.75)} viewBox="0 0 60 30" style={{ borderRadius: '2px', flexShrink: 0, boxShadow: '0 0 1px rgba(0,0,0,0.3)', verticalAlign: 'middle' }}>
+      <clipPath id="header-uk-clip"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+      <clipPath id="header-uk-diag"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+      <g clipPath="url(#header-uk-clip)">
+        <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+        <path d="M0,0 L60,30 M60,0 L0,30" clipPath="url(#header-uk-diag)" stroke="#C8102E" strokeWidth="4"/>
+        <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10"/>
+        <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6"/>
+      </g>
+    </svg>
+  );
+}
+
 export default function Header({
   t,
   theme,
@@ -84,14 +118,15 @@ export default function Header({
       <div className="header-right">
         <span 
           className="privacy-note desktop-only"
-          data-tooltip={tr('All data stays in your browser')}
+          data-tooltip={tr('Toutes vos données restent stockées localement dans votre navigateur')}
           data-tooltip-pos="bottom"
           style={{ cursor: 'help' }}
         >
-          <i className="fi fi-rr-lock"></i> {tr('All data stays in your browser')}
+          <i className="fi fi-rr-lock"></i>
+          <span className="privacy-note-text">{tr('100% Local & Privé')}</span>
         </span>
 
-        {/* 1. Premier Plan (Primary Action): Save Resume — Always accessible */}
+        {/* 1. Primary Action: Save Resume */}
         <button
           className={`btn-demo btn-save-resume ${saveStatus === 'saved' ? 'btn-save-success' : ''}`}
           onClick={onSave}
@@ -103,29 +138,28 @@ export default function Header({
           <span className="desktop-only">{saveStatus === 'saved' ? tr('Saved!') : tr('Save')}</span>
         </button>
 
-        {/* 2. Premier Plan (Desktop): Manage Resumes */}
+        {/* 2. Desktop Button: Manage Resumes */}
         <button
-          className="btn-demo desktop-only"
-          style={{ marginRight: '6px', border: '1px solid var(--color-border)' }}
+          className="btn-demo desktop-only header-btn-secondary"
+          style={{ border: '1px solid var(--color-border)' }}
           onClick={() => setIsCvManagerOpen(true)}
           data-tooltip={tr('Manage, duplicate and organize your resume versions')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-folder"></i> {tr('My Resumes')}
+          <i className="fi fi-rr-folder"></i> <span>{tr('My Resumes')}</span>
         </button>
 
-        {/* 3. Premier Plan (Desktop): Import CV */}
+        {/* 3. Desktop Button: Import CV */}
         <button 
-          className="btn-demo btn-import-primary desktop-only" 
-          style={{ marginRight: '6px' }}
+          className="btn-demo btn-import-primary desktop-only header-btn-secondary" 
           onClick={() => setShowImportModal(true)}
           data-tooltip={tr('Import and analyze an existing CV (PDF, JSON)')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-magic-wand"></i> {tr('Import CV')}
+          <i className="fi fi-rr-magic-wand"></i> <span>{tr('Import CV')}</span>
         </button>
 
-        {/* 4. Core Feature (Desktop): CareerOps with Beta Badge */}
+        {/* 4. Core Feature: CareerOps */}
         <button
           className="btn-demo btn-careerops-nav desktop-only"
           onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
@@ -138,15 +172,15 @@ export default function Header({
           </span>
         </button>
 
-        {/* 5. Cover Letter Generator (Desktop) */}
+        {/* 5. Cover Letter Generator */}
         <button 
-          className="btn-demo desktop-only" 
-          style={{ marginRight: '6px', border: '1px solid var(--color-border)' }} 
+          className="btn-demo desktop-only header-btn-secondary" 
+          style={{ border: '1px solid var(--color-border)' }} 
           onClick={() => setIsCoverLetterModalOpen(true)}
           data-tooltip={tr('Generate tailored cover letter with AI')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-document-signed"></i> {tr('Cover Letter')}
+          <i className="fi fi-rr-document-signed"></i> <span>{tr('Cover Letter')}</span>
         </button>
 
         {/* Overflow Menu (More Options Button) */}
@@ -161,47 +195,47 @@ export default function Header({
           </button>
         </div>
 
-        {/* Language Selector */}
+        {/* Multiplatform Vector Flag Language Selector */}
         <div className="header-language-menu" ref={langRef} style={{ position: 'relative' }}>
           <button 
             className="btn-demo" 
             onClick={() => setLangMenuOpen(!langMenuOpen)}
             aria-label={tr('Change language')}
-            style={{ padding: '5px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '5px 8px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <span style={{ fontSize: '14px' }}>{language === 'fr' ? '🇫🇷' : language === 'es' ? '🇪🇸' : '🇬🇧'}</span>
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{(language || 'en').toUpperCase()}</span>
-            <i className="fi fi-rr-angle-small-down" style={{ fontSize: '11px', opacity: 0.7 }}></i>
+            <FlagIcon lang={language || 'en'} size={16} />
+            <span style={{ fontSize: '11.5px', fontWeight: '700' }}>{(language || 'en').toUpperCase()}</span>
+            <i className="fi fi-rr-angle-small-down" style={{ fontSize: '10px', opacity: 0.7 }}></i>
           </button>
           
           {langMenuOpen && (
-            <div className="header-dropdown open" style={{ right: 0, left: 'auto', minWidth: '140px', top: '100%', marginTop: '8px', padding: '6px', background: 'var(--color-surface)', zIndex: 10001 }}>
+            <div className="header-dropdown open" style={{ right: 0, left: 'auto', minWidth: '130px', top: '100%', marginTop: '6px', padding: '4px', background: 'var(--color-surface)', zIndex: 10001, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
               <button 
                 className={`dropdown-item ${language === 'en' ? 'active' : ''}`}
                 onClick={() => { handleLanguageChange('en'); setLangMenuOpen(false); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', fontWeight: language === 'en' ? '700' : '500' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: language === 'en' ? '700' : '500' }}
               >
-                <span>🇬🇧</span>
+                <FlagIcon lang="en" size={16} />
                 <span>English</span>
-                {language === 'en' && <span style={{ marginLeft: 'auto', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                {language === 'en' && <span style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 'bold' }}>✓</span>}
               </button>
               <button 
                 className={`dropdown-item ${language === 'fr' ? 'active' : ''}`}
                 onClick={() => { handleLanguageChange('fr'); setLangMenuOpen(false); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', fontWeight: language === 'fr' ? '700' : '500' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: language === 'fr' ? '700' : '500' }}
               >
-                <span>🇫🇷</span>
+                <FlagIcon lang="fr" size={16} />
                 <span>Français</span>
-                {language === 'fr' && <span style={{ marginLeft: 'auto', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                {language === 'fr' && <span style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 'bold' }}>✓</span>}
               </button>
               <button 
                 className={`dropdown-item ${language === 'es' ? 'active' : ''}`}
                 onClick={() => { handleLanguageChange('es'); setLangMenuOpen(false); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', fontWeight: language === 'es' ? '700' : '500' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: language === 'es' ? '700' : '500' }}
               >
-                <span>🇪🇸</span>
+                <FlagIcon lang="es" size={16} />
                 <span>Español</span>
-                {language === 'es' && <span style={{ marginLeft: 'auto', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                {language === 'es' && <span style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 'bold' }}>✓</span>}
               </button>
             </div>
           )}
