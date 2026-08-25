@@ -110,6 +110,17 @@ describe('Form Step Components', () => {
       expect(screen.getByText(/Soft Skills|Interpersonal:/i)).toBeInTheDocument();
       expect(screen.getByText(/Languages/i)).toBeInTheDocument();
     });
+
+    it('correctly parses semicolon-separated skills into distinct editable chips', () => {
+      const skills = { technical: 'HVAC (CVC); Electrical Systems (CFO/CFA); VRD; Project Management', soft: '', languages: '' };
+      const onChange = vi.fn();
+      renderStep(<SkillsStep data={skills} headings={{}} onChange={onChange} />);
+
+      expect(screen.getByText('HVAC (CVC)')).toBeInTheDocument();
+      expect(screen.getByText('Electrical Systems (CFO/CFA)')).toBeInTheDocument();
+      expect(screen.getByText('VRD')).toBeInTheDocument();
+      expect(screen.getByText('Project Management')).toBeInTheDocument();
+    });
   });
 
   describe('ProjectsStep', () => {
