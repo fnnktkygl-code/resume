@@ -62,7 +62,9 @@ export function WysiwygEditor({
     }
     if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
       e.preventDefault();
-      document.execCommand('bold', false, null);
+      if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+        document.execCommand('bold', false, null);
+      }
       handleInput();
     }
   };
@@ -71,7 +73,9 @@ export function WysiwygEditor({
     e.preventDefault();
     if (editorRef.current) {
       editorRef.current.focus();
-      document.execCommand('bold', false, null);
+      if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+        document.execCommand('bold', false, null);
+      }
       handleInput();
     }
   };
@@ -302,7 +306,7 @@ export function WysiwygEditor({
         className={`input wysiwyg-editor ${className || ''}`.trim()}
         style={{
           minHeight: multiline ? `${Math.max(rows * 24, 60)}px` : '42px',
-          padding: hasToolbar ? '8px 12px 34px 12px' : '8px 12px',
+          padding: '10px 14px',
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
@@ -322,165 +326,11 @@ export function WysiwygEditor({
           ...style
         }}
       />
-      {hasToolbar && (
-        <div className="textarea-toolbar" style={{
-          position: 'absolute',
-          bottom: '5px',
-          right: '5px',
-          display: 'flex',
-          gap: '4px',
-          alignItems: 'center',
-          backgroundColor: 'var(--color-surface)',
-          padding: '2px 4px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--color-border)',
-          boxShadow: 'var(--shadow-sm)',
-          zIndex: 5
-        }}>
-          {showBoldButton && (
-            <button 
-              type="button"
-              onMouseDown={applyBold}
-              className="format-btn"
-              data-tooltip={t("Bold (Cmd+B)")}
-              data-tooltip-pos="top"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-text-secondary)',
-                cursor: 'pointer',
-                padding: '2px 6px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                borderRadius: '4px'
-              }}
-            >
-              B
-            </button>
-          )}
-
-          {aiActions.length === 1 && (
-            <button
-              type="button"
-              onClick={aiActions[0].action}
-              className="format-btn ai-btn"
-              data-tooltip={aiActions[0].label}
-              data-tooltip-pos="top"
-              style={{
-                background: 'var(--color-accent-light, rgba(27, 107, 58, 0.08))',
-                border: 'none',
-                color: 'var(--color-accent, #1B6B3A)',
-                cursor: 'pointer',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: '600',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              {aiActions[0].icon} {aiActions[0].label.split(' ')[0]}
-            </button>
-          )}
-
-          {aiActions.length > 1 && (
-            <div ref={menuRef} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => setShowAIMenu(prev => !prev)}
-                className="format-btn ai-btn"
-                data-tooltip={t("Actions IA pour ce champ")}
-                data-tooltip-pos="top"
-                style={{
-                  background: showAIMenu ? 'var(--color-accent)' : 'var(--color-accent-light, rgba(27, 107, 58, 0.08))',
-                  border: 'none',
-                  color: showAIMenu ? '#ffffff' : 'var(--color-accent, #1B6B3A)',
-                  cursor: 'pointer',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                ✨ {t("IA")} <span style={{ fontSize: '9px', opacity: 0.7 }}>▾</span>
-              </button>
-
-              {showAIMenu && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: 'calc(100% + 6px)',
-                  right: 0,
-                  backgroundColor: 'var(--color-surface, #ffffff)',
-                  border: '1px solid var(--color-border, #e2e8f0)',
-                  borderRadius: '8px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  padding: '4px',
-                  minWidth: '220px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
-                  zIndex: 100
-                }}>
-                  {aiActions.map((item, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={item.action}
-                      style={{
-                        padding: '6px 8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        border: 'none',
-                        background: 'none',
-                        color: 'var(--color-text)',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        width: '100%',
-                        transition: 'background 0.1s ease'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--color-surface-alt)'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                    >
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton, richText, onAIAssist, onAITranslate }) {
-  if (showBoldButton || richText || onAIAssist || onAITranslate) {
-    return (
-      <WysiwygEditor
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        multiline={true}
-        rows={2}
-        onAIAssist={onAIAssist}
-        onAITranslate={onAITranslate}
-        style={style}
-        className={className}
-        showBoldButton={showBoldButton !== false}
-      />
-    );
-  }
-
+export function TextInput({ value, onChange, placeholder, type = 'text', style, className }) {
   return (
     <input
       type={type}
@@ -507,7 +357,6 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, o
       onAITranslate={onAITranslate}
       style={style}
       className={className}
-      showBoldButton={true}
     />
   );
 }

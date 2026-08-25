@@ -12,7 +12,8 @@ export default function SectionHeader({
   titlePlaceholder,
   styleControls,
   onTranslate,
-  isTranslating = false
+  isTranslating = false,
+  onDelete
 }) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -31,7 +32,7 @@ export default function SectionHeader({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showOptions]);
 
-  const hasAdvancedOptions = !!styleControls || !!onTranslate || !!onTitleChange;
+  const hasAdvancedOptions = !!styleControls || !!onTranslate || !!onTitleChange || !!onDelete;
 
   return (
     <div style={{
@@ -183,6 +184,36 @@ export default function SectionHeader({
                     </select>
                   ))}
                 </div>
+              )}
+
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOptions(false);
+                    onDelete();
+                  }}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    padding: '8px 10px',
+                    fontSize: '12px',
+                    gap: '8px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                    color: '#EF4444',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  <span>{t('Delete Section')}</span>
+                </button>
               )}
             </div>
           )}

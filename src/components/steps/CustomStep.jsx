@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Field, TextInput, TextArea } from '../ui/FormFields';
 import SectionHeader from '../ui/SectionHeader';
 import { createEmptyCustomItem } from '../../utils/constants';
@@ -5,6 +6,8 @@ import { useTranslation } from '../../utils/TranslationContext';
 
 export default function CustomStep({ section, onChange, onDelete, onAISectionFill, onTranslateSection, isTranslating }) {
   const { t } = useTranslation();
+  const [collapsedMap, setCollapsedMap] = useState({});
+  const toggleCollapse = (id) => setCollapsedMap(prev => ({ ...prev, [id]: !prev[id] }));
 
   if (!section) return null;
 
@@ -21,7 +24,9 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
   };
 
   const addItem = () => {
-    onChange({ ...section, items: [...section.items, createEmptyCustomItem()] });
+    const newItem = createEmptyCustomItem();
+    onChange({ ...section, items: [...section.items, newItem] });
+    setCollapsedMap(prev => ({ ...prev, [newItem.id]: false }));
   };
 
   const removeItem = (realIdx) => {
@@ -111,31 +116,56 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ flex: 1 }}>
-          <SectionHeader
-            title={section.label}
-            onTitleChange={updateSectionLabel}
-            titlePlaceholder={t('Custom Section Name')}
-            onTranslate={onTranslateSection}
-            isTranslating={isTranslating}
-          />
-        </div>
-        {onDelete && (
-          <button className="btn-danger" onClick={onDelete} style={{ padding: '8px 12px', fontSize: '0.85rem', marginBottom: '16px', whiteSpace: 'nowrap' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            {t('Delete Section')}
-          </button>
-        )}
-      </div>
+      <SectionHeader
+        title={section.label}
+        onTitleChange={updateSectionLabel}
+        titlePlaceholder={t('Custom Section Name')}
+        onTranslate={onTranslateSection}
+        isTranslating={isTranslating}
+        onDelete={onDelete}
+      />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {visibleItems.map((item, ii) => {
           const realIdx = section.items.findIndex(x => x.id === item.id);
+          const isCollapsed = !!collapsedMap[item.id];
+          const displayTitle = item.title || `${section.label || t('Item')} #${ii + 1}`;
+
           return (
             <div key={item.id} className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div className="card-title">{section.label || t('Item')} {visibleItems.length > 1 ? `#${ii + 1}` : ''}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isCollapsed ? '0' : '16px' }}>
+                <button 
+                  type="button"
+                  onClick={() => toggleCollapse(item.id)}
+                  aria-expanded={!isCollapsed}
+                  aria-label={isCollapsed ? t('Expand') : t('Collapse')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    flex: 1,
+                    minWidth: 0,
+                    padding: 0,
+                    textAlign: 'left',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <span style={{ 
+                    fontSize: '12px', 
+                    color: 'var(--color-text-secondary)',
+                    transition: 'transform 0.2s ease',
+                    display: 'inline-block',
+                    transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)'
+                  }}>
+                    ▼
+                  </span>
+                  <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--color-text)' }}>
+                    {displayTitle}
+                  </span>
+                </button>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   {visibleItems.length > 1 && (
                     <>
@@ -167,47 +197,49 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                 </div>
               </div>
               
-              <div className="field-grid">
-                <Field label={fields.titleLabel} full={!(fields.showSubtitle || item.subtitle) && !(fields.showDate || item.date)}>
-                  <TextInput 
-                    value={item.title} 
-                    onChange={(v) => updateItem(realIdx, 'title', v)} 
-                    placeholder={fields.titlePlaceholder} 
-                    showBoldButton
-                  />
-                </Field>
-                {(fields.showSubtitle || item.subtitle) && (
-                  <Field label={fields.subtitleLabel || t('Subtitle')}>
-                    <TextInput 
-                      value={item.subtitle} 
-                      onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
-                      placeholder={fields.subtitlePlaceholder} 
-                      showBoldButton
-                    />
-                  </Field>
-                )}
-                {(fields.showDate || item.date) && (
-                  <Field label={fields.dateLabel || t('Date')}>
-                    <TextInput 
-                      value={item.date} 
-                      onChange={(v) => updateItem(realIdx, 'date', v)} 
-                      placeholder={fields.datePlaceholder} 
-                    />
-                  </Field>
-                )}
-              </div>
-              
-              {(fields.showDescription || item.description) && (
-                <div style={{ marginTop: '16px' }}>
-                  <Field label={fields.descLabel || t('Details (Optional)')} full>
-                    <TextArea 
-                      value={item.description} 
-                      onChange={(v) => updateItem(realIdx, 'description', v)} 
-                      placeholder={fields.descPlaceholder} 
-                      rows={3} 
-                    />
-                  </Field>
-                </div>
+              {!isCollapsed && (
+                <>
+                  <div className="field-grid">
+                    <Field label={fields.titleLabel} full={!(fields.showSubtitle || item.subtitle) && !(fields.showDate || item.date)}>
+                      <TextInput 
+                        value={item.title} 
+                        onChange={(v) => updateItem(realIdx, 'title', v)} 
+                        placeholder={fields.titlePlaceholder} 
+                      />
+                    </Field>
+                    {(fields.showSubtitle || item.subtitle) && (
+                      <Field label={fields.subtitleLabel || t('Subtitle')}>
+                        <TextInput 
+                          value={item.subtitle} 
+                          onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
+                          placeholder={fields.subtitlePlaceholder} 
+                        />
+                      </Field>
+                    )}
+                    {(fields.showDate || item.date) && (
+                      <Field label={fields.dateLabel || t('Date')}>
+                        <TextInput 
+                          value={item.date} 
+                          onChange={(v) => updateItem(realIdx, 'date', v)} 
+                          placeholder={fields.datePlaceholder} 
+                        />
+                      </Field>
+                    )}
+                  </div>
+                  
+                  {(fields.showDescription || item.description) && (
+                    <div style={{ marginTop: '16px' }}>
+                      <Field label={fields.descLabel || t('Details (Optional)')} full>
+                        <TextArea 
+                          value={item.description} 
+                          onChange={(v) => updateItem(realIdx, 'description', v)} 
+                          placeholder={fields.descPlaceholder} 
+                          rows={3} 
+                        />
+                      </Field>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           );
