@@ -311,9 +311,33 @@ export const translateWithProxy = async (resumeData, language) => {
       window.dispatchEvent(new Event('refresh-quota'));
     }
     
-    return data;
+    return data.translatedResume || data;
   } catch (error) {
     console.error('AI Translate Proxy Error:', error);
+    throw error;
+  }
+};
+
+export const translateSectionWithProxy = async (sectionId, sectionData, language) => {
+  try {
+    const response = await fetch('/api/enhance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'translate_section', sectionId, sectionData, language }),
+    });
+    const data = await parseJsonResponse(response);
+    if (!response.ok) {
+      if (data.error === 'QUOTA_EXCEEDED') throw new Error('API quota exceeded. Please try again later.');
+      throw new Error(data.error || `Server error: ${response.status}`);
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('refresh-quota'));
+    }
+    
+    return data.translatedSection !== undefined ? data.translatedSection : data;
+  } catch (error) {
+    console.error('AI Translate Section Proxy Error:', error);
     throw error;
   }
 };

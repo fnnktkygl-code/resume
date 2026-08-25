@@ -47,6 +47,7 @@ function WysiwygEditor({
   onAIAssist,
   onAIBold,
   onAIRewrite,
+  onAITranslate,
   style,
   className,
   showBoldButton = true
@@ -102,7 +103,7 @@ function WysiwygEditor({
     }
   };
 
-  const hasToolbar = showBoldButton || onAIBold || onAIRewrite || onAIAssist;
+  const hasToolbar = showBoldButton || onAIBold || onAIRewrite || onAIAssist || onAITranslate;
 
   return (
     <div className="textarea-wrapper" style={{ position: 'relative', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -220,14 +221,38 @@ function WysiwygEditor({
               ✨ {t("Suggestion IA")}
             </button>
           )}
+          {onAITranslate && (
+            <button 
+              type="button"
+              onClick={onAITranslate}
+              className="format-btn ai-btn"
+              data-tooltip={t("AI Translate")}
+              data-tooltip-pos="top"
+              style={{
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: 'none',
+                color: '#10B981',
+                cursor: 'pointer',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              🌐 {t("Traduire")}
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton, richText, onAIAssist }) {
-  if (showBoldButton || richText || onAIAssist) {
+export function TextInput({ value, onChange, placeholder, type = 'text', style, className, showBoldButton, richText, onAIAssist, onAITranslate }) {
+  if (showBoldButton || richText || onAIAssist || onAITranslate) {
     return (
       <WysiwygEditor
         value={value}
@@ -236,6 +261,7 @@ export function TextInput({ value, onChange, placeholder, type = 'text', style, 
         multiline={true}
         rows={2}
         onAIAssist={onAIAssist}
+        onAITranslate={onAITranslate}
         style={style}
         className={className}
         showBoldButton={showBoldButton !== false}
@@ -255,7 +281,7 @@ export function TextInput({ value, onChange, placeholder, type = 'text', style, 
   );
 }
 
-export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, onAIBold, onAIRewrite, style, className }) {
+export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, onAIBold, onAIRewrite, onAITranslate, style, className }) {
   return (
     <WysiwygEditor
       value={value}
@@ -266,6 +292,7 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, o
       onAIAssist={onAIAssist}
       onAIBold={onAIBold}
       onAIRewrite={onAIRewrite}
+      onAITranslate={onAITranslate}
       style={style}
       className={className}
       showBoldButton={true}

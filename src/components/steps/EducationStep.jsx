@@ -3,7 +3,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { YEARS, createEmptyEducation } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function EducationStep({ data, onChange, headings, onHeadingsChange }) {
+export default function EducationStep({ data, onChange, headings, onHeadingsChange, onTranslateSection, isTranslating }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -44,6 +44,8 @@ export default function EducationStep({ data, onChange, headings, onHeadingsChan
         title={headings?.education}
         onTitleChange={(v) => onHeadingsChange?.({ ...headings, education: v })}
         titlePlaceholder={t('Education')}
+        onTranslate={onTranslateSection}
+        isTranslating={isTranslating}
       />
       {visibleItems.map((edu, vi) => {
         const realIdx = data.findIndex(item => item.id === edu.id);

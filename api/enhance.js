@@ -1,6 +1,22 @@
 import { callGeminiApi } from './_geminiFallback.js';
 import { normalizeResumeCasing } from './_normalizeCasing.js';
 
+// Helper to preserve original IDs on array items after AI translation
+function reconcileItemIds(origArr, translatedArr) {
+  if (!Array.isArray(translatedArr) || !Array.isArray(origArr)) return translatedArr;
+  return translatedArr.map((item, idx) => {
+    const orig = origArr[idx];
+    if (orig && typeof item === 'object' && item !== null) {
+      const reconciled = { ...item, id: orig.id || item.id };
+      if (Array.isArray(orig.items) && Array.isArray(item.items)) {
+        reconciled.items = reconcileItemIds(orig.items, item.items);
+      }
+      return reconciled;
+    }
+    return item;
+  });
+}
+
 export default async function handler(req, res) {
   const { checkAndIncrementQuota } = await import('./_firebase.js');
 
@@ -19,7 +35,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { action = 'enhance', textData, text, resumeData, contextType, language } = req.body || {};
+  const { action = 'enhance', textData, text, resumeData, sectionId, sectionData, contextType, language } = req.body || {};
 
   try {
     await checkAndIncrementQuota();
@@ -29,7 +45,39 @@ export default async function handler(req, res) {
 
     const targetLang = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
 
-    // 1. ACTION: TRANSLATE
+    // 1. ACTION: TRANSLATE SECTION
+    if (action === 'translate_section' && sectionData !== undefined) {
+      const sectionPrompt = `Act as an expert multilingual resume translator and technical recruiter.
+Translate the following resume section into ${targetLang}.
+CRITICAL RULES:
+1. ONLY translate text values. Keep JSON keys intact.
+2. Translate all job titles, degrees, fields of study, descriptions, bullet points, soft skills, language proficiencies (e.g. "Courant" -> "Fluent", "Langue maternelle" -> "Native"), and custom section titles/items.
+3. Keep company names, institution proper names, and specific technology terms (e.g. React, Python, Docker) intact.
+4. Preserve markdown bold markers (**text**) and bullet point structures.
+5. Return ONLY valid JSON matching the exact schema of the input section data.`;
+
+      const jsonText = await callGeminiApi({
+        apiKey,
+        prompt: `Section (${sectionId || 'section'}):\n${JSON.stringify(sectionData)}`,
+        systemInstruction: sectionPrompt,
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+        }
+      });
+
+      let cleanedText = jsonText;
+      if (jsonText.startsWith('```')) {
+        cleanedText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+      }
+      let translatedSection = JSON.parse(cleanedText);
+      if (Array.isArray(sectionData) && Array.isArray(translatedSection)) {
+        translatedSection = reconcileItemIds(sectionData, translatedSection);
+      }
+      return res.status(200).json({ translatedSection });
+    }
+
+    // 2. ACTION: TRANSLATE (Full Resume or Single Text)
     if (action === 'translate' || (!textData && (text || resumeData))) {
       if (text) {
         const systemPrompt = `Translate the following text into ${targetLang}. Keep the same tone and format, and preserve markdown bolding (**text**) or other markers. Respond ONLY with the translated text. Do not include any explanations.`;
@@ -43,19 +91,31 @@ export default async function handler(req, res) {
 
       if (resumeData) {
         const cloneData = { ...resumeData };
-        delete cloneData.headings;
-        const systemPrompt = `Act as an expert technical recruiter and professional translator. I am building a professional, ATS-friendly resume.
-Please translate the values of the following JSON resume data into ${targetLang}. 
-CRITICAL RULES:
-1. ONLY translate the text values inside the JSON.
-2. DO NOT translate the JSON keys (e.g. keep "company", "title", "bullets" exactly as they are).
-3. Ensure the tone is professional, achievement-oriented, and uses strong action verbs.
-4. Maintain all bullet point structures and do not invent new facts.
-5. The output MUST be a valid JSON matching the exact schema.`;
+        const systemPrompt = `Act as an elite executive resume translator and ATS optimization specialist.
+You must translate ALL text values in this JSON resume into ${targetLang}.
+
+MANDATORY RULES FOR COMPLETE AND ACCURATE TRANSLATION:
+1. TRANSLATE ALL SECTIONS & FIELDS:
+   - "personal": Translate "tagline" (job title), "location" (e.g. "Paris, France / Télétravail" -> "Paris, France / Remote"), and any "customFields" (labels and values). Do NOT change candidate name, email, phone, or URLs.
+   - "summary": Translate the entire professional summary, preserving strong action verbs, metrics, and markdown bold markers (**bold**).
+   - "experience": For each position, translate "title", "location", relative dates (e.g. "Présent", "En cours" -> "Present", "Ongoing"), "bullets" (every single bullet point), "technologies" categories, and "description". Keep company names intact.
+   - "education": Translate "degree", "fieldOfStudy" / "field", "location", dates, and any "bullets" or honors (e.g. "Mention Très Bien" -> "With Highest Honors"). Keep school proper names intact.
+   - "skills":
+     * "technical": Translate category labels (e.g. "Langages de programmation:" -> "Programming languages:", "Gestion de projet:" -> "Project management:") while preserving tech keywords.
+     * "soft": Translate ALL soft skills (e.g. "Rigueur, Travail d'équipe, Curiosité" -> "Rigor, Teamwork, Curiosity").
+     * "languages": Translate language names and levels (e.g. "Français (Langue maternelle), Anglais (Courant C1)" -> "French (Native), English (Fluent C1)").
+   - "projects": Translate "role", "description", and every single item in "highlights".
+   - "certifications": Translate descriptive certification titles and dates.
+   - "customSections": Translate section "title" (or "label", e.g. "Langues", "Atouts", "Centres d'intérêt", "Bénévolat" -> "Languages", "Strengths", "Hobbies", "Volunteering") AND translate every item's "title", "subtitle", and "description".
+   - "headings": Translate section heading titles to match standard ${targetLang} terminology (e.g. "Profil" -> "Summary", "Expériences Professionnelles" -> "Work Experience", "Formation" -> "Education", "Compétences" -> "Skills").
+2. ABSOLUTELY DO NOT TRANSLATE JSON KEYS: Keys must remain strictly "personal", "summary", "experience", "education", "skills", "projects", "certifications", "customSections", "headings", "bullets", "title", "degree", etc.
+3. PRESERVE MARKDOWN BOLDING: Keep all **bold words** appropriately placed in the translated text.
+4. PRESERVE METRICS: Retain all numbers, percentages, and metrics ($X, Y, Z$).
+5. DO NOT OMIT ANY SECTION: Output MUST contain every section and item present in the input JSON.`;
 
         const jsonText = await callGeminiApi({
           apiKey,
-          prompt: `Resume JSON to translate:\n${JSON.stringify(cloneData)}`,
+          prompt: `Resume JSON to translate into ${targetLang}:\n${JSON.stringify(cloneData)}`,
           systemInstruction: systemPrompt,
           generationConfig: {
             temperature: 0.2,
@@ -69,14 +129,19 @@ CRITICAL RULES:
         }
         let translatedResume = JSON.parse(cleanedText);
         translatedResume = normalizeResumeCasing(translatedResume);
-        if (resumeData.headings) {
-          translatedResume.headings = resumeData.headings;
-        }
+
+        // Reconcile IDs across all arrays so diff and merge match 100%
+        if (cloneData.experience) translatedResume.experience = reconcileItemIds(cloneData.experience, translatedResume.experience);
+        if (cloneData.education) translatedResume.education = reconcileItemIds(cloneData.education, translatedResume.education);
+        if (cloneData.projects) translatedResume.projects = reconcileItemIds(cloneData.projects, translatedResume.projects);
+        if (cloneData.certifications) translatedResume.certifications = reconcileItemIds(cloneData.certifications, translatedResume.certifications);
+        if (cloneData.customSections) translatedResume.customSections = reconcileItemIds(cloneData.customSections, translatedResume.customSections);
+
         return res.status(200).json({ translatedResume });
       }
     }
 
-    // 2. ACTION: REWRITE
+    // 3. ACTION: REWRITE
     if (action === 'rewrite') {
       const contextMap = {
         summary: "this professional resume summary",
@@ -100,7 +165,7 @@ Do NOT add any conversational introductory or concluding text. Return ONLY the r
       return res.status(200).json({ rewrittenText: (generatedText || textData).trim() });
     }
 
-    // 3. ACTION: ENHANCE (Default: Bold emphasis)
+    // 4. ACTION: ENHANCE (Default: Bold emphasis)
     const contextMap = {
       summary: "this professional resume summary",
       experience: "this resume experience bullet point",
@@ -126,6 +191,6 @@ Return ONLY the enhanced text. Do not add any conversational text.`;
 
   } catch (error) {
     console.error('Enhance API error:', error);
-    return res.status(500).json({ error: 'Failed to process enhancement request.' });
+    return res.status(500).json({ error: error.message || 'Failed to process enhancement request.' });
   }
 }

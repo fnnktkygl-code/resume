@@ -3,7 +3,7 @@ import TagInput from '../ui/TagInput';
 import SectionHeader from '../ui/SectionHeader';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill }) {
+export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill, onTranslateSection, isTranslating }) {
   const { t } = useTranslation();
   const update = (field, val) => onChange({ ...data, [field]: val });
   const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
@@ -42,6 +42,8 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
           title={headings?.skills}
           onTitleChange={(v) => updateHeading('skills', v)}
           titlePlaceholder={t('SKILLS & TOOLS')}
+          onTranslate={onTranslateSection}
+          isTranslating={isTranslating}
           styleControls={{
             label: t('Skills Style'),
             dropdowns: [

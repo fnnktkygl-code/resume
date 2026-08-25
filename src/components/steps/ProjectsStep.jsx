@@ -4,7 +4,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { createEmptyProject } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
+export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, onTranslateSection, isTranslating, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -63,6 +63,8 @@ export default function ProjectsStep({ data, onChange, onAIAssist, onAIBold, onA
         title={headings?.projects}
         onTitleChange={(v) => onHeadingsChange?.({ ...headings, projects: v })}
         titlePlaceholder={t('Projects')}
+        onTranslate={onTranslateSection}
+        isTranslating={isTranslating}
       />
       {visibleItems.map((proj, pi) => {
         const realIdx = data.findIndex(item => item.id === proj.id);

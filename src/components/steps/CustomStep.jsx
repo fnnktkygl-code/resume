@@ -3,7 +3,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { createEmptyCustomItem } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function CustomStep({ section, onChange, onDelete, onAISectionFill }) {
+export default function CustomStep({ section, onChange, onDelete, onAISectionFill, onTranslateSection, isTranslating }) {
   const { t } = useTranslation();
 
   if (!section) return null;
@@ -117,6 +117,8 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
             title={section.label}
             onTitleChange={updateSectionLabel}
             titlePlaceholder={t('Custom Section Name')}
+            onTranslate={onTranslateSection}
+            isTranslating={isTranslating}
           />
         </div>
         {onDelete && (

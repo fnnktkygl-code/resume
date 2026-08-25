@@ -46,6 +46,7 @@ const CareerOpsHub = lazy(() => import('./components/career/CareerOpsHub'));
 import ImportModal from './components/ui/ImportModal';
 import DailyTipModal from './components/ui/DailyTipModal';
 import { buildResumeContext, checkResumeReadiness } from './utils/buildResumeContext';
+import { translateSectionWithProxy } from './services/geminiService';
 
 const STORAGE_KEY = 'resume-builder-data';
 const THEME_KEY = 'resume-builder-theme';
@@ -186,6 +187,7 @@ export default function App() {
   const [originalImportInput, setOriginalImportInput] = useState(null);
   const [aiBulletConfig, setAiBulletConfig] = useState(null);
   const [aiSectionFillConfig, setAiSectionFillConfig] = useState(null);
+  const [translatingSectionId, setTranslatingSectionId] = useState(null);
 
   const [
     data,
@@ -927,6 +929,46 @@ function estimateResumeHeightInPages(resumeData) {
     }
   };
 
+  const handleTranslateSection = async (sectionId, sectionData) => {
+    const targetLang = language === 'fr' ? 'en' : language === 'es' ? 'en' : 'fr';
+    setTranslatingSectionId(sectionId);
+    try {
+      saveSnapshot();
+      const translated = await translateSectionWithProxy(sectionId, sectionData, targetLang);
+      if (translated) {
+        if (sectionId === 'summary') {
+          const text = typeof translated === 'string' ? translated : (translated.summary || translated);
+          dispatch({ type: 'UPDATE_SUMMARY', payload: text });
+        } else if (sectionId === 'experience') {
+          const arr = Array.isArray(translated) ? translated : (translated.experience || [translated]);
+          dispatch({ type: 'UPDATE_EXPERIENCE', payload: arr });
+        } else if (sectionId === 'education') {
+          const arr = Array.isArray(translated) ? translated : (translated.education || [translated]);
+          dispatch({ type: 'UPDATE_EDUCATION', payload: arr });
+        } else if (sectionId === 'skills') {
+          const skillsObj = typeof translated === 'object' ? translated : data.skills;
+          dispatch({ type: 'UPDATE_SKILLS', payload: skillsObj });
+        } else if (sectionId === 'projects') {
+          const arr = Array.isArray(translated) ? translated : (translated.projects || [translated]);
+          dispatch({ type: 'UPDATE_PROJECTS', payload: arr });
+        } else if (sectionId === 'certifications') {
+          const arr = Array.isArray(translated) ? translated : (translated.certifications || [translated]);
+          dispatch({ type: 'UPDATE_CERTIFICATIONS', payload: arr });
+        } else if (sectionId?.startsWith('custom_')) {
+          const updatedCustom = (data.customSections || []).map(sec => 
+            sec.id === sectionId ? { ...sec, ...(typeof translated === 'object' ? translated : {}) } : sec
+          );
+          dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: updatedCustom });
+        }
+      }
+    } catch (err) {
+      console.error("Section translation error:", err);
+      alert(t('Failed to translate section. Please try again.'));
+    } finally {
+      setTranslatingSectionId(null);
+    }
+  };
+
   return (
     <TranslationContext.Provider value={language}>
       <div className="app">
@@ -1167,6 +1209,8 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_SUMMARY', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onTranslateSection={() => handleTranslateSection('summary', data.summary)}
+                  isTranslating={translatingSectionId === 'summary'}
                   onAIAssist={(text) => {
                     setAiSectionFillConfig({
                       isOpen: true,
@@ -1204,6 +1248,8 @@ function estimateResumeHeightInPages(resumeData) {
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   layout={layout}
                   onLayoutChange={setLayout}
+                  onTranslateSection={() => handleTranslateSection('experience', data.experience)}
+                  isTranslating={translatingSectionId === 'experience'}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBulletConfig({
                       isOpen: true, 
@@ -1220,6 +1266,8 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_EDUCATION', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onTranslateSection={() => handleTranslateSection('education', data.education)}
+                  isTranslating={translatingSectionId === 'education'}
                 />
               )}
               {currentId === 'skills' && (
@@ -1230,6 +1278,8 @@ function estimateResumeHeightInPages(resumeData) {
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
                   layout={layout}
                   onLayoutChange={setLayout}
+                  onTranslateSection={() => handleTranslateSection('skills', data.skills)}
+                  isTranslating={translatingSectionId === 'skills'}
                   onAISectionFill={(subSection) => {
                     const readiness = checkResumeReadiness(data);
                     if (readiness.isEmpty) {
@@ -1270,11 +1320,13 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_PROJECTS', payload: v })} 
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onTranslateSection={() => handleTranslateSection('projects', data.projects)}
+                  isTranslating={translatingSectionId === 'projects'}
                   onAIAssist={(text, index, bulletIndex) => {
                     setAiBoldConfig({
                       isOpen: true, 
                       text, 
-                      contextType: 'projects',
+                      contextType: 'projects', 
                       onUpdate: (newText) => {
                         saveSnapshot();
                         const newProj = [...data.projects];
@@ -1298,6 +1350,8 @@ function estimateResumeHeightInPages(resumeData) {
                   onChange={(v) => dispatch({ type: 'UPDATE_CERTIFICATIONS', payload: v })}
                   headings={data.headings}
                   onHeadingsChange={(v) => dispatch({ type: 'UPDATE_HEADINGS', payload: v })}
+                  onTranslateSection={() => handleTranslateSection('certifications', data.certifications)}
+                  isTranslating={translatingSectionId === 'certifications'}
                   onAISectionFill={() => {
                     const readiness = checkResumeReadiness(data);
                     if (readiness.isEmpty) {
@@ -1333,6 +1387,8 @@ function estimateResumeHeightInPages(resumeData) {
                     dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
                   }} 
                   onDelete={() => setSectionToDelete(currentId)}
+                  onTranslateSection={() => handleTranslateSection(currentId, data.customSections.find(s => s.id === currentId))}
+                  isTranslating={translatingSectionId === currentId}
                   onAISectionFill={(sectionType, sectionLabel) => {
                     const readiness = checkResumeReadiness(data);
                     if (readiness.isEmpty) {

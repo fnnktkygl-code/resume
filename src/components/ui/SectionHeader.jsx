@@ -2,13 +2,16 @@ import { useTranslation } from '../../utils/TranslationContext';
 
 /**
  * Standardized SectionHeader component for all resume builder steps.
- * Provides consistent layout, typography, section title input, and optional style dropdowns.
+ * Provides consistent layout, typography, section title input, optional style dropdowns,
+ * and section-level AI action buttons (e.g. Translate Section).
  */
 export default function SectionHeader({
   title,
   onTitleChange,
   titlePlaceholder,
-  styleControls
+  styleControls,
+  onTranslate,
+  isTranslating = false
 }) {
   const { t } = useTranslation();
 
@@ -95,6 +98,36 @@ export default function SectionHeader({
                 fontFamily: 'inherit'
               }}
             />
+          </div>
+        )}
+
+        {onTranslate && (
+          <div style={{ display: 'flex', alignItems: 'flex-end', marginLeft: 'auto' }}>
+            <button
+              type="button"
+              onClick={onTranslate}
+              disabled={isTranslating}
+              className="btn-demo"
+              style={{
+                padding: '8px 14px',
+                fontSize: '12.5px',
+                fontWeight: '600',
+                color: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: isTranslating ? 'wait' : 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              data-tooltip={t('Translate only this section with AI')}
+              data-tooltip-pos="bottom"
+            >
+              <span>🌐</span>
+              <span>{isTranslating ? t('Translating...') : t('Traduire cette section')}</span>
+            </button>
           </div>
         )}
       </div>

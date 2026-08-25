@@ -4,7 +4,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange, layout, onLayoutChange }) {
+export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, onTranslateSection, isTranslating, headings, onHeadingsChange, layout, onLayoutChange }) {
   const { t } = useTranslation();
   const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
   const visibleItems = data.filter(e => !e.isSpacer);
@@ -66,6 +66,8 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
         title={headings?.experience}
         onTitleChange={(v) => onHeadingsChange?.({ ...headings, experience: v })}
         titlePlaceholder={t('Work Experience')}
+        onTranslate={onTranslateSection}
+        isTranslating={isTranslating}
         styleControls={{
           label: t('Tags & Technologies Style'),
           dropdowns: [

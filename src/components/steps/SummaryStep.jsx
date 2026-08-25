@@ -2,7 +2,7 @@ import { TextArea } from '../ui/FormFields';
 import SectionHeader from '../ui/SectionHeader';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SummaryStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, headings, onHeadingsChange }) {
+export default function SummaryStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, onTranslateSection, isTranslating, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -11,6 +11,8 @@ export default function SummaryStep({ data, onChange, onAIAssist, onAIBold, onAI
           title={headings?.summary}
           onTitleChange={(v) => onHeadingsChange?.({ ...headings, summary: v })}
           titlePlaceholder={t('Summary')}
+          onTranslate={onTranslateSection}
+          isTranslating={isTranslating}
         />
         <div className="card-subtitle" style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
           {t('2–4 sentences positioning you for the role. Include your years of experience, core expertise, and a standout metric.')}

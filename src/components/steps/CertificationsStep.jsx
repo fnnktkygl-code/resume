@@ -3,7 +3,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { createEmptyCertification } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function CertificationsStep({ data, onChange, onAISectionFill, headings, onHeadingsChange }) {
+export default function CertificationsStep({ data, onChange, onAISectionFill, onTranslateSection, isTranslating, headings, onHeadingsChange }) {
   const { t } = useTranslation();
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -44,6 +44,8 @@ export default function CertificationsStep({ data, onChange, onAISectionFill, he
         title={headings?.certifications}
         onTitleChange={(v) => onHeadingsChange?.({ ...headings, certifications: v })}
         titlePlaceholder={t('Certifications')}
+        onTranslate={onTranslateSection}
+        isTranslating={isTranslating}
       />
       {visibleItems.map((cert, ci) => {
         const realIdx = data.findIndex(item => item.id === cert.id);

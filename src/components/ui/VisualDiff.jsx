@@ -8,13 +8,12 @@ import { parseMarkdown } from '../../utils/formatText';
  * 
  * Props:
  * - original: the original resume data
- * - modified: the AI-modified resume data
+ * - modified: the AI-modified resume data (or { translatedResume: ... })
  * - onSelectionChange(selectedIds): callback with Set of selected change IDs
- *     If not provided, all changes are accepted (legacy mode).
  */
 const cleanText = (str) => {
   if (!str) return '';
-  return str
+  return String(str)
     .replace(/\*\*/g, '')
     .replace(/\*/g, '')
     .replace(/\s+/g, ' ')
@@ -22,37 +21,34 @@ const cleanText = (str) => {
     .toLowerCase();
 };
 
-// Check if bold markers (**) differ between two strings
 const hasBoldDifference = (orig, mod) => {
   if (!orig || !mod) return false;
-  // Strip everything except ** markers and text, then compare
-  const origBolds = (orig.match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
-  const modBolds = (mod.match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
+  const origBolds = (String(orig).match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
+  const modBolds = (String(mod).match(/\*\*[^*]+\*\*/g) || []).sort().join('|');
   return origBolds !== modBolds;
 };
 
 const isSubstantiallyDifferent = (orig, mod) => {
   if (!orig && !mod) return false;
   if (!orig || !mod) return true;
-  // Text content changed (ignoring case/bold) OR bold markers changed OR casing changed
   const textDiff = cleanText(orig) !== cleanText(mod);
   const boldDiff = hasBoldDifference(orig, mod);
-  // Detect casing change: strip bold markers and compare without lowering
-  const stripBold = (s) => (s || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+  const stripBold = (s) => (String(s) || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
   const casingDiff = stripBold(orig) !== stripBold(mod);
   return textDiff || boldDiff || casingDiff;
 };
 
-export default function VisualDiff({ original, modified, onSelectionChange }) {
+export default function VisualDiff({ original = {}, modified: rawModified = {}, onSelectionChange }) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(new Set());
   const [diffItems, setDiffItems] = useState([]);
 
   // Build the diff items list
   useEffect(() => {
+    const modified = rawModified?.translatedResume || rawModified || {};
     const items = [];
 
-    // Tagline Diff
+    // 1. Tagline Diff
     if (isSubstantiallyDifferent(original.personal?.tagline, modified.personal?.tagline) && modified.personal?.tagline) {
       items.push({
         id: 'tagline',
@@ -63,7 +59,18 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     }
 
-    // Summary Diff
+    // 2. Location Diff
+    if (isSubstantiallyDifferent(original.personal?.location, modified.personal?.location) && modified.personal?.location) {
+      items.push({
+        id: 'location',
+        section: t('Location'),
+        type: 'text',
+        original: original.personal?.location,
+        modified: modified.personal?.location
+      });
+    }
+
+    // 3. Summary Diff
     if (isSubstantiallyDifferent(original.summary, modified.summary) && modified.summary) {
       items.push({
         id: 'summary',
@@ -74,8 +81,8 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     }
 
-    // Skills Diff
-    if (isSubstantiallyDifferent(original.skills?.technical, modified.skills?.technical)) {
+    // 4. Skills Diff
+    if (isSubstantiallyDifferent(original.skills?.technical, modified.skills?.technical) && modified.skills?.technical) {
       items.push({
         id: 'skills.technical',
         section: t('Technical Skills'),
@@ -84,7 +91,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         modified: modified.skills?.technical
       });
     }
-    if (isSubstantiallyDifferent(original.skills?.soft, modified.skills?.soft)) {
+    if (isSubstantiallyDifferent(original.skills?.soft, modified.skills?.soft) && modified.skills?.soft) {
       items.push({
         id: 'skills.soft',
         section: t('Soft Skills'),
@@ -103,7 +110,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     }
 
-    // Highlighted Skills Diff (AI-selected per-skill highlighting)
+    // Highlighted Skills Diff
     const origHighlighted = original.skills?.highlightedSkills || [];
     const modHighlighted = modified.skills?.highlightedSkills || [];
     if (modHighlighted.length > 0 && JSON.stringify(origHighlighted) !== JSON.stringify(modHighlighted)) {
@@ -116,7 +123,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     }
 
-    // Experience Diff
+    // 5. Experience Diff
     original.experience?.forEach((exp, idx) => {
       if (exp.isSpacer) return;
       const modExp = modified.experience?.find(e => e.id === exp.id) || modified.experience?.[idx];
@@ -124,7 +131,6 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
 
       const expId = exp.id || idx;
 
-      // Title change
       if (isSubstantiallyDifferent(exp.title, modExp.title) && modExp.title) {
         items.push({
           id: `exp.${expId}.title`,
@@ -135,7 +141,16 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         });
       }
 
-      // Technologies / Tags change
+      if (isSubstantiallyDifferent(exp.location, modExp.location) && modExp.location) {
+        items.push({
+          id: `exp.${expId}.location`,
+          section: `${exp.company || ''} — ${t('Location')}`,
+          type: 'text',
+          original: exp.location,
+          modified: modExp.location
+        });
+      }
+
       if (isSubstantiallyDifferent(exp.technologies, modExp.technologies) && modExp.technologies) {
         items.push({
           id: `exp.${expId}.tech`,
@@ -146,7 +161,6 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         });
       }
 
-      // Bullet diffs
       exp.bullets?.forEach((bullet, bIdx) => {
         const modBullet = modExp.bullets?.[bIdx];
         if (isSubstantiallyDifferent(bullet, modBullet) && modBullet) {
@@ -161,7 +175,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     });
 
-    // Education Diff
+    // 6. Education Diff
     original.education?.forEach((edu, idx) => {
       if (edu.isSpacer) return;
       const modEdu = modified.education?.find(e => e.id === edu.id) || modified.education?.[idx];
@@ -188,13 +202,23 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       }
     });
 
-    // Projects Diff
+    // 7. Projects Diff
     original.projects?.forEach((proj, idx) => {
       if (proj.isSpacer) return;
       const modProj = modified.projects?.find(p => p.id === proj.id) || modified.projects?.[idx];
       if (!modProj) return;
 
       const projId = proj.id || idx;
+
+      if (isSubstantiallyDifferent(proj.role, modProj.role) && modProj.role) {
+        items.push({
+          id: `proj.${projId}.role`,
+          section: `${t('Project')}: ${proj.name || ''} (${t('Role')})`,
+          type: 'text',
+          original: proj.role,
+          modified: modProj.role
+        });
+      }
 
       if (isSubstantiallyDifferent(proj.description, modProj.description) && modProj.description) {
         items.push({
@@ -230,7 +254,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       });
     });
 
-    // Certifications Diff
+    // 8. Certifications Diff
     original.certifications?.forEach((cert, idx) => {
       if (cert.isSpacer) return;
       const modCert = modified.certifications?.find(c => c.id === cert.id) || modified.certifications?.[idx];
@@ -248,10 +272,20 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       }
     });
 
-    // Custom Sections Diff (langues, atouts, loisirs, user-created sections)
+    // 9. Custom Sections Diff (langues, atouts, loisirs, etc.)
     original.customSections?.forEach((sec) => {
       const modSec = modified.customSections?.find(s => s.id === sec.id);
       if (!modSec) return;
+
+      if (isSubstantiallyDifferent(sec.label || sec.title, modSec.label || modSec.title) && (modSec.label || modSec.title)) {
+        items.push({
+          id: `custom.${sec.id}.title`,
+          section: t('Section Title'),
+          type: 'text',
+          original: sec.label || sec.title,
+          modified: modSec.label || modSec.title
+        });
+      }
 
       sec.items?.forEach((item, iIdx) => {
         if (item.isSpacer) return;
@@ -277,7 +311,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
             modified: modItem.subtitle
           });
         }
-        if (item.description !== modItem.description && modItem.description) {
+        if (isSubstantiallyDifferent(item.description, modItem.description) && modItem.description) {
           items.push({
             id: `custom.${sec.id}.${itemId}.desc`,
             section: `${sec.label || 'Custom'}: ${item.title || ''}`,
@@ -290,11 +324,10 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
     });
 
     setDiffItems(items);
-    // Default: all selected
     const allIds = new Set(items.map(i => i.id));
     setSelected(allIds);
     if (onSelectionChange) onSelectionChange(allIds);
-  }, [original, modified]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [original, rawModified]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleItem = useCallback((id) => {
     setSelected(prev => {
@@ -317,10 +350,10 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
       <div style={{ textAlign: 'center', padding: '30px 20px', background: 'var(--color-success-light, rgba(34, 197, 94, 0.1))', borderRadius: '12px', border: '1px solid var(--color-success, #22c55e)' }}>
         <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🎉</div>
         <h3 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: '700', color: 'var(--color-text)' }}>
-          {t('Your resume is already perfectly tailored!')}
+          {t('No pending changes!')}
         </h3>
         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-          {t('All skills and experiences match the job description. No further edits are needed.')}
+          {t('All sections and content match the requested target language.')}
         </p>
       </div>
     );
@@ -374,7 +407,20 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
+      <div 
+        className="visual-diff-list" 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '10px', 
+          maxHeight: '420px', 
+          overflowY: 'auto', 
+          paddingRight: '6px',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y'
+        }}
+      >
         {diffItems.map((item) => {
           const isChecked = selected.has(item.id);
           return (
@@ -428,7 +474,7 @@ export default function VisualDiff({ original, modified, onSelectionChange }) {
                     color: 'var(--color-text)',
                     wordBreak: 'break-word'
                   }}>
-                    {parseMarkdown(item.modified)}
+                    {item.modified ? parseMarkdown(item.modified) : `(${t('Empty')})`}
                   </div>
                 </div>
               </div>
