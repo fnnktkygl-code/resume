@@ -182,7 +182,7 @@ export function WysiwygEditor({
       onMouseUp={handleSelect}
       onKeyUp={handleSelect}
     >
-      {/* Floating Selection Island (Notion / Apple Style) */}
+      {/* Floating Selection Toolbar (Pure Notion & Japandi Washi Style) */}
       {bubblePosition && (
         <div 
           className="floating-selection-bubble"
@@ -194,14 +194,12 @@ export function WysiwygEditor({
             display: 'flex',
             alignItems: 'center',
             gap: '2px',
-            backgroundColor: 'rgba(26, 25, 24, 0.92)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '9999px',
-            padding: '3px 6px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12)',
-            animation: 'fadeInScale 0.15s ease-out',
-            border: '1px solid rgba(255, 255, 255, 0.15)'
+            backgroundColor: 'var(--color-surface, #FFFFFF)',
+            borderRadius: '8px',
+            padding: '3px 4px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08)',
+            animation: 'fadeInScale 0.12s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: '1px solid var(--color-border, rgba(0, 0, 0, 0.1))'
           }}
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -211,14 +209,20 @@ export function WysiwygEditor({
             style={{
               background: 'none',
               border: 'none',
-              color: '#ffffff',
+              color: 'var(--color-text, #1A1918)',
               cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '12px',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
               fontWeight: '700',
-              borderRadius: '9999px',
-              transition: 'background 0.12s ease'
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title={t("Bold (Cmd+B)")}
           >
             B
@@ -229,69 +233,89 @@ export function WysiwygEditor({
             style={{
               background: 'none',
               border: 'none',
-              color: '#ffffff',
+              color: 'var(--color-text, #1A1918)',
               cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '12px',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
               fontStyle: 'italic',
               fontWeight: '600',
-              borderRadius: '9999px',
-              transition: 'background 0.12s ease'
+              fontFamily: 'serif',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title={t("Italic (Cmd+I)")}
           >
-            I
+            i
           </button>
-          <div style={{ width: '1px', height: '14px', backgroundColor: 'rgba(255, 255, 255, 0.25)', margin: '0 2px' }} />
+          
           {(onAIRewrite || onAIAssist) && (
-            <button
-              type="button"
-              onClick={() => {
-                setBubblePosition(null);
-                (onAIRewrite || onAIAssist)();
-              }}
-              style={{
-                background: 'rgba(74, 222, 128, 0.15)',
-                border: 'none',
-                color: '#4ADE80',
-                cursor: 'pointer',
-                padding: '4px 10px',
-                fontSize: '11.5px',
-                fontWeight: '600',
-                borderRadius: '9999px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.12s ease'
-              }}
-            >
-              <span>✨</span>
-              <span>Harvard XYZ</span>
-            </button>
+            <>
+              <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />
+              <button
+                type="button"
+                onClick={() => {
+                  setBubblePosition(null);
+                  (onAIRewrite || onAIAssist)();
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-accent, #2D5A43)',
+                  cursor: 'pointer',
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.12s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+              >
+                ✨
+              </button>
+            </>
           )}
+
           {onAITranslate && (
-            <button
-              type="button"
-              onClick={() => {
-                setBubblePosition(null);
-                onAITranslate();
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#E2E8F0',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                fontSize: '11.5px',
-                borderRadius: '9999px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-              title={t("Traduire ce champ")}
-            >
-              <span>🌐</span>
-            </button>
+            <>
+              {!onAIRewrite && !onAIAssist && <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />}
+              <button
+                type="button"
+                onClick={() => {
+                  setBubblePosition(null);
+                  onAITranslate();
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-text-secondary, #737373)',
+                  cursor: 'pointer',
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.12s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={t("Traduire la sélection")}
+              >
+                🌐
+              </button>
+            </>
           )}
         </div>
       )}
