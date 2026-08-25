@@ -33,19 +33,9 @@ export function hasContactInfo(personal) {
  */
 export function displayHeading(headings, key, defaultEn, tKey, language) {
   const t = (k) => getTranslation(language, k);
-  if (!headings[key]) return t(tKey);
-  const val = headings[key].trim();
+  if (!headings || headings[key] === undefined || headings[key] === null) return t(tKey);
+  const val = String(headings[key]).trim();
   if (!val) return t(tKey);
-  const vLower = val.toLowerCase();
-  if (
-    vLower === defaultEn.toLowerCase() ||
-    vLower === key.toLowerCase() ||
-    vLower === 'technical:' ||
-    vLower === 'interpersonal:' ||
-    vLower === 'languages:'
-  ) {
-    return t(tKey);
-  }
   return val;
 }
 

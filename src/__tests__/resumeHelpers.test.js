@@ -18,20 +18,23 @@ describe('resumeHelpers', () => {
   });
 
   describe('displayHeading', () => {
-    it('returns translated key if heading value is default or missing', () => {
-      const headings = { experience: 'Experience' };
-      const headingFr = displayHeading(headings, 'experience', 'Experience', 'Experience', 'fr');
-      expect(headingFr).toBe('Expériences');
-
+    it('returns translated key if heading value is missing or empty', () => {
       const headingsEmpty = { experience: '' };
       const headingEn = displayHeading(headingsEmpty, 'experience', 'Experience', 'Experience', 'en');
       expect(headingEn).toBe('Experience');
+
+      const headingFr = displayHeading({}, 'experience', 'Experience', 'Experience', 'fr');
+      expect(headingFr).toBe('Expériences');
     });
 
-    it('returns custom user value if explicitly customized', () => {
-      const headings = { experience: 'Parcours & Réalisations Clés' };
+    it('returns custom user value exactly as entered (e.g. Work Experience or custom title)', () => {
+      const headings = { experience: 'Work Experience' };
       const customHeading = displayHeading(headings, 'experience', 'Experience', 'Experience', 'fr');
-      expect(customHeading).toBe('Parcours & Réalisations Clés');
+      expect(customHeading).toBe('Work Experience');
+
+      const headings2 = { experience: 'Parcours & Réalisations Clés' };
+      const customHeading2 = displayHeading(headings2, 'experience', 'Experience', 'Experience', 'fr');
+      expect(customHeading2).toBe('Parcours & Réalisations Clés');
     });
   });
 
