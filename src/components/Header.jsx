@@ -18,6 +18,7 @@ export default function Header({
   setShowClearConfirm,
   setIsDailyTipOpen
 }) {
+  const tr = typeof t === 'function' ? t : ((k) => k);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [menuCoords, setMenuCoords] = useState({ top: 60, right: 16 });
@@ -72,7 +73,7 @@ export default function Header({
         <button
           className="logo logo-btn"
           onClick={() => { window.location.hash = ''; }}
-          title={t('Back to home')}
+          title={tr('Back to home')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
           Resu<span className="logo-accent">Me</span>
@@ -83,23 +84,23 @@ export default function Header({
       <div className="header-right">
         <span 
           className="privacy-note desktop-only"
-          data-tooltip={t('All data stays in your browser')}
+          data-tooltip={tr('All data stays in your browser')}
           data-tooltip-pos="bottom"
           style={{ cursor: 'help' }}
         >
-          <i className="fi fi-rr-lock"></i> {t('All data stays in your browser')}
+          <i className="fi fi-rr-lock"></i> {tr('All data stays in your browser')}
         </span>
 
         {/* 1. Premier Plan (Primary Action): Save Resume — Always accessible */}
         <button
           className={`btn-demo btn-save-resume ${saveStatus === 'saved' ? 'btn-save-success' : ''}`}
           onClick={onSave}
-          aria-label={saveStatus === 'saved' ? t('Saved!') : t('Save')}
-          data-tooltip={t('Save current resume to My Resumes')}
+          aria-label={saveStatus === 'saved' ? tr('Saved!') : tr('Save')}
+          data-tooltip={tr('Save current resume to My Resumes')}
           data-tooltip-pos="bottom"
         >
           <i className={`fi ${saveStatus === 'saved' ? 'fi-rr-check' : 'fi-rr-disk'}`}></i>
-          <span className="desktop-only">{saveStatus === 'saved' ? t('Saved!') : t('Save')}</span>
+          <span className="desktop-only">{saveStatus === 'saved' ? tr('Saved!') : tr('Save')}</span>
         </button>
 
         {/* 2. Premier Plan (Desktop): Manage Resumes */}
@@ -107,10 +108,10 @@ export default function Header({
           className="btn-demo desktop-only"
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }}
           onClick={() => setIsCvManagerOpen(true)}
-          data-tooltip={t('Manage, duplicate and organize your resume versions')}
+          data-tooltip={tr('Manage, duplicate and organize your resume versions')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-folder"></i> {t('My Resumes')}
+          <i className="fi fi-rr-folder"></i> {tr('My Resumes')}
         </button>
 
         {/* 3. Premier Plan (Desktop): Import CV */}
@@ -118,10 +119,10 @@ export default function Header({
           className="btn-demo btn-import-primary desktop-only" 
           style={{ marginRight: '6px' }}
           onClick={() => setShowImportModal(true)}
-          data-tooltip={t('Import and analyze an existing CV (PDF, JSON)')}
+          data-tooltip={tr('Import and analyze an existing CV (PDF, JSON)')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-magic-wand"></i> {t('Import CV')}
+          <i className="fi fi-rr-magic-wand"></i> {tr('Import CV')}
         </button>
 
         {/* 4. Core Feature (Desktop): CareerOps with Beta Badge */}
@@ -138,7 +139,7 @@ export default function Header({
             gap: '5px'
           }}
           onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
-          data-tooltip={t('Smart Job Search, ATS Matcher & 1-Click Apply (In active development)')}
+          data-tooltip={tr('Smart Job Search, ATS Matcher & 1-Click Apply (In active development)')}
           data-tooltip-pos="bottom"
         >
           <span>🎯 CareerOps</span>
@@ -152,7 +153,7 @@ export default function Header({
             color: '#10B981', 
             border: '1px solid rgba(16, 185, 129, 0.4)' 
           }}>
-            {t('Beta')}
+            {tr('Beta')}
           </span>
         </button>
 
@@ -161,10 +162,10 @@ export default function Header({
           className="btn-demo desktop-only" 
           style={{ marginRight: '6px', border: '1px solid var(--color-border)' }} 
           onClick={() => setIsCoverLetterModalOpen(true)}
-          data-tooltip={t('Generate tailored cover letter with AI')}
+          data-tooltip={tr('Generate tailored cover letter with AI')}
           data-tooltip-pos="bottom"
         >
-          <i className="fi fi-rr-document-signed"></i> {t('Cover Letter')}
+          <i className="fi fi-rr-document-signed"></i> {tr('Cover Letter')}
         </button>
 
         {/* Overflow Menu (More Options Button) */}
@@ -172,7 +173,7 @@ export default function Header({
           <button
             className="mobile-menu-btn header-more-btn"
             onClick={toggleMenu}
-            aria-label={t('More options')}
+            aria-label={tr('More options')}
             aria-expanded={mobileMenuOpen}
           >
             <i className="fi fi-rr-menu-dots"></i>
@@ -184,11 +185,11 @@ export default function Header({
           <button 
             className="btn-demo" 
             onClick={() => setLangMenuOpen(!langMenuOpen)}
-            aria-label={t('Change language')}
+            aria-label={tr('Change language')}
             style={{ padding: '5px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <span style={{ fontSize: '14px' }}>{language === 'fr' ? '🇫🇷' : language === 'es' ? '🇪🇸' : '🇬🇧'}</span>
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{language.toUpperCase()}</span>
+            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{(language || 'en').toUpperCase()}</span>
             <i className="fi fi-rr-angle-small-down" style={{ fontSize: '11px', opacity: 0.7 }}></i>
           </button>
           
@@ -229,7 +230,7 @@ export default function Header({
         <button 
           className="theme-toggle" 
           onClick={toggleTheme} 
-          aria-label={t('Toggle theme')}
+          aria-label={tr('Toggle theme')}
         >
           {theme === 'light' ? '🌙' : '☀️'}
         </button>
@@ -259,12 +260,12 @@ export default function Header({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <div className="mobile-drawer-title">
                   <i className="fi fi-rr-apps" style={{ color: 'var(--color-accent)' }}></i>
-                  <span>{t('Actions & Tools')}</span>
+                  <span>{tr('Actions & Tools')}</span>
                 </div>
                 <button 
                   className="mobile-drawer-close-btn"
                   onClick={() => setMobileMenuOpen(false)}
-                  aria-label={t('Close')}
+                  aria-label={tr('Close')}
                 >
                   ✕
                 </button>
@@ -274,61 +275,61 @@ export default function Header({
             <div className="header-menu-body">
               {/* Premier Plan (Mobile Actions) */}
               <div className="mobile-only">
-                <div className="dropdown-section-label">⚡ {t('Actions')}</div>
+                <div className="dropdown-section-label">⚡ {tr('Actions')}</div>
                 <button 
                   className="btn-demo dropdown-item" 
                   onClick={() => { setIsCvManagerOpen(true); setMobileMenuOpen(false); }}
                 >
                   <i className="fi fi-rr-folder"></i> 
-                  <span>{t('My Resumes')}</span>
+                  <span>{tr('My Resumes')}</span>
                 </button>
                 <button 
                   className="btn-demo dropdown-item" 
                   onClick={() => { setShowImportModal(true); setMobileMenuOpen(false); }}
                 >
                   <i className="fi fi-rr-magic-wand"></i> 
-                  <span>{t('Import CV')}</span>
+                  <span>{tr('Import CV')}</span>
                 </button>
                 <button 
                   className="btn-demo dropdown-item" 
                   style={{ color: '#10B981', fontWeight: '600' }}
                   onClick={() => { setIsCareerOpsOpen && setIsCareerOpsOpen(true); setMobileMenuOpen(false); }}
                 >
-                  <span>🎯 CareerOps ({t('Beta')})</span>
+                  <span>🎯 CareerOps ({tr('Beta')})</span>
                 </button>
                 <button 
                   className="btn-demo dropdown-item" 
                   onClick={() => { setIsCoverLetterModalOpen(true); setMobileMenuOpen(false); }}
                 >
                   <i className="fi fi-rr-document-signed"></i> 
-                  <span>{t('Cover Letter')}</span>
+                  <span>{tr('Cover Letter')}</span>
                 </button>
                 
                 <div className="dropdown-divider" />
               </div>
 
               {/* Second Plan (Outils & Modèles) */}
-              <div className="dropdown-section-label">💡 {t('Tools & Templates')}</div>
+              <div className="dropdown-section-label">💡 {tr('Tools & Templates')}</div>
               <button 
                 className="btn-demo dropdown-item" 
                 onClick={() => { setIsDailyTipOpen && setIsDailyTipOpen(true); setMobileMenuOpen(false); }}
               >
                 <i className="fi fi-rr-bulb"></i> 
-                <span>{t('Daily Pro Tip')}</span>
+                <span>{tr('Daily Pro Tip')}</span>
               </button>
               <button 
                 className="btn-demo dropdown-item" 
                 onClick={() => { loadDemoData(1); setMobileMenuOpen(false); }}
               >
                 <i className="fi fi-rr-document"></i> 
-                <span>{t('1-Page Demo')}</span>
+                <span>{tr('1-Page Demo')}</span>
               </button>
               <button 
                 className="btn-demo dropdown-item" 
                 onClick={() => { loadDemoData(2); setMobileMenuOpen(false); }}
               >
                 <i className="fi fi-rr-copy"></i> 
-                <span>{t('2-Page Demo')}</span>
+                <span>{tr('2-Page Demo')}</span>
               </button>
               
               <div className="dropdown-divider" />
@@ -340,7 +341,7 @@ export default function Header({
                 disabled={!hasContent}
               >
                 <i className="fi fi-rr-trash"></i> 
-                <span>{t('Clear')}</span>
+                <span>{tr('Clear')}</span>
               </button>
             </div>
           </div>

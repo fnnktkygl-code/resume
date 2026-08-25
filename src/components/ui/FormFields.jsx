@@ -11,7 +11,7 @@ export function Field({ label, children, full }) {
   );
 }
 
-function WysiwygEditor({
+export function WysiwygEditor({
   value,
   onChange,
   placeholder,

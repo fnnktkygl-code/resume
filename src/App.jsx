@@ -4,10 +4,6 @@ import { DEMO_DATA_1_PAGE, DEMO_DATA_2_PAGES, DEMO_DATA_1_PAGE_FR, DEMO_DATA_2_P
 import AtsScoreModal from './components/ui/AtsScoreModal';
 import ResumePreview from './components/ResumePreview';
 import FullscreenPreview from './components/FullscreenPreview';
-import { Document, Page, pdfjs } from 'react-pdf';
-import PDFWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
-
-pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 import PersonalStep from './components/steps/PersonalStep';
 import SummaryStep from './components/steps/SummaryStep';
