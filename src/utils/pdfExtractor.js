@@ -1,10 +1,12 @@
-import { pdfjs } from 'react-pdf';
-import PDFWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
-
-pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
-
 export async function extractTextFromPDF(file) {
   try {
+    const [{ pdfjs }, { default: PDFWorker }] = await Promise.all([
+      import('react-pdf'),
+      import('pdfjs-dist/build/pdf.worker.mjs?url')
+    ]);
+
+    pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
+
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     let text = '';
