@@ -4,6 +4,7 @@ import TagInput from '../ui/TagInput';
 import SectionHeader from '../ui/SectionHeader';
 import { MONTHS, YEARS, createEmptyExperience } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
+import { normalizeMonthValue } from '../../utils/resumeHelpers';
 
 export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, onTranslateSection, isTranslating, headings, onHeadingsChange, layout, onLayoutChange }) {
   const { t } = useTranslation();
@@ -211,7 +212,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
                 />
               </Field>
               <Field label={t('Start Month')}>
-                <Select value={exp.startMonth} onChange={(v) => updateExp(realIdx, 'startMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
+                <Select value={normalizeMonthValue(exp.startMonth)} onChange={(v) => updateExp(realIdx, 'startMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
               </Field>
               <Field label={t('Start Year')}>
                 <Select value={exp.startYear} onChange={(v) => updateExp(realIdx, 'startYear', v)} options={YEARS} placeholder={t('Year')} />
@@ -219,7 +220,7 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
               {!exp.current && (
                 <>
                   <Field label={t('End Month')}>
-                    <Select value={exp.endMonth} onChange={(v) => updateExp(realIdx, 'endMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
+                    <Select value={normalizeMonthValue(exp.endMonth)} onChange={(v) => updateExp(realIdx, 'endMonth', v)} options={MONTHS.map(m => ({ value: m, label: t(m) }))} placeholder={t('Month')} />
                   </Field>
                   <Field label={t('End Year')}>
                     <Select value={exp.endYear} onChange={(v) => updateExp(realIdx, 'endYear', v)} options={YEARS} placeholder={t('Year')} />

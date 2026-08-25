@@ -98,14 +98,14 @@ MANDATORY RULES FOR COMPLETE AND ACCURATE TRANSLATION:
 1. TRANSLATE ALL SECTIONS & FIELDS:
    - "personal": Translate "tagline" (job title), "location" (e.g. "Paris, France / Télétravail" -> "Paris, France / Remote"), and any "customFields" (labels and values). Do NOT change candidate name, email, phone, or URLs.
    - "summary": Translate the entire professional summary, preserving strong action verbs, metrics, and markdown bold markers (**bold**).
-   - "experience": For each position, translate "title", "location", relative dates (e.g. "Présent", "En cours" -> "Present", "Ongoing"), "bullets" (every single bullet point), "technologies" categories, and "description". Keep company names intact.
-   - "education": Translate "degree", "fieldOfStudy" / "field", "location", dates, and any "bullets" or honors (e.g. "Mention Très Bien" -> "With Highest Honors"). Keep school proper names intact.
+   - "experience": For each position, translate "title", "location", "startMonth" / "endMonth" (convert to standard target language 3-letter month: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec), relative dates (e.g. "Présent", "En cours" -> "Present", "Ongoing"), "bullets" (every single bullet point), "technologies" categories, and "description". Keep company names intact.
+   - "education": Translate "degree", "fieldOfStudy" / "field", "location", dates ("startMonth", "endMonth", years), and any "bullets" or honors (e.g. "Mention Très Bien" -> "With Highest Honors"). Keep school proper names intact.
    - "skills":
      * "technical": Translate category labels (e.g. "Langages de programmation:" -> "Programming languages:", "Gestion de projet:" -> "Project management:") while preserving tech keywords.
      * "soft": Translate ALL soft skills (e.g. "Rigueur, Travail d'équipe, Curiosité" -> "Rigor, Teamwork, Curiosity").
      * "languages": Translate language names and levels (e.g. "Français (Langue maternelle), Anglais (Courant C1)" -> "French (Native), English (Fluent C1)").
-   - "projects": Translate "role", "description", and every single item in "highlights".
-   - "certifications": Translate descriptive certification titles and dates.
+   - "projects": Translate "role", "description", dates, and every single item in "highlights".
+   - "certifications": Translate descriptive certification titles, dates, and issuers.
    - "customSections": Translate section "title" (or "label", e.g. "Langues", "Atouts", "Centres d'intérêt", "Bénévolat" -> "Languages", "Strengths", "Hobbies", "Volunteering") AND translate every item's "title", "subtitle", and "description".
    - "headings": Translate section heading titles to match standard ${targetLang} terminology (e.g. "Profil" -> "Summary", "Expériences Professionnelles" -> "Work Experience", "Formation" -> "Education", "Compétences" -> "Skills").
 2. ABSOLUTELY DO NOT TRANSLATE JSON KEYS: Keys must remain strictly "personal", "summary", "experience", "education", "skills", "projects", "certifications", "customSections", "headings", "bullets", "title", "degree", etc.

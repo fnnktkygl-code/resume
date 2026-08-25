@@ -38,10 +38,19 @@ describe('resumeHelpers', () => {
     });
   });
 
-  describe('formatResumeDate', () => {
+  describe('formatResumeDate & normalizeMonthValue', () => {
     it('formats month and year in English', () => {
       expect(formatResumeDate('Jan', '2024', 'en')).toBe('Jan 2024');
       expect(formatResumeDate('Dec', '2023', 'en')).toBe('Dec 2023');
+    });
+
+    it('translates French month names and abbreviations into English', () => {
+      expect(formatResumeDate('Avr', '2022', 'en')).toBe('Apr 2022');
+      expect(formatResumeDate('Août', '2025', 'en')).toBe('Aug 2025');
+      expect(formatResumeDate('Aout', '2025', 'en')).toBe('Aug 2025');
+      expect(formatResumeDate('Mars', '2023', 'en')).toBe('Mar 2023');
+      expect(formatResumeDate('Janvier', '2024', 'en')).toBe('Jan 2024');
+      expect(formatResumeDate('04', '2022', 'en')).toBe('Apr 2022');
     });
 
     it('formats and translates month and year in French', () => {
@@ -49,11 +58,13 @@ describe('resumeHelpers', () => {
       expect(formatResumeDate('May', '2024', 'fr')).toBe('Mai 2024');
       expect(formatResumeDate('Aug', '2022', 'fr')).toBe('Août 2022');
       expect(formatResumeDate('Dec', '2021', 'fr')).toBe('Déc. 2021');
+      expect(formatResumeDate('08', '2025', 'fr')).toBe('Août 2025');
     });
 
     it('formats and translates month and year in Spanish', () => {
       expect(formatResumeDate('Jan', '2024', 'es')).toBe('Ene. 2024');
       expect(formatResumeDate('Apr', '2023', 'es')).toBe('Abr. 2023');
+      expect(formatResumeDate('Avr', '2023', 'es')).toBe('Abr. 2023');
       expect(formatResumeDate('Aug', '2022', 'es')).toBe('Ago. 2022');
       expect(formatResumeDate('Dec', '2021', 'es')).toBe('Dic. 2021');
     });
@@ -61,6 +72,7 @@ describe('resumeHelpers', () => {
     it('handles lone year or lone month gracefully', () => {
       expect(formatResumeDate('', '2024', 'fr')).toBe('2024');
       expect(formatResumeDate('Jan', '', 'fr')).toBe('Janv.');
+      expect(formatResumeDate('Avr', '', 'en')).toBe('Apr');
       expect(formatResumeDate('', '', 'fr')).toBe('');
     });
   });
