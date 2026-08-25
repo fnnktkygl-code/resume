@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Field, TextInput, TextArea, Select } from '../ui/FormFields';
 import TagInput from '../ui/TagInput';
 import SectionHeader from '../ui/SectionHeader';
@@ -6,6 +7,9 @@ import { useTranslation } from '../../utils/TranslationContext';
 
 export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, onAIRewrite, onTranslateSection, isTranslating, headings, onHeadingsChange, layout, onLayoutChange }) {
   const { t } = useTranslation();
+  const [collapsedMap, setCollapsedMap] = useState({});
+  const toggleCollapse = (id) => setCollapsedMap(prev => ({ ...prev, [id]: !prev[id] }));
+
   const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
   const visibleItems = data.filter(e => !e.isSpacer);
 
@@ -32,7 +36,11 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
     updated[realIdx] = { ...updated[realIdx], bullets: bullets.length ? bullets : [''] };
     onChange(updated);
   };
-  const addExp = () => onChange([...data, createEmptyExperience()]);
+  const addExp = () => {
+    const newExp = createEmptyExperience();
+    onChange([...data, newExp]);
+    setCollapsedMap(prev => ({ ...prev, [newExp.id]: false }));
+  };
   const removeExp = (realIdx) => {
     if (visibleItems.length <= 1) return;
     onChange(data.filter((_, i) => i !== realIdx));
@@ -96,11 +104,51 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
       />
       {visibleItems.map((exp, vi) => {
         const realIdx = data.findIndex(item => item.id === exp.id);
+        const isCollapsed = !!collapsedMap[exp.id];
         return (
           <div key={exp.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div className="card-title">{t('Experience')} {visibleItems.length > 1 ? `#${vi + 1}` : ''}</div>
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isCollapsed ? '0' : '16px' }}>
+              <button 
+                type="button"
+                onClick={() => toggleCollapse(exp.id)}
+                aria-expanded={!isCollapsed}
+                aria-label={isCollapsed ? t('Expand') : t('Collapse')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  flex: 1,
+                  minWidth: 0,
+                  padding: 0,
+                  textAlign: 'left',
+                  fontFamily: 'inherit'
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    fontSize: '14px',
+                    color: 'var(--color-text-secondary)',
+                    transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    display: 'inline-block'
+                  }}
+                >
+                  ▾
+                </span>
+                <div className="card-title" style={{ fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                  {exp.title || exp.company ? `${exp.title || t('Untitled Role')}${exp.company ? ` · ${exp.company}` : ''}` : `${t('Experience')} #${vi + 1}`}
+                </div>
+                {isCollapsed && exp.startDate && (
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: 'auto', marginRight: '12px' }}>
+                    {exp.startDate} - {exp.current ? t('Present') : exp.endDate || ''}
+                  </span>
+                )}
+              </button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
                 {visibleItems.length > 1 && (
                   <>
                     <button
@@ -130,6 +178,8 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
                 )}
               </div>
             </div>
+            {!isCollapsed && (
+              <>
             <div className="field-grid">
               <Field label={t('Company')}>
                 <TextInput value={exp.company} onChange={(v) => updateExp(realIdx, 'company', v)} placeholder="Acme Corp" />
@@ -272,6 +322,8 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
                 </div>
               )}
             </div>
+            </>
+            )}
           </div>
         );
       })}

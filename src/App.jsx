@@ -222,20 +222,7 @@ export default function App() {
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isDailyTipOpen, setIsDailyTipOpen] = useState(false);
   const [isCareerOpsOpen, setIsCareerOpsOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const lastSeen = localStorage.getItem('resume-builder-daily-tip-seen');
-      if (lastSeen !== todayStr) {
-        const timer = setTimeout(() => {
-          setIsDailyTipOpen(true);
-          localStorage.setItem('resume-builder-daily-tip-seen', todayStr);
-        }, 1200);
-        return () => clearTimeout(timer);
-      }
-    } catch {}
-  }, []);
+  const [isZenPreview, setIsZenPreview] = useState(true);
 
   const t = (key) => getTranslation(language, key);
 
@@ -1609,6 +1596,15 @@ function estimateResumeHeightInPages(resumeData) {
                           📐 {layout.isCompact ? t('Normal') : t('Compact')}
                         </button>
                         <button 
+                          className={`control-btn ${isZenPreview ? 'active' : ''}`}
+                          onClick={() => setIsZenPreview(!isZenPreview)}
+                          data-tooltip={isZenPreview ? t('Aperçu Net actif (cliquer pour le mode ajustements direct)') : t('Mode Ajustements actif (cliquer pour masquer les bordures & poignées)')}
+                          data-tooltip-pos="bottom"
+                          aria-label="Zen Mode"
+                        >
+                          {isZenPreview ? '👁️ ' + t('Net') : '🛠️ ' + t('Ajuster')}
+                        </button>
+                        <button 
                           className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
                           onClick={() => setIsLayoutOpen(!isLayoutOpen)}
                           aria-expanded={isLayoutOpen}
@@ -1780,6 +1776,7 @@ function estimateResumeHeightInPages(resumeData) {
                 layout={layout} 
                 language={language} 
                 template={template}
+                isZenMode={isZenPreview}
                 onSectionReorder={handleSectionReorder}
                 onSectionRemove={setSectionToDelete}
                 onSectionClick={handleSectionClick}

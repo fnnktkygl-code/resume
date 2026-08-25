@@ -13,6 +13,7 @@ function ResumePreview({
   language = 'en',
   compact = false,
   printMode = false,
+  isZenMode = false,
   template = 'standard',
   onSectionReorder,
   onSectionRemove,
@@ -504,7 +505,7 @@ function ResumePreview({
   }, []);
 
   const ItemWrapper = ({ sectionId, itemId, index, className, style, children }) => {
-    const isDraggable = !printMode && onItemReorder;
+    const isDraggable = !printMode && !isZenMode && onItemReorder;
 
     const dragClass = isDraggable ? 'draggable-item preview-interactive-item' : '';
 
@@ -547,17 +548,11 @@ function ResumePreview({
               </svg>
             </span>
             <button
-              className="item-delete"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onItemDelete) onItemDelete(sectionId, index);
-              }}
-              title={t('Delete Item')}
+              className="item-delete-btn"
+              onClick={(e) => { e.stopPropagation(); onItemDelete(sectionId, index); }}
+              title={t('Delete item')}
             >
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              ✕
             </button>
           </div>
         )}
@@ -567,6 +562,10 @@ function ResumePreview({
   };
 
   const NestedSpacer = ({ height, onChangeHeight, onDelete }) => {
+    if (printMode || isZenMode) {
+      return <div style={{ height: `${height}px` }} />;
+    }
+
     const [localHeight, setLocalHeight] = useState(height);
 
     useEffect(() => {
@@ -574,7 +573,7 @@ function ResumePreview({
     }, [height]);
 
     const handleChange = (e) => {
-      const val = Number(e.target.value);
+      const val = parseInt(e.target.value, 10);
       setLocalHeight(val);
     };
 
@@ -615,6 +614,8 @@ function ResumePreview({
   };
 
   const InsertSpacerButton = ({ onClick }) => {
+    if (printMode || isZenMode) return null;
+
     return (
       <div className="insert-spacer-container" onClick={(e) => { e.stopPropagation(); onClick(); }}>
         <div className="insert-spacer-line" />
@@ -630,15 +631,16 @@ function ResumePreview({
   };
 
   const SectionWrapper = ({ sectionId, className, style, children }) => {
-    const isDraggable = !printMode && onSectionReorder;
+    const isDraggable = !printMode && !isZenMode && onSectionReorder;
+    const isInteractive = onSectionClick && !printMode && !isZenMode;
 
     const dragClass = isDraggable
       ? 'draggable-section preview-interactive-section'
-      : (onSectionClick && !printMode ? 'preview-interactive-section' : '');
+      : (isInteractive ? 'preview-interactive-section' : '');
 
     const combinedClassName = `${dragClass} ${className || ''}`.trim();
 
-    const interactiveStyle = onSectionClick && !printMode ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
+    const interactiveStyle = isInteractive ? { cursor: 'pointer', padding: '2px', margin: '-2px', borderRadius: '4px' } : {};
     const combinedStyle = { breakInside: 'avoid', pageBreakInside: 'avoid', ...interactiveStyle, ...(style || {}) };
 
     const wrapperRef = useRef(null);
@@ -649,11 +651,11 @@ function ResumePreview({
       onDragLeave: handleDragLeave,
       onDrop: (e) => handleDrop(e, sectionId),
       className: combinedClassName,
-      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      onClick: isInteractive ? () => onSectionClick(sectionId) : undefined,
       style: combinedStyle
     } : {
       className: combinedClassName,
-      onClick: onSectionClick && !printMode ? () => onSectionClick(sectionId) : undefined,
+      onClick: isInteractive ? () => onSectionClick(sectionId) : undefined,
       style: combinedStyle
     };
 
