@@ -143,9 +143,9 @@ export default function SectionHeader({
                     padding: '8px 10px',
                     fontSize: '12px',
                     gap: '8px',
-                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                    color: '#10B981',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    backgroundColor: 'var(--color-accent-light)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid var(--color-accent)',
                     borderRadius: '6px'
                   }}
                 >
@@ -199,9 +199,9 @@ export default function SectionHeader({
                     padding: '8px 10px',
                     fontSize: '12px',
                     gap: '8px',
-                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                    color: '#EF4444',
-                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    backgroundColor: 'var(--color-danger-light)',
+                    color: 'var(--color-danger)',
+                    border: '1px solid var(--color-danger)',
                     borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',

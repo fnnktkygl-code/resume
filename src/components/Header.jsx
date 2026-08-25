@@ -127,32 +127,13 @@ export default function Header({
 
         {/* 4. Core Feature (Desktop): CareerOps with Beta Badge */}
         <button
-          className="btn-demo desktop-only"
-          style={{ 
-            marginRight: '6px', 
-            border: '1px solid rgba(16, 185, 129, 0.4)',
-            background: 'rgba(16, 185, 129, 0.1)',
-            color: '#10B981',
-            fontWeight: '600',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}
+          className="btn-demo btn-careerops-nav desktop-only"
           onClick={() => setIsCareerOpsOpen && setIsCareerOpsOpen(true)}
           data-tooltip={tr('Smart Job Search, ATS Matcher & 1-Click Apply (In active development)')}
           data-tooltip-pos="bottom"
         >
           <span>🎯 CareerOps</span>
-          <span style={{ 
-            fontSize: '9.5px', 
-            fontWeight: '700', 
-            textTransform: 'uppercase', 
-            padding: '1px 5px', 
-            borderRadius: '4px', 
-            background: 'rgba(16, 185, 129, 0.25)', 
-            color: '#10B981', 
-            border: '1px solid rgba(16, 185, 129, 0.4)' 
-          }}>
+          <span className="careerops-beta-chip">
             {tr('Beta')}
           </span>
         </button>

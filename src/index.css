@@ -3,7 +3,7 @@
    ============================================ */
 
 :root {
-  /* Colors — Light */
+  /* Colors — Light (WCAG 2.2 Compliant) */
   --color-bg: #F7F6F3;
   --color-surface: #FFFFFF;
   --color-surface-alt: #F0EFEB;
@@ -12,15 +12,15 @@
   --color-border-focus: #2D2A26;
   --color-text: #1A1917;
   --color-text-secondary: #6B6860;
-  --color-text-muted: #9C9889;
+  --color-text-muted: #615E56;
   --color-accent: #1B6B3A;
   --color-accent-light: #E4F2E8;
   --color-accent-hover: #145A2E;
   --color-accent-contrast: #FFFFFF;
-  --color-danger: #C0392B;
-  --color-danger-light: #FDEDEB;
-  --color-warning: #B8860B;
-  --color-warning-light: #FFF8E1;
+  --color-danger: #B91C1C;
+  --color-danger-light: #FEE2E2;
+  --color-warning: #92400E;
+  --color-warning-light: #FEF3C7;
   --color-success: #1B6B3A;
   --color-success-light: #E4F2E8;
   --color-header-bg: #FFFFFF;
@@ -61,15 +61,15 @@
   --color-border-focus: #D4D0C8;
   --color-text: #EDECE8;
   --color-text-secondary: #C8C5BC;
-  --color-text-muted: #959288;
+  --color-text-muted: #9CA3AF;
   --color-accent: #4ADE80;
   --color-accent-light: #162A1E;
   --color-accent-hover: #22C55E;
   --color-accent-contrast: #0F0F0E;
-  --color-danger: #EF4444;
-  --color-danger-light: #2A1515;
-  --color-warning: #F59E0B;
-  --color-warning-light: #2A2210;
+  --color-danger: #F87171;
+  --color-danger-light: #381B1B;
+  --color-warning: #FBBF24;
+  --color-warning-light: #332408;
   --color-success: #4ADE80;
   --color-success-light: #162A1E;
   --color-header-bg: #0A0A09;
@@ -849,30 +849,31 @@ input[type="range"] {
 }
 
 .stepper-hidden-badge {
-  color: #d97706;
-  background: rgba(217, 119, 6, 0.1);
+  color: var(--color-warning);
+  background: var(--color-warning-light);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
 .step-btn.step-hidden {
-  opacity: 0.75;
+  opacity: 0.8;
   border-style: dashed;
   background: rgba(0, 0, 0, 0.02);
 }
 
 .step-btn.step-hidden:not(.active):hover {
   opacity: 1;
-  border-color: #d97706;
+  border-color: var(--color-warning);
 }
 
 .step-hidden-icon {
   font-size: 11px;
-  color: #d97706;
+  color: var(--color-warning);
   margin-left: 2px;
   display: flex;
   align-items: center;
@@ -880,6 +881,40 @@ input[type="range"] {
 
 .step-btn.active .step-hidden-icon {
   color: var(--color-accent-contrast);
+}
+
+/* CareerOps Header Navigation Button */
+.btn-careerops-nav {
+  margin-right: 6px;
+  border: 1px solid var(--color-accent) !important;
+  background: var(--color-accent-light) !important;
+  color: var(--color-accent) !important;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--transition-fast);
+}
+
+.btn-careerops-nav:hover {
+  background: var(--color-accent) !important;
+  color: var(--color-accent-contrast) !important;
+}
+
+.careerops-beta-chip {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(27, 107, 58, 0.15);
+  color: var(--color-accent);
+  border: 1px solid currentColor;
+}
+
+[data-theme="dark"] .careerops-beta-chip {
+  background: rgba(74, 222, 128, 0.2);
+  color: var(--color-accent);
 }
 
 .stepper-actions {
