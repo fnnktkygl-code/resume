@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
+import { CustomSelect } from './FormFields';
 
 /**
  * Minimalist Japandi / Apple SectionHeader component.
@@ -160,28 +161,13 @@ export default function SectionHeader({
                     {styleControls.label}
                   </label>
                   {styleControls.dropdowns.map((drop, i) => (
-                    <select
+                    <CustomSelect
                       key={i}
                       value={drop.value}
-                      onChange={(e) => drop.onChange(e.target.value)}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        fontSize: '12px',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer',
-                        width: '100%'
-                      }}
-                    >
-                      {drop.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(newVal) => drop.onChange(newVal)}
+                      options={drop.options}
+                      size="sm"
+                    />
                   ))}
                 </div>
               )}

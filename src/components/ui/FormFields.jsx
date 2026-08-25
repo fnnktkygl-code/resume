@@ -634,24 +634,249 @@ export function TextArea({ value, onChange, placeholder, rows = 3, onAIAssist, o
   );
 }
 
-export function Select({ value, onChange, options, placeholder }) {
+export function CustomSelect({
+  value,
+  onChange,
+  options = [],
+  placeholder,
+  className = '',
+  style = {},
+  disabled = false,
+  size = 'md'
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const selectRef = useRef(null);
+
+  // Normalize options to { value, label }
+  const normalizedOptions = options.map((opt) => {
+    if (typeof opt === 'object' && opt !== null) {
+      return { value: opt.value, label: opt.label || opt.value };
+    }
+    return { value: opt, label: String(opt) };
+  });
+
+  const selectedOption = normalizedOptions.find((opt) => opt.value === value);
+
+  // Auto-dismiss on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutsideClick = (e) => {
+      if (selectRef.current && !selectRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isOpen]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (disabled) return;
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (isOpen && highlightedIndex >= 0 && highlightedIndex < normalizedOptions.length) {
+        onChange(normalizedOptions[highlightedIndex].value);
+        setIsOpen(false);
+      } else {
+        setIsOpen(!isOpen);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        setHighlightedIndex(0);
+      } else {
+        setHighlightedIndex((prev) => (prev < normalizedOptions.length - 1 ? prev + 1 : 0));
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        setHighlightedIndex(normalizedOptions.length - 1);
+      } else {
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : normalizedOptions.length - 1));
+      }
+    } else if (e.key === 'Escape' || e.key === 'Tab') {
+      setIsOpen(false);
+    }
+  };
+
+  const isSmall = size === 'sm';
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`select-input${!value ? ' placeholder' : ''}`}
-      style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
+    <div
+      ref={selectRef}
+      className={`custom-select-container ${className}`.trim()}
+      style={{
+        position: 'relative',
+        width: '100%',
+        boxSizing: 'border-box',
+        ...style
+      }}
+      onKeyDown={handleKeyDown}
     >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => {
-        const val = typeof o === 'object' && o !== null ? o.value : o;
-        const lbl = typeof o === 'object' && o !== null ? o.label : o;
-        return (
-          <option key={val} value={val}>
-            {lbl}
-          </option>
-        );
-      })}
-    </select>
+      {/* Trigger button */}
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          padding: isSmall ? '6px 10px' : '8px 12px',
+          fontSize: isSmall ? '12px' : '13px',
+          fontFamily: 'inherit',
+          color: selectedOption ? 'var(--color-text)' : 'var(--color-text-secondary)',
+          backgroundColor: 'var(--color-surface)',
+          border: `1px solid ${isOpen ? 'var(--color-accent)' : 'var(--color-border)'}`,
+          borderRadius: 'var(--radius-sm, 8px)',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          outline: 'none',
+          textAlign: 'left',
+          transition: 'border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease',
+          boxShadow: isOpen ? '0 0 0 2px var(--color-accent-light)' : 'none',
+          opacity: disabled ? 0.6 : 1,
+          boxSizing: 'border-box'
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {selectedOption ? selectedOption.label : (placeholder || '—')}
+        </span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            flexShrink: 0,
+            color: 'var(--color-text-secondary)',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.18s ease'
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {/* Popover Dropdown Menu */}
+      {isOpen && (
+        <div
+          role="listbox"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            zIndex: 1200,
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-sm, 8px)',
+            boxShadow: 'var(--shadow-lg, 0 10px 30px rgba(0,0,0,0.25))',
+            padding: '4px',
+            maxHeight: '220px',
+            overflowY: 'auto',
+            animation: 'fadeInScale 0.12s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxSizing: 'border-box'
+          }}
+        >
+          {placeholder && (
+            <div
+              role="option"
+              aria-selected={!value}
+              onClick={() => {
+                onChange('');
+                setIsOpen(false);
+              }}
+              style={{
+                padding: isSmall ? '5px 8px' : '7px 10px',
+                fontSize: isSmall ? '11.5px' : '12.5px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                color: 'var(--color-text-secondary)',
+                fontStyle: 'italic',
+                backgroundColor: !value ? 'var(--color-surface-alt)' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'background-color 0.1s ease'
+              }}
+            >
+              <span>{placeholder}</span>
+              {!value && <span style={{ color: 'var(--color-accent)', fontWeight: 'bold' }}>✓</span>}
+            </div>
+          )}
+
+          {normalizedOptions.map((opt, index) => {
+            const isSelected = opt.value === value;
+            const isHighlighted = highlightedIndex === index;
+
+            return (
+              <div
+                key={opt.value}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                style={{
+                  padding: isSmall ? '6px 8px' : '8px 10px',
+                  fontSize: isSmall ? '12px' : '13px',
+                  fontWeight: isSelected ? '600' : '400',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: isSelected ? 'var(--color-accent)' : 'var(--color-text)',
+                  backgroundColor: isSelected
+                    ? 'var(--color-accent-light)'
+                    : isHighlighted
+                    ? 'var(--color-surface-alt)'
+                    : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  transition: 'background-color 0.1s ease, color 0.1s ease'
+                }}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {opt.label}
+                </span>
+                {isSelected && (
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ color: 'var(--color-accent)', flexShrink: 0 }}
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
+
+export const Select = CustomSelect;

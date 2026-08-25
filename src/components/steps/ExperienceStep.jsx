@@ -280,44 +280,28 @@ export default function ExperienceStep({ data, onChange, onAIAssist, onAIBold, o
                     🎨 {t('Tags & Technologies Style')}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <select
+                    <Select
                       value={layout?.tagStyle || 'outline'}
-                      onChange={(e) => updateLayout('tagStyle', e.target.value)}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 'var(--radius-md, 4px)',
-                        border: '1px solid var(--color-border, #ccc)',
-                        backgroundColor: 'var(--color-surface, #fff)',
-                        color: 'var(--color-text, #333)',
-                        fontSize: '12.5px',
-                        cursor: 'pointer',
-                        flex: 1
-                      }}
-                    >
-                      <option value="outline">{t('Square Contour')}</option>
-                      <option value="pill-outline">{t('Rounded Contour')}</option>
-                      <option value="square">{t('Squares')}</option>
-                      <option value="pill">{t('Rounded Circles')}</option>
-                      <option value="text">{t('Simple Text')}</option>
-                    </select>
-                    <select
+                      onChange={(val) => updateLayout('tagStyle', val)}
+                      options={[
+                        { value: 'outline', label: t('Square Contour') },
+                        { value: 'pill-outline', label: t('Rounded Contour') },
+                        { value: 'square', label: t('Squares') },
+                        { value: 'pill', label: t('Rounded Circles') },
+                        { value: 'text', label: t('Simple Text') }
+                      ]}
+                      size="sm"
+                    />
+                    <Select
                       value={layout?.coloredTags || 'highlighted'}
-                      onChange={(e) => updateLayout('coloredTags', e.target.value)}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 'var(--radius-md, 4px)',
-                        border: '1px solid var(--color-border, #ccc)',
-                        backgroundColor: 'var(--color-surface, #fff)',
-                        color: 'var(--color-text, #333)',
-                        fontSize: '12.5px',
-                        cursor: 'pointer',
-                        flex: 1
-                      }}
-                    >
-                      <option value="neutral">{t('Neutral Tags')}</option>
-                      <option value="highlighted">{t('AI Highlighted')}</option>
-                      <option value="all">{t('Color All Tags')}</option>
-                    </select>
+                      onChange={(val) => updateLayout('coloredTags', val)}
+                      options={[
+                        { value: 'neutral', label: t('Neutral Tags') },
+                        { value: 'highlighted', label: t('AI Highlighted') },
+                        { value: 'all', label: t('Color All Tags') }
+                      ]}
+                      size="sm"
+                    />
                   </div>
                 </div>
               )}
