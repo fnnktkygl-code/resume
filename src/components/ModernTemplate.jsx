@@ -27,11 +27,11 @@ function ModernTemplate({
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
-  const highlightedSkills = data.skills.highlightedSkills || [];
+  const highlightedSkills = data?.skills?.highlightedSkills || [];
   const hasPerSkillHighlights = highlightedSkills.length > 0;
 
   const getSkillClass = (skillText, defaultClass) => {
-    const key = skillText.toLowerCase().trim();
+    const key = (skillText || '').toLowerCase().trim();
     if (hasPerSkillHighlights) {
       return highlightedSkills.includes(key) ? defaultClass.replace('skill-pill', 'skill-pill-accent').replace('skill-square', 'skill-square-accent') : defaultClass.replace('-accent', '');
     }
@@ -40,8 +40,8 @@ function ModernTemplate({
 
   const handleSkillClick = (skillText) => {
     if (printMode || !onSkillHighlightToggle) return;
-    const key = skillText.toLowerCase().trim();
-    const current = data.skills.highlightedSkills || [];
+    const key = (skillText || '').toLowerCase().trim();
+    const current = data?.skills?.highlightedSkills || [];
     const updated = current.includes(key)
       ? current.filter(s => s !== key)
       : [...current, key];
@@ -67,7 +67,7 @@ function ModernTemplate({
                   fontWeight: isAccent ? 600 : undefined,
                   transition: 'color 0.2s ease, font-weight 0.2s ease'
                 }}
-                title={!printMode ? (isAccent ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+                data-tooltip={!printMode ? (isAccent ? t('Click to remove highlight') : t('Click to highlight skill')) : undefined}
               >
                 {si > 0 && ' • '}
                 {parseMarkdown(skill)}
@@ -84,7 +84,7 @@ function ModernTemplate({
         <span key={si} className={`${cls} skill-toggleable`}
           onClick={() => handleSkillClick(skill)}
           style={{ cursor: printMode ? 'default' : 'pointer', transition: 'all 0.2s ease' }}
-          title={!printMode ? (cls.includes('-accent') ? 'Cliquer pour retirer la mise en valeur' : 'Cliquer pour mettre en valeur') : undefined}
+          data-tooltip={!printMode ? (cls.includes('-accent') ? t('Click to remove highlight') : t('Click to highlight skill')) : undefined}
         >
           {parseMarkdown(skill)}
         </span>
@@ -92,23 +92,22 @@ function ModernTemplate({
     });
   };
 
-  const p = data.personal;
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
+  const p = data?.personal || {};
+  const validExp = (data?.experience || []).filter(e => e?.company || e?.title || e?.isSpacer);
+  const validEdu = (data?.education || []).filter(e => e?.institution || e?.degree || e?.isSpacer);
+  const validProj = (data?.projects || []).filter(pr => pr?.name || pr?.isSpacer);
+  const validCert = (data?.certifications || []).filter(c => c?.name || c?.isSpacer);
+  const hasCustomLangues = (data?.customSections || []).some(s => 
+    s?.id === 'custom_langues' && (s?.items || []).some(i => i?.title || i?.subtitle || i?.description || i?.isSpacer)
   );
-  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const h = data.headings || {};
+  const hasSkills = data?.skills?.technical || data?.skills?.soft || (data?.skills?.languages && !hasCustomLangues);
+  const h = data?.headings || {};
 
   const getWrapProps = (id) => {
     if (SectionWrapper) {
-      return { key: id, sectionId: id };
+      return { sectionId: id };
     }
     return {
-      key: id,
       className: onSectionClick ? "preview-interactive-section" : "",
       style: { cursor: onSectionClick ? 'pointer' : 'default', padding: '2px', margin: '-2px', borderRadius: '4px' },
       onClick: onSectionClick ? () => onSectionClick(id) : undefined

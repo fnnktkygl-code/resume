@@ -71,23 +71,23 @@ function NjmTemplate({
   onSkillHighlightToggle
 }) {
   const t = (key) => getTranslation(language, key);
-  const p = data.personal;
+  const p = data?.personal || {};
   const hasContact = hasContactInfo(p);
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasSkills = data.skills.technical || data.skills.soft || data.skills.languages;
+  const validExp = (data?.experience || []).filter(e => e?.company || e?.title || e?.isSpacer);
+  const validEdu = (data?.education || []).filter(e => e?.institution || e?.degree || e?.isSpacer);
+  const validProj = (data?.projects || []).filter(pr => pr?.name || pr?.isSpacer);
+  const validCert = (data?.certifications || []).filter(c => c?.name || c?.isSpacer);
+  const hasSkills = data?.skills?.technical || data?.skills?.soft || data?.skills?.languages;
 
-  const h = data.headings || {};
+  const h = data?.headings || {};
 
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
-  const highlightedSkills = data.skills.highlightedSkills || [];
+  const highlightedSkills = data?.skills?.highlightedSkills || [];
   const hasPerSkillHighlights = highlightedSkills.length > 0;
 
   const getSkillClass = (skillText, defaultClass) => {
-    const key = skillText.toLowerCase().trim();
+    const key = (skillText || '').toLowerCase().trim();
     if (hasPerSkillHighlights) {
       return highlightedSkills.includes(key) ? defaultClass.replace('skill-pill', 'skill-pill-accent').replace('skill-square', 'skill-square-accent') : defaultClass.replace('-accent', '');
     }
@@ -96,8 +96,8 @@ function NjmTemplate({
 
   const handleSkillClick = (skillText) => {
     if (printMode || !onSkillHighlightToggle) return;
-    const key = skillText.toLowerCase().trim();
-    const current = data.skills.highlightedSkills || [];
+    const key = (skillText || '').toLowerCase().trim();
+    const current = data?.skills?.highlightedSkills || [];
     const updated = current.includes(key)
       ? current.filter(s => s !== key)
       : [...current, key];
@@ -192,10 +192,9 @@ function NjmTemplate({
   const getWrapProps = (id) => {
     const sectionStyle = { marginBottom: `${sectionSpacing}px` };
     if (SectionWrapper) {
-      return { key: id, sectionId: id, style: sectionStyle };
+      return { sectionId: id, style: sectionStyle };
     }
     return {
-      key: id,
       className: onSectionClick ? "preview-interactive-section" : "",
       style: {
         ...sectionStyle,

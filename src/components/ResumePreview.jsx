@@ -29,11 +29,11 @@ function ResumePreview({
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
-  const highlightedSkills = data.skills.highlightedSkills || [];
+  const highlightedSkills = data?.skills?.highlightedSkills || [];
   const hasPerSkillHighlights = highlightedSkills.length > 0;
 
   const getSkillClass = (skillText, defaultClass) => {
-    const key = skillText.toLowerCase().trim();
+    const key = (skillText || '').toLowerCase().trim();
     if (hasPerSkillHighlights) {
       return highlightedSkills.includes(key) ? defaultClass.replace('skill-pill', 'skill-pill-accent').replace('skill-square', 'skill-square-accent') : defaultClass.replace('-accent', '');
     }
@@ -42,8 +42,8 @@ function ResumePreview({
 
   const handleSkillClick = (skillText) => {
     if (printMode || !onSkillHighlightToggle) return;
-    const key = skillText.toLowerCase().trim();
-    const current = data.skills.highlightedSkills || [];
+    const key = (skillText || '').toLowerCase().trim();
+    const current = data?.skills?.highlightedSkills || [];
     const updated = current.includes(key)
       ? current.filter(s => s !== key)
       : [...current, key];
@@ -95,32 +95,32 @@ function ResumePreview({
   };
   // Detect simple-list custom sections (langues, atouts, loisirs) that should render compactly
   const isCompactCustomSection = (sec) => {
-    const label = (sec.label || '').toLowerCase();
+    const label = (sec?.label || '').toLowerCase();
     return /langue|language|idioma|atout|strength|qualit|asset|compétenc|competenc|loisir|hobbi|interest|détente|intere/.test(label);
   };
 
-  const p = data.personal;
+  const p = data?.personal || {};
   const hasContact = hasContactInfo(p);
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s =>
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
+  const validExp = (data?.experience || []).filter(e => e?.company || e?.title || e?.isSpacer);
+  const validEdu = (data?.education || []).filter(e => e?.institution || e?.degree || e?.isSpacer);
+  const validProj = (data?.projects || []).filter(pr => pr?.name || pr?.isSpacer);
+  const validCert = (data?.certifications || []).filter(c => c?.name || c?.isSpacer);
+  const hasCustomLangues = (data?.customSections || []).some(s =>
+    s?.id === 'custom_langues' && (s?.items || []).some(i => i?.title || i?.subtitle || i?.description || i?.isSpacer)
   );
 
-  const hasSkills = data.skills?.technical || data.skills?.soft || (data.skills?.languages && !hasCustomLangues);
-  const hasStructuredContent = hasContact || Boolean(data.summary?.trim()) ||
-    data.experience.some(e => e.company || e.title) ||
-    data.education.some(e => e.institution || e.degree) ||
+  const hasSkills = data?.skills?.technical || data?.skills?.soft || (data?.skills?.languages && !hasCustomLangues);
+  const hasStructuredContent = hasContact || Boolean(data?.summary?.trim()) ||
+    (data?.experience || []).some(e => e?.company || e?.title) ||
+    (data?.education || []).some(e => e?.institution || e?.degree) ||
     hasSkills ||
-    data.projects.some(pr => pr.name) ||
-    data.certifications.some(c => c.name);
+    (data?.projects || []).some(pr => pr?.name) ||
+    (data?.certifications || []).some(c => c?.name);
 
   const hasContent = Boolean(p?.name?.trim()) || hasStructuredContent;
 
-  const h = data.headings || {};
-  const sectionOrder = data.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
+  const h = data?.headings || {};
+  const sectionOrder = data?.sectionOrder || ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'];
 
   const {
     fontSize = 10.5,

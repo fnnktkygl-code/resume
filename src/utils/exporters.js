@@ -77,12 +77,18 @@ export function exportMarkdown(data) {
     }
   });
 
-  download(md, `${(p.name || 'resume').replace(/\s+/g, '_')}_resume.md`, 'text/markdown');
+  if (typeof document !== 'undefined') {
+    download(md, `${(p?.name || 'resume').replace(/\s+/g, '_')}_resume.md`, 'text/markdown');
+  }
+  return md;
 }
 
 export function exportJson(data) {
   const json = JSON.stringify(data, null, 2);
-  download(json, `${(data.personal.name || 'resume').replace(/\s+/g, '_')}_data.json`, 'application/json');
+  if (typeof document !== 'undefined') {
+    download(json, `${(data?.personal?.name || 'resume').replace(/\s+/g, '_')}_data.json`, 'application/json');
+  }
+  return json;
 }
 
 export function exportDocx(data) {
@@ -287,7 +293,10 @@ ${item.description ? `<p style="margin: 0; font-size: 10.5pt; white-space: pre-l
 
   html += `</body>\n</html>`;
 
-  download(html, `${(p.name || 'resume').replace(/\s+/g, '_')}_resume.doc`, 'application/msword');
+  if (typeof document !== 'undefined') {
+    download(html, `${(p?.name || 'resume').replace(/\s+/g, '_')}_resume.doc`, 'application/msword');
+  }
+  return html;
 }
 
 export function importJson(file) {
@@ -312,6 +321,7 @@ export function importJson(file) {
 }
 
 function download(content, filename, type) {
+  if (typeof window !== 'undefined' && window.__TEST_SKIP_DOWNLOAD__) return;
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

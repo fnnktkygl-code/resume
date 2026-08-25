@@ -25,24 +25,24 @@ function MinimalistTemplate({
   const t = (key) => getTranslation(language, key);
   const displayHeading = (key, defaultEn, tKey) => _displayHeading(h, key, defaultEn, tKey, language);
 
-  const p = data.personal;
-  const validExp = data.experience.filter(e => e.company || e.title || e.isSpacer);
-  const validEdu = data.education.filter(e => e.institution || e.degree || e.isSpacer);
-  const validProj = data.projects.filter(pr => pr.name || pr.isSpacer);
-  const validCert = data.certifications.filter(c => c.name || c.isSpacer);
-  const hasCustomLangues = data.customSections?.some(s => 
-    s.id === 'custom_langues' && s.items.some(i => i.title || i.subtitle || i.description || i.isSpacer)
+  const p = data?.personal || {};
+  const validExp = (data?.experience || []).filter(e => e?.company || e?.title || e?.isSpacer);
+  const validEdu = (data?.education || []).filter(e => e?.institution || e?.degree || e?.isSpacer);
+  const validProj = (data?.projects || []).filter(pr => pr?.name || pr?.isSpacer);
+  const validCert = (data?.certifications || []).filter(c => c?.name || c?.isSpacer);
+  const hasCustomLangues = (data?.customSections || []).some(s => 
+    s?.id === 'custom_langues' && (s?.items || []).some(i => i?.title || i?.subtitle || i?.description || i?.isSpacer)
   );
-  const hasSkills = data.skills.technical || data.skills.soft || (data.skills.languages && !hasCustomLangues);
-  const h = data.headings || {};
+  const hasSkills = data?.skills?.technical || data?.skills?.soft || (data?.skills?.languages && !hasCustomLangues);
+  const h = data?.headings || {};
 
-  const highlightedSkills = data.skills.highlightedSkills || [];
+  const highlightedSkills = data?.skills?.highlightedSkills || [];
   const hasPerSkillHighlights = highlightedSkills.length > 0;
 
   const handleSkillClick = (skillText) => {
     if (printMode || !onSkillHighlightToggle) return;
-    const key = skillText.toLowerCase().trim();
-    const current = data.skills.highlightedSkills || [];
+    const key = (skillText || '').toLowerCase().trim();
+    const current = data?.skills?.highlightedSkills || [];
     const updated = current.includes(key)
       ? current.filter(s => s !== key)
       : [...current, key];
@@ -54,7 +54,7 @@ function MinimalistTemplate({
     return (
       <span>
         {tags.map((skill, si) => {
-          const key = skill.toLowerCase().trim();
+          const key = (skill || '').toLowerCase().trim();
           const isAccent = hasPerSkillHighlights
             ? highlightedSkills.includes(key)
             : layout.coloredSkills !== false;
@@ -80,10 +80,9 @@ function MinimalistTemplate({
 
   const getWrapProps = (id, style) => {
     if (SectionWrapper) {
-      return { key: id, sectionId: id, style: style };
+      return { sectionId: id, style: style };
     }
     return {
-      key: id,
       className: onSectionClick ? "preview-interactive-section" : "",
       style: style,
       onClick: onSectionClick ? () => onSectionClick(id) : undefined
