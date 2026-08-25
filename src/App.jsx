@@ -175,6 +175,7 @@ export default function App() {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const templateDropdownRef = useRef(null);
   const aiToolsDropdownRef = useRef(null);
+  const layoutDropdownRef = useRef(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -324,9 +325,9 @@ export default function App() {
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [isMobileLayoutOpen, setIsMobileLayoutOpen] = useState(false);
 
-  // Close template dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!isTemplateDropdownOpen && !isAIToolsDropdownOpen) return;
+    if (!isTemplateDropdownOpen && !isAIToolsDropdownOpen && !isLayoutOpen) return;
     function handleOutside(e) {
       if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target)) {
         setIsTemplateDropdownOpen(false);
@@ -334,10 +335,13 @@ export default function App() {
       if (aiToolsDropdownRef.current && !aiToolsDropdownRef.current.contains(e.target)) {
         setIsAIToolsDropdownOpen(false);
       }
+      if (layoutDropdownRef.current && !layoutDropdownRef.current.contains(e.target)) {
+        setIsLayoutOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, [isTemplateDropdownOpen, isAIToolsDropdownOpen]);
+  }, [isTemplateDropdownOpen, isAIToolsDropdownOpen, isLayoutOpen]);
 
   const [sectionToDelete, setSectionToDelete] = useState(null);
   const [aiBoldConfig, setAiBoldConfig] = useState({ isOpen: false, text: '', contextType: '', onUpdate: null });
@@ -1636,15 +1640,36 @@ function estimateResumeHeightInPages(resumeData) {
                         >
                           {isZenPreview ? '👁️ ' + t('Net') : '🛠️ ' + t('Ajuster')}
                         </button>
-                        <button 
-                          className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
-                          onClick={() => setIsLayoutOpen(!isLayoutOpen)}
-                          aria-expanded={isLayoutOpen}
-                          data-tooltip={t('Toggle layout settings panel (font, margins, spacing)')}
-                          data-tooltip-pos="bottom"
-                        >
-                          <i className="fi fi-rr-settings"></i>
-                        </button>
+                        <div className="tpl-dropdown-wrap" ref={layoutDropdownRef} style={{ position: 'relative' }}>
+                          <button 
+                            className={`control-btn ${isLayoutOpen ? 'active' : ''}`}
+                            onClick={() => setIsLayoutOpen(!isLayoutOpen)}
+                            aria-expanded={isLayoutOpen}
+                            data-tooltip={t('Toggle layout settings panel (font, margins, spacing)')}
+                            data-tooltip-pos="bottom"
+                          >
+                            <i className="fi fi-rr-settings"></i>
+                          </button>
+
+                          {isLayoutOpen && (
+                            <div 
+                              className="layout-controls-popover"
+                              style={{
+                                position: 'absolute',
+                                top: 'calc(100% + 8px)',
+                                right: 0,
+                                width: '380px',
+                                maxWidth: 'calc(100vw - 32px)',
+                                maxHeight: 'calc(100vh - 140px)',
+                                overflowY: 'auto',
+                                zIndex: 200,
+                                borderRadius: '12px'
+                              }}
+                            >
+                              <LayoutControls layout={layout} onChange={setLayout} onClose={() => setIsLayoutOpen(false)} />
+                            </div>
+                          )}
+                        </div>
 
                       </div>
 
@@ -1745,8 +1770,6 @@ function estimateResumeHeightInPages(resumeData) {
                     </div>
                   )}
                 </div>
-
-                {!isPreviewHeaderCollapsed && isLayoutOpen && <LayoutControls layout={layout} onChange={setLayout} />}
                 
                 {/* S1: Direct export — PDF and Word DOCX */}
                 {!isPreviewHeaderCollapsed && (

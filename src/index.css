@@ -753,12 +753,16 @@ body {
    Layout Controls Panel
    ============================================ */
 
+.layout-controls-popover {
+  animation: fadeInDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 .layout-controls-panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 16px 20px;
-  margin-bottom: 16px;
+  padding: 16px 18px;
   box-shadow: var(--shadow-sm);
 }
 
