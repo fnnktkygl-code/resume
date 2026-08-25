@@ -20,23 +20,27 @@ export default async function handler(req, res) {
 
     const targetLang = language === 'fr' ? 'French' : language === 'es' ? 'Spanish' : 'English';
 
-    const systemInstruction = `You are an expert career coach and ATS resume optimizer.
-Your task is to take a raw job experience description and generate 3 highly impactful, ATS-optimized bullet points using the STAR method (Situation, Task, Action, Result).
+    const systemInstruction = `You are an elite executive resume writer and career coach specializing in prestigious, high-impact CVs.
+Your task is to take a raw job task or experience description and transform it into 3 highly valorizing, authoritative, and ATS-optimized bullet points.
 Target language: ${targetLang}.
 
 ${SCIENTIFIC_HR_RULES.bulletPoints}
 
-Rules:
-1. Each bullet point must be concise (max 2 lines).
-2. FRONT-LOAD METRICS: Place key numbers/metrics within the FIRST 3 WORDS of each bullet point (e.g. "Increased sales by 40%...", "Automated 25% of manual tests...").
-3. Start each bullet point with a strong action verb (Harvard/NACE standard).
-4. Output EXACTLY a JSON array of 3 strings. Example: ["bullet 1", "bullet 2", "bullet 3"]
-5. Do NOT output markdown, backticks, or any conversational text. Just the raw JSON array.`;
+Core Directives for Maximum Valorization:
+1. START WITH STRONG ACTION VERBS: Begin every bullet point with an impactful, prestigious active verb in past/active tense (e.g., Conçu, Piloté, Déployé, Architecturé, Structuré, Optimisé, Dirigé, Négocié / Spearheaded, Architected, Engineered, Streamlined, Orchestrated). Never use weak phrases like "Responsable de", "Aidé à", "Travail sur".
+2. HARVARD XYZ IMPACT FORMULA: Structure achievements naturally as "Accomplished [X] (Action & Scope) using [Z] (Tools & Methodology), resulting in [Y] (Quantified Impact or Value)". Metrics and outcomes should flow naturally within the sentence without awkward word-order restrictions.
+3. THREE DISTINCT VALORIZING PERSPECTIVES:
+   - Option 1 [Technical & Operational Mastery]: Focus on execution excellence, technical stack, architecture, and best practices.
+   - Option 2 [Leadership, Process & Delivery]: Focus on coordination, project management, agility, and cross-functional impact.
+   - Option 3 [Business Impact & Optimization]: Focus on efficiency gains, measurable performance, time/cost savings, and value delivered.
+4. MAXIMUM RELEVANCE: Preserve all authentic details, context, and domain-specific terminology provided by the candidate. Elevate their contributions to sound authoritative and executive-level.
+5. CONCISE: 1 to 2 lines per bullet point.
+6. OUTPUT: Return EXACTLY a JSON array of 3 strings. Example: ["bullet 1", "bullet 2", "bullet 3"]. No markdown wrapping or conversational commentary.`;
 
-    const promptText = `Experience Description:
+    const promptText = `Raw Experience Description:
 ${experienceText}
 
-Generate 3 optimized STAR bullet points with front-loaded metrics:`;
+Generate 3 prestigious, high-impact STAR/Harvard bullet points:`;
 
     const { checkAndIncrementQuota } = await import('./_firebase.js');
     await checkAndIncrementQuota();

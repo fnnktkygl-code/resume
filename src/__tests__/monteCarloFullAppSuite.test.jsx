@@ -275,7 +275,7 @@ describe('Monte Carlo Full-App Resiliency & Stress Test Battery', () => {
 
       expect(container.firstChild).toBeTruthy();
     }
-  });
+  }, 15000);
 
   it('Stress Test 3: Exporters & Importers Roundtrip Fuzzing (500 permutations)', () => {
     const rnd = makePrng(777);

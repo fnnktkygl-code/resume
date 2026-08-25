@@ -55,7 +55,7 @@ Rules:
 1. Emphasize hard skills and experiences that align with the job description, BUT ONLY if the candidate actually possesses them.
 2. Update the "tagline" or "summary" ONLY if they lack core alignment with the job description. If already aligned, keep them identical.
 3. CRITICAL - PRESERVE THE CANDIDATE'S UNIQUE DNA: When rewriting a bullet point, you MUST preserve ALL specific technical details, domain terminology, named configurations, and concrete examples from the original text. NEVER replace specific details with generic phrases.
-4. CRITICAL - FRONT-LOAD METRICS: When rewriting bullet points, place key numbers/metrics in the first 3 words.
+4. CRITICAL - HARVARD XYZ IMPACT FORMULA: When improving bullet points, use strong active verbs and articulate concrete impact, methodology, and results naturally without awkward syntax.
 5. CRITICAL - ANTI-HALLUCINATION: You MUST NEVER invent or hallucinate tools, software, certifications, skills, or experiences the candidate did not explicitly mention having.
 6. CRITICAL - ANTI-GENERALIZATION: NEVER replace specific named technologies, configurations, processes, or domain terms with vague/generic equivalents.
 7. CRITICAL - NORMALIZE CASING: ALL bullet points, summaries, and taglines across the ENTIRE resume MUST use consistent normal sentence case.

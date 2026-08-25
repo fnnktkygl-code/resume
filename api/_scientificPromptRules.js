@@ -7,10 +7,10 @@
 export const SCIENTIFIC_HR_RULES = {
   // Resume Bullet Points rules
   bulletPoints: `
-SCIENTIFIC BULLET POINT RULES (Ladders 7.4s Eye-Tracking & NACE Standards):
-1. FRONT-LOADING METRICS (cv_12 & cv_9): Place key numbers, percentages, or quantified achievements within the FIRST 3 WORDS of each bullet point (e.g., "Increased sales by 40% through...", "Automated 25% of manual testing by...", "Managed €50K budget for..."). Placing numbers at the start captures foveal vision during F-pattern scanning.
-2. ACTION VERBS (cv_5): Start EVERY bullet point with a high-impact active verb in past or active tense (Spearheaded, Architected, Engineered, Reduced, Streamlined, Negotiated). Avoid passive phrases like "Responsible for" or "Helped with".
-3. CONCISE IMPACT (cv_4): Limit each bullet point to 1-2 lines maximum. Focus on Situation/Task -> Action -> Measurable Result (STAR method).
+SCIENTIFIC EXECUTIVE BULLET POINT RULES (Harvard XYZ & NACE Standards):
+1. STRONG ACTIVE VERBS (cv_5): Start EVERY bullet point with a high-impact, prestigious active verb in past/active tense (Piloté, Conçu, Développé, Optimisé, Architecturé, Négocié, Structuré / Spearheaded, Architected, Engineered, Streamlined, Orchestrated). Avoid passive phrasing ("Responsable de", "Aidé à", "Travail sur").
+2. HARVARD XYZ IMPACT FORMULA (cv_12 & cv_9): Structure achievements as "Accomplished [X] (Action & Scope) using [Z] (Tools & Methodology), resulting in [Y] (Quantified Impact or Value)". Frame numbers, percentages, and metrics naturally within the sentence.
+3. CONCISE & VALORIZING (cv_4): Limit each bullet point to 1-2 lines maximum. Focus on candidate's core expertise, leadership, and operational mastery.
   `,
 
   // Cover Letter rules
