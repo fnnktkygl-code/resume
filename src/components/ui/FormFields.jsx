@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../utils/TranslationContext';
 import { markdownToHtml, htmlToMarkdown } from '../../utils/formatText';
+import { translateTextWithProxy } from '../../services/geminiService';
 
 export function Field({ label, children, full }) {
   return (
@@ -22,8 +23,7 @@ export function WysiwygEditor({
   onAIRewrite,
   onAITranslate,
   style,
-  className,
-  showBoldButton = true
+  className
 }) {
   const { t } = useTranslation();
   const editorRef = useRef(null);
@@ -59,11 +59,19 @@ export function WysiwygEditor({
   const handleKeyDown = (e) => {
     if (!multiline && e.key === 'Enter') {
       e.preventDefault();
+      return;
     }
     if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
       e.preventDefault();
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         document.execCommand('bold', false, null);
+      }
+      handleInput();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+      e.preventDefault();
+      if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+        document.execCommand('italic', false, null);
       }
       handleInput();
     }
@@ -77,6 +85,19 @@ export function WysiwygEditor({
         document.execCommand('bold', false, null);
       }
       handleInput();
+      handleSelect();
+    }
+  };
+
+  const applyItalic = (e) => {
+    e.preventDefault();
+    if (editorRef.current) {
+      editorRef.current.focus();
+      if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+        document.execCommand('italic', false, null);
+      }
+      handleInput();
+      handleSelect();
     }
   };
 
@@ -103,9 +124,12 @@ export function WysiwygEditor({
         range: range.cloneRange()
       });
 
+      const topPos = rect.top - editorRect.top - 38;
+      const leftPos = rect.left - editorRect.left + (rect.width / 2) - 65;
+
       setBubblePosition({
-        top: Math.max(0, rect.top - editorRect.top - 42),
-        left: Math.max(10, Math.min(editorRect.width - 240, rect.left - editorRect.left + (rect.width / 2) - 100))
+        top: topPos < 0 ? -38 : topPos,
+        left: Math.max(4, Math.min(Math.max(10, editorRect.width - 135), leftPos))
       });
     } else {
       setSelectionRange(null);
@@ -113,67 +137,27 @@ export function WysiwygEditor({
     }
   };
 
-  const applyItalic = (e) => {
-    e.preventDefault();
-    if (editorRef.current) {
-      editorRef.current.focus();
-      document.execCommand('italic', false, null);
-      handleInput();
-      handleSelect();
+  const handleTranslateSelection = async () => {
+    setBubblePosition(null);
+    if (onAITranslate) {
+      onAITranslate();
+      return;
+    }
+    if (!selectionRange || !selectionRange.text) return;
+    try {
+      const targetLang = 'en';
+      const translated = await translateTextWithProxy(selectionRange.text, targetLang);
+      if (translated && editorRef.current) {
+        editorRef.current.focus();
+        if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
+          document.execCommand('insertText', false, translated);
+        }
+        handleInput();
+      }
+    } catch (err) {
+      console.error("Inline translate error:", err);
     }
   };
-
-  const [showAIMenu, setShowAIMenu] = useState(false);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setShowAIMenu(false);
-      }
-    };
-    if (showAIMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showAIMenu]);
-
-  const aiActions = [];
-  if (onAIRewrite || onAIAssist) {
-    aiActions.push({
-      label: t("Suggestion / Formulation Harvard XYZ"),
-      icon: "✨",
-      action: () => { 
-        setShowAIMenu(false); 
-        setBubblePosition(null);
-        (onAIRewrite || onAIAssist)(); 
-      }
-    });
-  }
-  if (onAIBold) {
-    aiActions.push({
-      label: t("Mettre en valeur les chiffres & métriques"),
-      icon: "💡",
-      action: () => { 
-        setShowAIMenu(false); 
-        setBubblePosition(null);
-        onAIBold(); 
-      }
-    });
-  }
-  if (onAITranslate) {
-    aiActions.push({
-      label: t("Traduire ce champ"),
-      icon: "🌐",
-      action: () => { 
-        setShowAIMenu(false); 
-        setBubblePosition(null);
-        onAITranslate(); 
-      }
-    });
-  }
-
-  const hasToolbar = showBoldButton || aiActions.length > 0;
 
   return (
     <div 
@@ -254,69 +238,62 @@ export function WysiwygEditor({
             i
           </button>
           
-          {(onAIRewrite || onAIAssist) && (
-            <>
-              <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />
-              <button
-                type="button"
-                onClick={() => {
-                  setBubblePosition(null);
-                  (onAIRewrite || onAIAssist)();
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-accent, #2D5A43)',
-                  cursor: 'pointer',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  borderRadius: '6px',
-                  transition: 'background-color 0.12s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
-              >
-                ✨
-              </button>
-            </>
-          )}
+          <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />
+          
+          <button
+            type="button"
+            onClick={() => {
+              setBubblePosition(null);
+              if (onAIRewrite || onAIAssist) {
+                (onAIRewrite || onAIAssist)();
+              } else if (onAIBold) {
+                onAIBold();
+              }
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-accent, #2D5A43)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+          >
+            ✨
+          </button>
 
-          {onAITranslate && (
-            <>
-              {!onAIRewrite && !onAIAssist && <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />}
-              <button
-                type="button"
-                onClick={() => {
-                  setBubblePosition(null);
-                  onAITranslate();
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-text-secondary, #737373)',
-                  cursor: 'pointer',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  borderRadius: '6px',
-                  transition: 'background-color 0.12s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                title={t("Traduire la sélection")}
-              >
-                🌐
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={handleTranslateSelection}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-secondary, #737373)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Traduire la sélection")}
+          >
+            🌐
+          </button>
         </div>
       )}
 
@@ -329,14 +306,15 @@ export function WysiwygEditor({
         data-placeholder={placeholder}
         className={`input wysiwyg-editor ${className || ''}`.trim()}
         style={{
-          minHeight: multiline ? `${Math.max(rows * 24, 60)}px` : '42px',
-          padding: '10px 14px',
+          minHeight: multiline ? `${Math.max(rows * 24, 60)}px` : '38px',
+          height: multiline ? 'auto' : '38px',
+          padding: multiline ? '10px 14px' : '8px 12px',
           outline: 'none',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          overflowX: 'hidden',
+          whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
+          wordBreak: multiline ? 'break-word' : 'normal',
+          overflowX: multiline ? 'hidden' : 'auto',
           overflowY: multiline ? 'auto' : 'hidden',
-          lineHeight: '1.5',
+          lineHeight: multiline ? '1.5' : '20px',
           fontSize: '13px',
           color: 'var(--color-text)',
           backgroundColor: 'var(--color-surface)',
@@ -354,16 +332,236 @@ export function WysiwygEditor({
   );
 }
 
-export function TextInput({ value, onChange, placeholder, type = 'text', style, className }) {
+export function TextInput({
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  style,
+  className,
+  onAIAssist,
+  onAIBold,
+  onAIRewrite,
+  onAITranslate
+}) {
+  const { t } = useTranslation();
+  const inputRef = useRef(null);
+  const [bubblePosition, setBubblePosition] = useState(null);
+  const [selectionRange, setSelectionRange] = useState(null);
+
+  const handleSelect = () => {
+    if (!inputRef.current) return;
+    const input = inputRef.current;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    if (typeof start === 'number' && typeof end === 'number' && start !== end) {
+      const selectedText = input.value.substring(start, end).trim();
+      if (selectedText.length > 0) {
+        setSelectionRange({ start, end, text: selectedText });
+        const inputRect = input.getBoundingClientRect();
+        setBubblePosition({
+          top: -38,
+          left: Math.max(4, Math.min(Math.max(10, inputRect.width - 135), (inputRect.width / 2) - 65))
+        });
+      } else {
+        setBubblePosition(null);
+        setSelectionRange(null);
+      }
+    } else {
+      setBubblePosition(null);
+      setSelectionRange(null);
+    }
+  };
+
+  const applyBold = (e) => {
+    e.preventDefault();
+    if (!selectionRange || !inputRef.current) return;
+    const { start, end, text } = selectionRange;
+    const val = value || '';
+    const isBold = text.startsWith('**') && text.endsWith('**');
+    const newText = isBold ? text.slice(2, -2) : `**${text}**`;
+    const updated = val.substring(0, start) + newText + val.substring(end);
+    onChange(updated);
+    setBubblePosition(null);
+  };
+
+  const applyItalic = (e) => {
+    e.preventDefault();
+    if (!selectionRange || !inputRef.current) return;
+    const { start, end, text } = selectionRange;
+    const val = value || '';
+    const isItalic = text.startsWith('*') && text.endsWith('*') && !text.startsWith('**');
+    const newText = isItalic ? text.slice(1, -1) : `*${text}*`;
+    const updated = val.substring(0, start) + newText + val.substring(end);
+    onChange(updated);
+    setBubblePosition(null);
+  };
+
+  const handleTranslate = async (e) => {
+    e.preventDefault();
+    setBubblePosition(null);
+    if (onAITranslate) {
+      onAITranslate();
+      return;
+    }
+    if (!selectionRange || !inputRef.current) return;
+    try {
+      const targetLang = 'en';
+      const translated = await translateTextWithProxy(selectionRange.text, targetLang);
+      if (translated) {
+        const val = value || '';
+        const updated = val.substring(0, selectionRange.start) + translated + val.substring(selectionRange.end);
+        onChange(updated);
+      }
+    } catch (err) {
+      console.error("Translate error:", err);
+    }
+  };
+
   return (
-    <input
-      type={type}
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={`input ${className || ''}`.trim()}
-      style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
-    />
+    <div className="input-wrapper" style={{ position: 'relative', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+      {bubblePosition && (
+        <div 
+          className="floating-selection-bubble"
+          style={{
+            position: 'absolute',
+            top: `${bubblePosition.top}px`,
+            left: `${bubblePosition.left}px`,
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+            backgroundColor: 'var(--color-surface, #FFFFFF)',
+            borderRadius: '8px',
+            padding: '3px 4px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08)',
+            animation: 'fadeInScale 0.12s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: '1px solid var(--color-border, rgba(0, 0, 0, 0.1))'
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={applyBold}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text, #1A1918)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: '700',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Bold (Cmd+B)")}
+          >
+            B
+          </button>
+          <button
+            type="button"
+            onClick={applyItalic}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text, #1A1918)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontStyle: 'italic',
+              fontWeight: '600',
+              fontFamily: 'serif',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Italic (Cmd+I)")}
+          >
+            i
+          </button>
+          
+          <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--color-border)', margin: '0 2px' }} />
+          
+          <button
+            type="button"
+            onClick={() => {
+              setBubblePosition(null);
+              if (onAIRewrite || onAIAssist) {
+                (onAIRewrite || onAIAssist)();
+              } else if (onAIBold) {
+                onAIBold();
+              }
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-accent, #2D5A43)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-light, rgba(45, 90, 67, 0.1))'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Améliorer avec l'IA (Formule Harvard XYZ)")}
+          >
+            ✨
+          </button>
+
+          <button
+            type="button"
+            onClick={handleTranslate}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-secondary, #737373)',
+              cursor: 'pointer',
+              width: '28px',
+              height: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              borderRadius: '6px',
+              transition: 'background-color 0.12s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-alt, #F4F3EF)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            title={t("Traduire la sélection")}
+          >
+            🌐
+          </button>
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type={type}
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        onSelect={handleSelect}
+        onMouseUp={handleSelect}
+        onKeyUp={handleSelect}
+        placeholder={placeholder}
+        className={`input ${className || ''}`.trim()}
+        style={{ width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
+      />
+    </div>
   );
 }
 

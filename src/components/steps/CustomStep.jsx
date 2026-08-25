@@ -4,7 +4,7 @@ import SectionHeader from '../ui/SectionHeader';
 import { createEmptyCustomItem } from '../../utils/constants';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function CustomStep({ section, onChange, onDelete, onAISectionFill, onTranslateSection, isTranslating }) {
+export default function CustomStep({ section, onChange, onDelete, onAISectionFill, onTranslateSection, isTranslating, onAIAssist, onAIBold, onAIRewrite }) {
   const { t } = useTranslation();
   const [collapsedMap, setCollapsedMap] = useState({});
   const toggleCollapse = (id) => setCollapsedMap(prev => ({ ...prev, [id]: !prev[id] }));
@@ -204,7 +204,10 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                       <TextInput 
                         value={item.title} 
                         onChange={(v) => updateItem(realIdx, 'title', v)} 
-                        placeholder={fields.titlePlaceholder} 
+                        placeholder={fields.titlePlaceholder}
+                        onAIAssist={() => onAIAssist?.(item.title, realIdx, 'title')}
+                        onAIBold={() => onAIBold?.(item.title, realIdx, 'title')}
+                        onAIRewrite={() => (onAIRewrite || onAIAssist)?.(item.title, realIdx, 'title')}
                       />
                     </Field>
                     {(fields.showSubtitle || item.subtitle) && (
@@ -212,7 +215,10 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                         <TextInput 
                           value={item.subtitle} 
                           onChange={(v) => updateItem(realIdx, 'subtitle', v)} 
-                          placeholder={fields.subtitlePlaceholder} 
+                          placeholder={fields.subtitlePlaceholder}
+                          onAIAssist={() => onAIAssist?.(item.subtitle, realIdx, 'subtitle')}
+                          onAIBold={() => onAIBold?.(item.subtitle, realIdx, 'subtitle')}
+                          onAIRewrite={() => (onAIRewrite || onAIAssist)?.(item.subtitle, realIdx, 'subtitle')}
                         />
                       </Field>
                     )}
@@ -234,7 +240,10 @@ export default function CustomStep({ section, onChange, onDelete, onAISectionFil
                           value={item.description} 
                           onChange={(v) => updateItem(realIdx, 'description', v)} 
                           placeholder={fields.descPlaceholder} 
-                          rows={3} 
+                          rows={3}
+                          onAIAssist={() => onAIAssist?.(item.description, realIdx, 'description')}
+                          onAIBold={() => onAIBold?.(item.description, realIdx, 'description')}
+                          onAIRewrite={() => (onAIRewrite || onAIAssist)?.(item.description, realIdx, 'description')}
                         />
                       </Field>
                     </div>

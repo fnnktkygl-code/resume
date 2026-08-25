@@ -1372,6 +1372,38 @@ function estimateResumeHeightInPages(resumeData) {
                   onDelete={() => setSectionToDelete(currentId)}
                   onTranslateSection={() => handleTranslateSection(currentId, data.customSections.find(s => s.id === currentId))}
                   isTranslating={translatingSectionId === currentId}
+                  onAIAssist={(text, index, field) => {
+                    setAiBoldConfig({
+                      isOpen: true,
+                      text,
+                      contextType: currentId,
+                      onUpdate: (newText) => {
+                        saveSnapshot();
+                        const currentSection = data.customSections.find(s => s.id === currentId);
+                        if (!currentSection) return;
+                        const newItems = [...currentSection.items];
+                        newItems[index] = { ...newItems[index], [field]: newText };
+                        const mapped = (data.customSections || []).map(s => s.id === currentId ? { ...currentSection, items: newItems } : s);
+                        dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
+                      }
+                    });
+                  }}
+                  onAIBold={(text, index, field) => {
+                    setAiBoldConfig({
+                      isOpen: true,
+                      text,
+                      contextType: currentId,
+                      onUpdate: (newText) => {
+                        saveSnapshot();
+                        const currentSection = data.customSections.find(s => s.id === currentId);
+                        if (!currentSection) return;
+                        const newItems = [...currentSection.items];
+                        newItems[index] = { ...newItems[index], [field]: newText };
+                        const mapped = (data.customSections || []).map(s => s.id === currentId ? { ...currentSection, items: newItems } : s);
+                        dispatch({ type: 'UPDATE_CUSTOM_SECTIONS', payload: mapped });
+                      }
+                    });
+                  }}
                   onAISectionFill={(sectionType, sectionLabel) => {
                     const readiness = checkResumeReadiness(data);
                     if (readiness.isEmpty) {
