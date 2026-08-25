@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useTranslation } from '../../utils/TranslationContext';
 import { generateBulletPointsWithProxy } from '../../services/geminiService';
@@ -10,8 +10,14 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
   const [bulletOptions, setBulletOptions] = useState([]);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (isOpen && experienceText && experienceText.trim().length >= 3 && bulletOptions.length === 0 && !isGenerating) {
+      handleGenerate();
+    }
+  }, [isOpen, experienceText]);
+
   const handleGenerate = async () => {
-    if (!experienceText || experienceText.trim().length < 5) {
+    if (!experienceText || experienceText.trim().length < 3) {
       setError(t('Please provide some text to enhance.'));
       return;
     }

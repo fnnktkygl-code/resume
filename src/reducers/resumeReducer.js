@@ -53,11 +53,37 @@ export default function resumeReducer(state = {}, action = {}) {
         targetJobAnalysis: action.payload
       };
 
-    case 'UPDATE_SKILLS':
+    case 'UPDATE_SKILLS': {
+      const nextSkills = action.payload || {};
+      let updatedCustomSections = state.customSections;
+
+      if (typeof nextSkills.languages === 'string' && Array.isArray(state.customSections)) {
+        const langItems = nextSkills.languages.split(',').map(l => l.trim()).filter(Boolean);
+        if (langItems.length > 0) {
+          updatedCustomSections = state.customSections.map(sec => {
+            if (sec.id === 'custom_langues' || sec.label?.toLowerCase().includes('langue')) {
+              return {
+                ...sec,
+                items: langItems.map((l, i) => ({
+                  id: sec.items?.[i]?.id || `lang_${i}_${Date.now()}`,
+                  title: l,
+                  subtitle: sec.items?.[i]?.subtitle || '',
+                  description: sec.items?.[i]?.description || '',
+                  date: ''
+                }))
+              };
+            }
+            return sec;
+          });
+        }
+      }
+
       return {
         ...state,
-        skills: action.payload || {}
+        skills: nextSkills,
+        customSections: updatedCustomSections
       };
+    }
 
     case 'UPDATE_EXPERIENCE':
       return {
@@ -83,11 +109,27 @@ export default function resumeReducer(state = {}, action = {}) {
         certifications: Array.isArray(action.payload) ? action.payload : []
       };
 
-    case 'UPDATE_CUSTOM_SECTIONS':
+    case 'UPDATE_CUSTOM_SECTIONS': {
+      const nextSections = Array.isArray(action.payload) ? action.payload : [];
+      const langSec = nextSections.find(sec => sec.id === 'custom_langues' || sec.label?.toLowerCase().includes('langue'));
+      let nextSkills = state.skills || {};
+
+      if (langSec && Array.isArray(langSec.items)) {
+        const joinedLangs = langSec.items
+          .map(item => [item.title, item.subtitle].filter(Boolean).join(' '))
+          .filter(Boolean)
+          .join(', ');
+        if (joinedLangs && joinedLangs !== nextSkills.languages) {
+          nextSkills = { ...nextSkills, languages: joinedLangs };
+        }
+      }
+
       return {
         ...state,
-        customSections: Array.isArray(action.payload) ? action.payload : []
+        skills: nextSkills,
+        customSections: nextSections
       };
+    }
 
     case 'UPDATE_LAYOUT':
       return {
