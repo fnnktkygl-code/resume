@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '../test/setup';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -7,6 +7,7 @@ import FollowUpModal from '../components/career/FollowUpModal';
 import InterviewPrepModal from '../components/career/InterviewPrepModal';
 import UpskillModal from '../components/career/UpskillModal';
 import JobApplicationTracker from '../components/career/JobApplicationTracker';
+import CareerOpsHub from '../components/career/CareerOpsHub';
 import { TranslationContext } from '../utils/TranslationContext';
 
 const mockApp = {
@@ -29,6 +30,48 @@ const mockResume = {
 };
 
 describe('CareerOps Extended Suite (Follow-Up, Interview Prep, Upskill)', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn().mockImplementation((url, opts) => {
+      let body = {};
+      try { body = JSON.parse(opts?.body || '{}'); } catch {}
+      if (body.action === 'followup') {
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify({
+            subject: 'Relance candidature TechCorp',
+            body: 'Corps du message de relance.',
+            tips: ['Conseil de relance']
+          }))
+        });
+      }
+      if (body.action === 'interviewPrep') {
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify({
+            summary: 'Briefing entretien',
+            starQuestions: [{ id: 'q1', category: 'STAR Behavioral', question: 'STAR Q', starGuide: {} }],
+            questionsToAsk: ['Question 1']
+          }))
+        });
+      }
+      if (body.action === 'upskill') {
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve(JSON.stringify({
+            readinessScore: 85,
+            summary: "Profil adapté avec 85% d'adéquation.",
+            skillGaps: [{ skill: 'Docker', priority: 'critical', category: 'DevOps', practicalMiniProject: 'Dockeriser une app' }],
+            twoWeekRoadmap: [{ phase: 'Semaine 1', focus: 'Bases Docker', deliverable: 'Dockerfile opérationnel' }]
+          }))
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        text: () => Promise.resolve('{}')
+      });
+    });
+  });
+
   it('renders JobApplicationTracker with new action buttons', () => {
     const onOpenFollowUp = vi.fn();
     const onOpenInterviewPrep = vi.fn();
@@ -82,7 +125,7 @@ describe('CareerOps Extended Suite (Follow-Up, Interview Prep, Upskill)', () => 
     fireEvent.click(generateBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Corps du message/i)).toBeInTheDocument();
+      expect(screen.getByText('Corps du message de relance.')).toBeInTheDocument();
     });
   });
 
@@ -124,8 +167,30 @@ describe('CareerOps Extended Suite (Follow-Up, Interview Prep, Upskill)', () => 
     expect(screen.getByText(/Matrice de Compétences & Plan d'Apprentissage/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/Compétences clés à acquérir/i)).toBeInTheDocument();
-      expect(screen.getByText(/Roadmap d'apprentissage sur 2 semaines/i)).toBeInTheDocument();
+      expect(screen.getByText('Docker')).toBeInTheDocument();
+      expect(screen.getByText(/Bases Docker/i)).toBeInTheDocument();
     });
+  });
+
+  it('renders CareerOpsHub command center and switches tabs', async () => {
+    render(
+      <TranslationContext.Provider value="fr">
+        <CareerOpsHub
+          isOpen={true}
+          onClose={() => {}}
+          resumeData={mockResume}
+          onApplyTailoredResume={() => {}}
+          language="fr"
+        />
+      </TranslationContext.Provider>
+    );
+
+    expect(screen.getByText(/CareerOps — Command Center/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Auto-Pipeline/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Suivi de Candidatures/i)).toBeInTheDocument();
+
+    const trackerTabBtn = screen.getByText(/Suivi de Candidatures/i);
+    fireEvent.click(trackerTabBtn);
+    expect(screen.getByText(/Pipeline Kanban/i)).toBeInTheDocument();
   });
 });

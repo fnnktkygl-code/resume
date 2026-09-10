@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import '../test/setup';
 import React from 'react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import ImportModal from '../components/ui/ImportModal';
-import LayoutControls from '../components/LayoutControls';
 import { TranslationContext } from '../utils/TranslationContext';
 import * as geminiService from '../services/geminiService';
 
@@ -11,15 +11,8 @@ afterEach(() => {
   cleanup();
 });
 
-beforeAll(() => {
-  if (typeof window !== 'undefined') {
-    window.__TEST_SKIP_DOWNLOAD__ = true;
-  }
-});
-
-describe('Direct-to-Canvas Import & Fit to 1 Page Test Suite', () => {
-
-  it('ImportModal parses text and immediately triggers onImportSuccess without intermediate blind modals', async () => {
+describe('ImportModal Component', () => {
+  it('parses raw text and immediately triggers onImportSuccess without intermediate blind modals', async () => {
     const mockParsedResume = {
       personal: { name: 'Alice Dupont', email: 'alice@example.com' },
       experience: [
@@ -42,7 +35,7 @@ describe('Direct-to-Canvas Import & Fit to 1 Page Test Suite', () => {
       </TranslationContext.Provider>
     );
 
-    // Switch to text mode
+    // Switch to raw text mode
     const textModeBtn = screen.getByRole('button', { name: /Coller du texte brut|Paste Raw Text/i });
     fireEvent.click(textModeBtn);
 
@@ -65,59 +58,4 @@ describe('Direct-to-Canvas Import & Fit to 1 Page Test Suite', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
-
-  it('LayoutControls "Fit to 1 Page" button applies calibrated 1-page compact layout preset', () => {
-    const initialLayout = {
-      isCompact: false,
-      fontSize: 11,
-      paddingX: 0.75,
-      paddingY: 0.75,
-      lineHeight: 1.45,
-      sectionSpacing: 10,
-      itemSpacing: 12,
-      accentColor: '#1B6B3A',
-      fontFamily: 'Inter'
-    };
-
-    const onChange = vi.fn();
-
-    render(
-      <TranslationContext.Provider value="fr">
-        <LayoutControls layout={initialLayout} onChange={onChange} />
-      </TranslationContext.Provider>
-    );
-
-    // Click "Fit to 1 Page"
-    const fitBtn = screen.getByRole('button', { name: /Ajuster sur 1 page|Fit to 1 Page/i });
-    fireEvent.click(fitBtn);
-
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCompact: true,
-        fontSize: 9.75,
-        lineHeight: 1.3,
-        paddingX: 0.5,
-        paddingY: 0.5,
-        sectionSpacing: 5,
-        itemSpacing: 6
-      })
-    );
-
-    // Click "Reset Layout"
-    const resetBtn = screen.getByRole('button', { name: /Réinitialiser|Reset Layout/i });
-    fireEvent.click(resetBtn);
-
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCompact: false,
-        fontSize: 10.5,
-        paddingX: 0.75,
-        paddingY: 0.75,
-        lineHeight: 1.45,
-        sectionSpacing: 8,
-        itemSpacing: 12
-      })
-    );
-  });
-
 });

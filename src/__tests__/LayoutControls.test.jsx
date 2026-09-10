@@ -73,4 +73,24 @@ describe('LayoutControls Component', () => {
       fontFamily: 'Inter'
     }));
   });
+
+  it('applies calibrated 1-page compact layout preset when Fit to 1 Page button is clicked', () => {
+    const onChange = vi.fn();
+    renderWithContext({ layout: sampleLayout, onChange });
+
+    const fitBtn = screen.getByRole('button', { name: /Fit to 1 Page|Ajuster sur 1 page/i });
+    fireEvent.click(fitBtn);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isCompact: true,
+        fontSize: 9.75,
+        lineHeight: 1.3,
+        paddingX: 0.5,
+        paddingY: 0.5,
+        sectionSpacing: 5,
+        itemSpacing: 6
+      })
+    );
+  });
 });

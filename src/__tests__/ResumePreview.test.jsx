@@ -168,4 +168,37 @@ describe('ResumePreview Component', () => {
     fireEvent.click(cPlusPlusSkill);
     expect(onSkillHighlightToggle).toHaveBeenCalled();
   });
+
+  it('hides interactive drag handles and spacers in isZenMode=true', () => {
+    const { rerender } = render(
+      <ResumePreview
+        data={sampleData}
+        layout={defaultLayout}
+        language="en"
+        template="standard"
+        isZenMode={true}
+        onItemReorder={vi.fn()}
+        onSectionReorder={vi.fn()}
+      />
+    );
+
+    expect(document.querySelector('.item-drag-handle')).toBeNull();
+    expect(document.querySelector('.drag-handle')).toBeNull();
+    expect(document.querySelector('.insert-spacer-btn')).toBeNull();
+
+    rerender(
+      <ResumePreview
+        data={sampleData}
+        layout={defaultLayout}
+        language="en"
+        template="standard"
+        isZenMode={false}
+        onItemReorder={vi.fn()}
+        onSectionReorder={vi.fn()}
+      />
+    );
+
+    expect(document.querySelector('.item-drag-handle')).toBeTruthy();
+    expect(document.querySelector('.drag-handle')).toBeTruthy();
+  });
 });

@@ -72,9 +72,29 @@ describe('Form Step Components', () => {
       expect(screen.getByDisplayValue('Sirius Cybernetics')).toBeInTheDocument();
       expect(screen.getByDisplayValue('Quality Inspector')).toBeInTheDocument();
 
-      const addBtn = screen.getByText(/\+ Add another position|\+ Add Position|\+ Add Experience/i);
+      const addBtn = screen.getByText(/\+ Add Position|\+ Add another position|\+ Add Experience/i);
       fireEvent.click(addBtn);
       expect(onChange).toHaveBeenCalled();
+    });
+
+    it('collapses and expands experience cards on button click', () => {
+      const experience = [
+        { id: 'exp-1', company: 'Google', title: 'Tech Lead', startYear: '2020', bullets: [] },
+        { id: 'exp-2', company: 'Meta', title: 'Senior Dev', startYear: '2018', bullets: [] }
+      ];
+      renderStep(<ExperienceStep data={experience} headings={{}} onChange={vi.fn()} />);
+
+      expect(screen.getByDisplayValue('Google')).toBeInTheDocument();
+      const collapseButtons = screen.getAllByRole('button', { name: /Réduire|Collapse/i });
+      expect(collapseButtons.length).toBe(2);
+
+      fireEvent.click(collapseButtons[0]);
+      expect(screen.queryByDisplayValue('Google')).toBeNull();
+      expect(screen.getByDisplayValue('Meta')).toBeInTheDocument();
+
+      const expandButtons = screen.getAllByRole('button', { name: /Déplier|Expand/i });
+      fireEvent.click(expandButtons[0]);
+      expect(screen.getByDisplayValue('Google')).toBeInTheDocument();
     });
   });
 
@@ -97,6 +117,18 @@ describe('Form Step Components', () => {
       const addBtn = screen.getByText(/\+ Add Education|\+ Add another education/i);
       fireEvent.click(addBtn);
       expect(onChange).toHaveBeenCalled();
+    });
+
+    it('collapses and expands education cards', () => {
+      const education = [
+        { id: 'edu-1', institution: 'Polytechnique', degree: 'MSc', startYear: '2016', endYear: '2019' }
+      ];
+      renderStep(<EducationStep data={education} headings={{}} onChange={vi.fn()} />);
+
+      expect(screen.getByDisplayValue('Polytechnique')).toBeInTheDocument();
+      const collapseBtn = screen.getByRole('button', { name: /Réduire|Collapse/i });
+      fireEvent.click(collapseBtn);
+      expect(screen.queryByDisplayValue('Polytechnique')).toBeNull();
     });
   });
 
@@ -135,6 +167,18 @@ describe('Form Step Components', () => {
       const addBtn = screen.getByText(/\+ Add another project|\+ Add Project/i);
       fireEvent.click(addBtn);
       expect(onChange).toHaveBeenCalled();
+    });
+
+    it('collapses and expands project cards', () => {
+      const projects = [
+        { id: 'p1', name: 'AI Playground', techStack: 'React', description: 'App', highlights: [] }
+      ];
+      renderStep(<ProjectsStep data={projects} headings={{}} onChange={vi.fn()} />);
+
+      expect(screen.getByDisplayValue('AI Playground')).toBeInTheDocument();
+      const collapseBtn = screen.getByRole('button', { name: /Réduire|Collapse/i });
+      fireEvent.click(collapseBtn);
+      expect(screen.queryByDisplayValue('AI Playground')).toBeNull();
     });
   });
 
