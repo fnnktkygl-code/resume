@@ -41,3 +41,8 @@ dev.log
 *.pfx
 .vercel
 .env*
+
+# Antigravity 2.0 agent scratchpad
+.agents/scratchpad/*
+!.agents/scratchpad/.gitkeep
+

@@ -41,3 +41,11 @@ Ce document formalise les principes d'orchestration pour flottes d'agents IA, in
 - **Plafond de Tokens par Session** : Chaque requête d'orchestration est soumise à un quota maximal de tokens d'entrée et de sortie.
 - **Limite d'Itérations Autonomes** : Un sous-agent ou une boucle d'agents ne peut dépasser $N$ itérations (par défaut 3) sans validation explicite de l'utilisateur.
 - **Disjoncteur Thermique (Trip Circuit)** : En cas de code HTTP 429 ou de dérive de consommation, le disjoncteur bascule immédiatement sur le fallback déterministe local sans surcharger les APIs distantes.
+
+---
+
+## 5. Intégration Protocole Brooks-Zero & Mémoire Commune
+
+- **Topologie & Autorité** : Appliquer strictement la [Politique d'Élasticité Chirurgicale](file://surgical_rules.md). Le modèle frontière est le seul détenteur du droit d'écriture.
+- **Mémoire & Traçabilité** : Toute décision structurante issue d'un arbitrage d'orchestration est actée dans [Registre des Décisions](file://../memory/decisions.md).
+
