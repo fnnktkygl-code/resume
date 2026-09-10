@@ -17,6 +17,16 @@ const parseJsonResponse = async (response) => {
 };
 
 /**
+ * Helper to resolve relative API paths to absolute URLs when window.location is defined
+ */
+export function resolveApiUrl(path) {
+  if (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin !== 'null') {
+    return `${window.location.origin}${path.startsWith('/') ? path : `/${path}`}`;
+  }
+  return path;
+}
+
+/**
  * Helper to retrieve pre-cached AI results (e.g., from demo data)
  */
 function getAiCacheResult(type, resumeData) {
@@ -520,7 +530,7 @@ export async function generateSectionContentWithProxy(sectionType, resumeContext
 
 export async function generateFollowUpWithProxy({ companyName, jobTitle, type = 'followup', daysElapsed = 8, candidateName, context = '', language = 'fr' }) {
   try {
-    const res = await fetch('/api/careerOpsAssist', {
+    const res = await fetch(resolveApiUrl('/api/careerOpsAssist'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'followup', companyName, jobTitle, type, daysElapsed, candidateName, context, language })
@@ -577,7 +587,7 @@ export async function generateFollowUpWithProxy({ companyName, jobTitle, type = 
 
 export async function generateInterviewPrepWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/careerOpsAssist', {
+    const res = await fetch(resolveApiUrl('/api/careerOpsAssist'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'interviewPrep', resumeData, jobDescription, companyName, jobTitle, language })
@@ -688,7 +698,7 @@ export async function generateInterviewPrepWithProxy({ resumeData, jobDescriptio
 
 export async function evaluateMockAnswerWithProxy({ practiceQuestion, userAnswer, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/careerOpsAssist', {
+    const res = await fetch(resolveApiUrl('/api/careerOpsAssist'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'evaluateMockAnswer', practiceQuestion, userAnswer, companyName, jobTitle, language })
@@ -725,7 +735,7 @@ export async function evaluateMockAnswerWithProxy({ practiceQuestion, userAnswer
 
 export async function generateUpskillPlanWithProxy({ resumeData, jobDescription, companyName, jobTitle, language = 'fr' }) {
   try {
-    const res = await fetch('/api/careerOpsAssist', {
+    const res = await fetch(resolveApiUrl('/api/careerOpsAssist'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'upskill', resumeData, jobDescription, companyName, jobTitle, language })

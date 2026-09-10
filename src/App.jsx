@@ -23,6 +23,7 @@ import LayoutControls from './components/LayoutControls';
 import Modal from './components/ui/Modal';
 import Header from './components/Header';
 import useResumeHistory from './hooks/useResumeHistory';
+import { safeStorageGet, safeStorageSet, safeStorageRemove } from './utils/safeStorage';
 import useResumeDocuments from './hooks/useResumeDocuments';
 import resumeReducer from './reducers/resumeReducer';
 import { translateHeadings, translateCustomSectionLabels } from './utils/languageSwitcher';
@@ -374,13 +375,13 @@ export default function App() {
   // Theme
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_KEY, theme);
+    safeStorageSet(THEME_KEY, theme);
   }, [theme]);
 
   // Auto-save data
   useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      safeStorageSet(STORAGE_KEY, data);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }, 500);
@@ -389,12 +390,12 @@ export default function App() {
 
   // Persist layout
   useEffect(() => {
-    localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+    safeStorageSet(LAYOUT_KEY, layout);
   }, [layout]);
 
   // Persist template
   useEffect(() => {
-    localStorage.setItem(TEMPLATE_KEY, template);
+    safeStorageSet(TEMPLATE_KEY, template);
   }, [template]);
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
