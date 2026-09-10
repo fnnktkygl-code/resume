@@ -13,7 +13,7 @@ export function cleanJobTitle(role) {
   cleaned = cleaned.replace(/^(?:candidature\s+au\s+poste\s+de|au\s+poste\s+de|le\s+poste\s+de|poste\s+de|un|une|le|la|du|de|au|pour)\s+/i, '');
 
   // 2. Remove leading gender artifacts like "(e) ", "e ", ".e ", "- "
-  cleaned = cleaned.replace(/^[\(\.\-]*\b(e|H\/F|F\/H|m\/f|m\/f\/d)\b[\)\.\-]*\s*/i, '');
+  cleaned = cleaned.replace(/^[().-]*\b(e|H\/F|F\/H|m\/f|m\/f\/d)\b[().-]*\s*/i, '');
   cleaned = cleaned.replace(/^\(e\)\s*/i, '');
 
   // 3. Remove inline parenthetical gender markers e.g. "Ingénieur(e)" -> "Ingénieur", "Consultant(e)" -> "Consultant"
@@ -26,12 +26,12 @@ export function cleanJobTitle(role) {
   let prev;
   do {
     prev = cleaned;
-    cleaned = cleaned.replace(/\s*[\(\[\{]?(?:H\/F|F\/H|M\/F|M\/F\/D|H-F|F-H|CDI|CDD|Freelance|Stage|Alternance)[\)\]\}]?\s*$/i, '');
+    cleaned = cleaned.replace(/\s*[([{]?(?:H\/F|F\/H|M\/F|M\/F\/D|H-F|F-H|CDI|CDD|Freelance|Stage|Alternance)[)\]}]?\s*$/i, '');
     cleaned = cleaned.replace(/\s*[-–—]\s*$/i, '');
   } while (cleaned !== prev && cleaned.length > 0);
 
   // 5. Trim leftover punctuation at start and end
-  cleaned = cleaned.replace(/^[^a-zA-Z0-9À-ÿ]+|[^a-zA-Z0-9À-ÿ\)\%]+$/g, '').trim();
+  cleaned = cleaned.replace(/^[^a-zA-Z0-9À-ÿ]+|[^a-zA-Z0-9À-ÿ)%]+$/g, '').trim();
 
   // 6. Title Case if ALL UPPERCASE (e.g. "RESPONSABLE PERFORMANCE" -> "Responsable Performance")
   if (cleaned === cleaned.toUpperCase() && cleaned.length > 3) {
@@ -47,13 +47,13 @@ export function cleanCompanyName(company) {
   let cleaned = company.trim();
 
   // Handle duplicate repeats like "PHOTOSOL. PHOTOSOL" or "PHOTOSOL PHOTOSOL"
-  const words = cleaned.split(/[\s\.]+/);
+  const words = cleaned.split(/[\s.]+/);
   if (words.length >= 2 && words[0].toUpperCase() === words[1].toUpperCase()) {
     cleaned = words[0];
   }
 
   // Remove leading/trailing quotes, dots, dashes, colons
-  cleaned = cleaned.replace(/^["'\.\s\-_,:]+|["'\.\s\-_,:]+$/g, '');
+  cleaned = cleaned.replace(/^["'.\s\-_,:]+|["'.\s\-_,:]+$/g, '');
 
   // Title Case if ALL UPPERCASE (e.g. "PHOTOSOL" -> "Photosol")
   if (cleaned === cleaned.toUpperCase() && cleaned.length > 3) {
@@ -96,7 +96,7 @@ export function extractJobDetails(text) {
   // 2. Target Role Extraction Patterns
   const rolePatterns = [
     /(?:intitulé\s+du\s+poste|poste|rôle|role\s+title|job\s+title)\s*:\s*([^\n\r;]{3,65})/i,
-    /(?:recherche|hiring|recrute)\s+(?:un|une|a|an)?\s*([A-Za-zÀ-ÿ0-9\s\-_/\(\)]{4,60})/i,
+    /(?:recherche|hiring|recrute)\s+(?:un|une|a|an)?\s*([A-Za-zÀ-ÿ0-9\s\-_/()]{4,60})/i,
     /\b((?:Responsable|Ingénieur|Ingénieure|Développeur|Développeuse|Consultant|Consultante|Chef\s+de\s+projet|Directeur|Directrice|Architecte|Lead|Manager|Data\s+Scientist|Product\s+Owner|Scrum\s+Master)[^\n\r;]{3,60})/i
   ];
 

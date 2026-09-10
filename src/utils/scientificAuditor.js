@@ -58,12 +58,12 @@ export function auditResumeData(resumeData, language = 'fr') {
   resumeData.experience?.forEach((exp) => {
     exp.bullets?.forEach((bullet) => {
       totalBullets++;
-      const hasNumber = /\b\d+(?:[\.,]\d+)?\s*(?:%|k|M|k€|€|\$|k\$|ans|mois|users|projets|collaborateurs|personnes)?\b/i.test(bullet);
+      const hasNumber = /\b\d+(?:[.,]\d+)?\s*(?:%|k|M|k€|€|\$|k\$|ans|mois|users|projets|collaborateurs|personnes)?\b/i.test(bullet);
       if (hasNumber) {
         bulletsWithMetrics++;
         // Check if metric is within the first 4 words
         const words = bullet.trim().split(/\s+/).slice(0, 4).join(' ');
-        const isFrontLoaded = /\b\d+(?:[\.,]\d+)?\s*(?:%|k|M|k€|€|\$|k\$|users|projets|collaborateurs|personnes)?\b/i.test(words);
+        const isFrontLoaded = /\b\d+(?:[.,]\d+)?\s*(?:%|k|M|k€|€|\$|k\$|users|projets|collaborateurs|personnes)?\b/i.test(words);
         if (!isFrontLoaded) {
           mispositionedMetrics++;
         }

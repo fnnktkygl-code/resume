@@ -3,18 +3,13 @@ import TagInput from '../ui/TagInput';
 import SectionHeader from '../ui/SectionHeader';
 import { useTranslation } from '../../utils/TranslationContext';
 
-export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill, onTranslateSection, isTranslating }) {
-  const { t } = useTranslation();
-  const update = (field, val) => onChange({ ...data, [field]: val });
-  const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
-  const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
-
-  const AISuggestButton = ({ sectionType }) => (
+function AISuggestButton({ sectionType, onClick, title, label }) {
+  return (
     <button
       type="button"
-      onClick={() => onAISectionFill?.(sectionType)}
+      onClick={() => onClick?.(sectionType)}
       className="btn-ai-suggest"
-      title={t('AI Suggestions')}
+      title={title}
       style={{
         background: 'var(--color-accent-light)',
         border: 'none',
@@ -31,9 +26,16 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
         whiteSpace: 'nowrap',
       }}
     >
-      ✨ {t('AI Suggest')}
+      ✨ {label}
     </button>
   );
+}
+
+export default function SkillsStep({ data, onChange, headings, onHeadingsChange, layout, onLayoutChange, onAISectionFill, onTranslateSection, isTranslating }) {
+  const { t } = useTranslation();
+  const update = (field, val) => onChange({ ...data, [field]: val });
+  const updateHeading = (field, val) => onHeadingsChange && onHeadingsChange({ ...headings, [field]: val });
+  const updateLayout = (field, val) => onLayoutChange && onLayoutChange({ ...layout, [field]: val });
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -93,7 +95,14 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>💻</span> {t('Technical Skills')}
             </div>
-            {onAISectionFill && <AISuggestButton sectionType="skills_technical" />}
+            {onAISectionFill && (
+              <AISuggestButton
+                sectionType="skills_technical"
+                onClick={onAISectionFill}
+                title={t('AI Suggestions')}
+                label={t('AI Suggest')}
+              />
+            )}
           </div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>
@@ -125,7 +134,14 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🤝</span> {t('Soft Skills')}
             </div>
-            {onAISectionFill && <AISuggestButton sectionType="skills_soft" />}
+            {onAISectionFill && (
+              <AISuggestButton
+                sectionType="skills_soft"
+                onClick={onAISectionFill}
+                title={t('AI Suggestions')}
+                label={t('AI Suggest')}
+              />
+            )}
           </div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>
@@ -153,7 +169,14 @@ export default function SkillsStep({ data, onChange, headings, onHeadingsChange,
             <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🌐</span> {t('Languages')}
             </div>
-            {onAISectionFill && <AISuggestButton sectionType="skills_languages" />}
+            {onAISectionFill && (
+              <AISuggestButton
+                sectionType="skills_languages"
+                onClick={onAISectionFill}
+                title={t('AI Suggestions')}
+                label={t('AI Suggest')}
+              />
+            )}
           </div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
             <div style={{ flex: 1 }}>

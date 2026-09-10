@@ -52,7 +52,7 @@ function AppLoadingFallback() {
         letterSpacing: '0.01em',
         margin: 0
       }}>
-        Chargement de l'atelier...
+        Chargement de l&apos;atelier...
       </p>
       <style>{`
         @keyframes spinLoader {

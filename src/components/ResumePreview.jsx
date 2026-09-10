@@ -562,15 +562,15 @@ function ResumePreview({
   };
 
   const NestedSpacer = ({ height, onChangeHeight, onDelete }) => {
-    if (printMode || isZenMode) {
-      return <div style={{ height: `${height}px` }} />;
-    }
-
     const [localHeight, setLocalHeight] = useState(height);
 
     useEffect(() => {
       setLocalHeight(height);
     }, [height]);
+
+    if (printMode || isZenMode) {
+      return <div style={{ height: `${height}px` }} />;
+    }
 
     const handleChange = (e) => {
       const val = parseInt(e.target.value, 10);

@@ -475,7 +475,7 @@ export async function boldifyCoverLetterWithProxy(coverLetter, jobDescription) {
     ];
     let bolded = coverLetter;
     keywords.forEach(kw => {
-      const regex = new RegExp(`\\b(${kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})\\b`, 'gi');
+      const regex = new RegExp(`\\b(${kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})\\b`, 'gi');
       bolded = bolded.replace(regex, '**$1**');
     });
     return bolded;

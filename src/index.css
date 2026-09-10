@@ -2100,6 +2100,27 @@ textarea::placeholder {
   .form-panel { min-width: 0; width: 100%; }
   .field-grid { grid-template-columns: 1fr; gap: 12px; }
   .card { padding: 16px 14px; border-radius: var(--radius-md); }
+
+  /* Prevent iOS Safari 110% zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Modal touch scroll optimization & containment */
+  .modal-backdrop {
+    overscroll-behavior: contain;
+  }
+  .modal-content {
+    max-height: 90dvh !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 600px) {

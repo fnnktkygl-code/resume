@@ -315,7 +315,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     }
 
     return result;
-  }, [data?.personal, language, companyName, targetRole]);
+  }, [data, language, companyName, targetRole]);
 
   // Update Cover Letter state with Undo/Redo history tracking
   const updateLetterContent = useCallback((newText, clearHistory = false) => {
@@ -554,7 +554,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
     updateLetterContent(coverLetter.replace(/\*\*/g, ''));
   };
 
-  const handleClearAll = useCallback(() => {
+  const handleClearAll = () => {
     if (coverLetter || companyName || targetRole || jobDescription || referenceLetter) {
       const confirmMsg = language === 'fr' ? 'Voulez-vous vraiment effacer tous les paramètres et le texte de la lettre de motivation ?' : language === 'es' ? '¿Realmente deseas borrar todos los ajustes y el texto de la carta de presentación?' : 'Are you sure you want to clear all cover letter settings and text?';
       if (!window.confirm(confirmMsg)) return;
@@ -595,7 +595,7 @@ export default function CoverLetterModal({ isOpen, onClose, data, dispatch, onLa
       });
       dispatch({ type: 'UPDATE_TARGET_JOB_DESCRIPTION', payload: '' });
     }
-  }, [coverLetter, companyName, targetRole, jobDescription, referenceLetter, language, dispatch]);
+  };
 
   const hasBoldMarkers = (typeof coverLetter === 'string' && coverLetter.includes('**')) || (editorRef.current && editorRef.current.innerHTML.includes('<strong>'));
 

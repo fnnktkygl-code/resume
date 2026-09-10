@@ -463,7 +463,6 @@ export default function App() {
     const idx = allSteps.findIndex(s => s.id === sectionId);
     if (idx !== -1) {
       setStep(idx);
-      if (window.innerWidth <= 1024) setMobileMenuOpen(false);
       setShowMobilePreview(false); // Close preview on mobile to show the editor
       return;
     }
@@ -1985,7 +1984,7 @@ function estimateResumeHeightInPages(resumeData) {
               {isMobileLayoutOpen && (
                 <div style={{ padding: '12px 16px', background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
                   <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-                    <LayoutControls layout={layout} onChange={setLayout} />
+                    <LayoutControls layout={layout} onChange={setLayout} onClose={() => setIsMobileLayoutOpen(false)} />
                   </div>
                 </div>
               )}
@@ -2192,7 +2191,7 @@ function estimateResumeHeightInPages(resumeData) {
 
         {/* Auto-save toast */}
         {saved && (
-          <div className="save-toast" key={Date.now()}>
+          <div className="save-toast">
             <span className="save-dot" />
             ✓ {t('Saved')}
           </div>

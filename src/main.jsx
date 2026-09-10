@@ -6,18 +6,18 @@ import { Analytics } from '@vercel/analytics/react'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/fraunces'
 import '@fontsource-variable/jetbrains-mono'
-import '@fontsource/roboto/latin.css'
-import '@fontsource/roboto/latin-ext.css'
-import '@fontsource/open-sans/latin.css'
-import '@fontsource/open-sans/latin-ext.css'
-import '@fontsource/lato/latin.css'
-import '@fontsource/lato/latin-ext.css'
-import '@fontsource/lora/latin.css'
-import '@fontsource/lora/latin-ext.css'
-import '@fontsource/merriweather/latin.css'
-import '@fontsource/merriweather/latin-ext.css'
-import '@fontsource/outfit/latin.css'
-import '@fontsource/outfit/latin-ext.css'
+import '@fontsource/roboto/latin-400.css'
+import '@fontsource/roboto/latin-700.css'
+import '@fontsource/open-sans/latin-400.css'
+import '@fontsource/open-sans/latin-700.css'
+import '@fontsource/lato/latin-400.css'
+import '@fontsource/lato/latin-700.css'
+import '@fontsource/lora/latin-400.css'
+import '@fontsource/lora/latin-700.css'
+import '@fontsource/merriweather/latin-400.css'
+import '@fontsource/merriweather/latin-700.css'
+import '@fontsource/outfit/latin-400.css'
+import '@fontsource/outfit/latin-700.css'
 import './index.css'
 import { globalTooltipManager } from './utils/tooltipManager'
 
@@ -39,10 +39,6 @@ try {
 } catch (e) {
   console.warn('Mobile drag drop polyfill warning:', e);
 }
-
-try {
-  window.addEventListener('touchmove', function() {}, {passive: false});
-} catch (e) {}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

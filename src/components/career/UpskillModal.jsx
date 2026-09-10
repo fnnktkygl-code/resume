@@ -12,12 +12,6 @@ export default function UpskillModal({
   const [isLoading, setIsLoading] = useState(false);
   const [upskillPlan, setUpskillPlan] = useState(null);
 
-  useEffect(() => {
-    if (isOpen && application) {
-      loadPlan();
-    }
-  }, [isOpen, application]);
-
   const loadPlan = async () => {
     setIsLoading(true);
     try {
@@ -35,6 +29,12 @@ export default function UpskillModal({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && application) {
+      loadPlan();
+    }
+  }, [isOpen, application]);
 
   if (!isOpen || !application) return null;
 

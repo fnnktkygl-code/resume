@@ -19,12 +19,6 @@ export default function InterviewPrepModal({
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [mockFeedback, setMockFeedback] = useState(null);
 
-  useEffect(() => {
-    if (isOpen && application) {
-      loadPrepPack();
-    }
-  }, [isOpen, application]);
-
   const loadPrepPack = async () => {
     setIsLoading(true);
     setMockFeedback(null);
@@ -46,6 +40,12 @@ export default function InterviewPrepModal({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && application) {
+      loadPrepPack();
+    }
+  }, [isOpen, application]);
 
   const handleEvaluateMock = async () => {
     if (!userMockAnswer.trim()) return;
@@ -309,7 +309,7 @@ export default function InterviewPrepModal({
                     fontSize: '12.5px',
                     color: '#059669'
                   }}>
-                    🛡️ <b>Règle de Vérité Radicale :</b> Ne mentez jamais en entretien sur un outil non maîtrisé. Ces réponses passerelles valorisent votre franchise, votre socle technique connexe et votre vélocité d'apprentissage.
+                    🛡️ <b>Règle de Vérité Radicale :</b> Ne mentez jamais en entretien sur un outil non maîtrisé. Ces réponses passerelles valorisent votre franchise, votre socle technique connexe et votre vélocité d&apos;apprentissage.
                   </div>
 
                   {prepPack?.bridgeAnswers?.map((b, idx) => (

@@ -11,12 +11,6 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
   const [bulletOptions, setBulletOptions] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (isOpen && experienceText && experienceText.trim().length >= 3 && bulletOptions.length === 0 && !isGenerating) {
-      handleGenerate();
-    }
-  }, [isOpen, experienceText]);
-
   const handleGenerate = async () => {
     if (!experienceText || experienceText.trim().length < 3) {
       setError(t('Please provide some text to enhance.'));
@@ -37,6 +31,12 @@ export default function AIBulletPointsModal({ isOpen, onClose, experienceText, o
       setIsGenerating(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && experienceText && experienceText.trim().length >= 3 && bulletOptions.length === 0 && !isGenerating) {
+      handleGenerate();
+    }
+  }, [isOpen, experienceText]);
 
   const handleSelect = (bullet) => {
     onSelectBullet(bullet);

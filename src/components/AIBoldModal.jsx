@@ -13,20 +13,6 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, in
   const [targetLang, setTargetLang] = useState(language === 'fr' ? 'en' : 'fr');
   const [proposedText, setProposedText] = useState('');
 
-  useEffect(() => {
-    if (isOpen && textData) {
-      const tab = initialTab || 'bold';
-      setActiveTab(tab);
-      if (tab === 'bold') {
-        handleBold();
-      } else if (tab === 'rewrite') {
-        handleRewrite();
-      } else {
-        setProposedText('');
-      }
-    }
-  }, [isOpen, textData, contextType, initialTab]);
-
   const handleBold = async () => {
     setIsGenerating(true);
     setError('');
@@ -65,6 +51,20 @@ export default function AIBoldModal({ isOpen, onClose, textData, contextType, in
       setIsGenerating(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && textData) {
+      const tab = initialTab || 'bold';
+      setActiveTab(tab);
+      if (tab === 'bold') {
+        handleBold();
+      } else if (tab === 'rewrite') {
+        handleRewrite();
+      } else {
+        setProposedText('');
+      }
+    }
+  }, [isOpen, textData, contextType, initialTab]);
 
   const handleApply = () => {
     if (onUpdate && proposedText) {

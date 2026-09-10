@@ -518,7 +518,7 @@ function NjmTemplate({
           </Wrapper>
         );
 
-      case 'skills':
+      case 'skills': {
         if (!hasSkills) return null;
         const skillsList = [];
         if (data.skills.technical) {
@@ -564,6 +564,7 @@ function NjmTemplate({
             </table>
           </Wrapper>
         );
+      }
 
       case 'projects':
         if (!validProj.length) return null;

@@ -53,4 +53,15 @@ export default defineConfig({
     port: 5173,
     open: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-pdf': ['pdfjs-dist', 'react-pdf'],
+          'vendor-docx': ['docx', 'file-saver']
+        }
+      }
+    }
+  }
 })

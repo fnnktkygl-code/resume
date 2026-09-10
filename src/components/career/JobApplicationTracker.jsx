@@ -99,10 +99,11 @@ export default function JobApplicationTracker({
       ) : (
         <div className="career-tracker-grid">
           {filteredApps.map((app) => {
-            const dateStr = new Date(app.updatedAt || app.createdAt || Date.now()).toLocaleDateString(
+            const rawDate = app.updatedAt || app.createdAt;
+            const dateStr = rawDate ? new Date(rawDate).toLocaleDateString(
               language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US',
               { day: 'numeric', month: 'short' }
-            );
+            ) : '';
 
             return (
               <div key={app.id} className="career-tracker-card">

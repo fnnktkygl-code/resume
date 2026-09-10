@@ -6,7 +6,7 @@ import VisualDiff from './VisualDiff';
 import { mergeSelected } from '../../utils/mergeSelected';
 import AILoadingOverlay from './AILoadingOverlay';
 
-export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language }) {
+export default function AITailorModal({ isOpen, onClose, data, onTailorSuccess, language, dispatch }) {
   const { t } = useTranslation();
   const [jobDescription, setJobDescription] = useState(data?.targetJobDescription || '');
   const [isLoading, setIsLoading] = useState(false);
