@@ -40,6 +40,10 @@ Ce document formalise les principes d'orchestration pour flottes d'agents IA, in
 
 - **Plafond de Tokens par Session** : Chaque requête d'orchestration est soumise à un quota maximal de tokens d'entrée et de sortie.
 - **Limite d'Itérations Autonomes** : Un sous-agent ou une boucle d'agents ne peut dépasser $N$ itérations (par défaut 3) sans validation explicite de l'utilisateur.
+- **Architecture Événementielle vs Polling Actif (Anti-Astra Protocol)** :
+  - Interdiction absolue de la boucle de sondage active (busy-waiting / polling de statuts ou réveils toutes les 30 secondes).
+  - L'orchestrateur cède l'exécution (`stop calling tools`) dès qu'une tâche de fond ou un sous-agent est lancé. Le réveil est 100% réactif (push event bus) lors de l'arrivée du résultat.
+  - Tout timeout de secours doit être dimensionné à l'échelle de la durée maximale estimée ($\ge 20$ minutes) et aligné sur les fenêtres de TTL du cache de contexte.
 - **Disjoncteur Thermique (Trip Circuit)** : En cas de code HTTP 429 ou de dérive de consommation, le disjoncteur bascule immédiatement sur le fallback déterministe local sans surcharger les APIs distantes.
 
 ---

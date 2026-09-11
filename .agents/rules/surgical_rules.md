@@ -52,6 +52,20 @@ Détruire immédiatement le sous-agent et récupérer la main si :
 
 ---
 
+### C. Économie de Contexte & Interdiction du Polling Actif (Anti-Token-Burn)
+*Inspiré de l'incident GPT-6 Astra / Codex : 47 sondages à vide toutes les 30s = 7,13M tokens d'entrée brûlés pour 0 résultat.*
+
+1. **Zéro-Polling Actif** :
+   - Ne **JAMAIS** boucler sur `manage_task(status)` ou configurer des `schedule` de réveil fréquents (< 15 minutes) pour demander si un travailleur a fini.
+   - Utiliser **exclusivement le réveil événementiel (Push Notification)** : dès qu'un sous-agent ou une commande de fond est lancé, le Chirurgien **cesse d'appeler des outils** et cède la main. Le runtime réveille automatiquement l'agent dès réception du message ou fin du processus.
+2. **Cloisonnement du Scratchpad** :
+   - Les sous-agents ne doivent pas envoyer de messages de bavardage ("j'avance", "50% fait") au parent.
+   - Les résultats intermédiaires sont consignés dans `.agents/scratchpad/worker_{id}.md`. Le sous-agent n'envoie qu'un seul message final concis au Chirurgien lorsqu'il a terminé.
+3. **Plafond de Temporisation de Sécurité** :
+   - Si un timer de secours doit impérativement être posé contre un éventuel blocage, la durée minimale est de **20 à 25 minutes** (dans la fenêtre de réutilisation du cache de prompt), jamais sous la minute.
+
+---
+
 ## 3. Protocole de Mémoire Partagée : "Découper, Trancher, Garder"
 
 Pour éviter la saturation et la dérive cognitive, la mémoire du projet est structurée en 3 couches étanches :

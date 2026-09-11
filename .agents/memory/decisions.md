@@ -16,6 +16,13 @@ Avant toute modification d'architecture, le Chirurgien consulte ce document pour
 
 ## Registre des Décisions Actées
 
+### 2026-09-11 | Anti-Token-Burn, Zéro-Polling & Réveil Réactif Événementiel
+- **Contexte / Problème** : Dérive critique constatée sur les orchestrateurs multi-agents (ex: cas Astra/Codex brûlant 7,13M tokens d'entrée en 47 vérifications à vide toutes les 30s) due à des boucles de polling actif rechargeant un contexte lourd sans modification d'état.
+- **Décision Tranchée** : Interdiction absolue du polling actif (`manage_task(status)` ou timers courts répétés) pour surveiller un sous-agent ou une tâche de fond. Exploitation stricte de l'architecture événementielle native (Push Event Bus / Reactive Wakeup) : le parent yield son exécution (`stop`) et attend l'événement de terminaison poussé par le runtime. Plafond de temporisation de secours fixé à $\ge 20-25$ minutes.
+- **Raison** : Élimination totale du gaspillage de contexte (~68% d'entrées économisées), préservation des fenêtres de prompt caching (TTL ~30m), et maintien de la vélocité sans saturation prématurée des quotas de session.
+
+---
+
 ### 2026-09-10 | Modèle Chirurgical & Protocole Brooks-Zero
 - **Contexte / Problème** : Risque d'inflation d'agents, de bavardage quadratique $O(N^2)$, de surcoûts et de conflits de merge suite aux retours de l'expérience des 1200 agents.
 - **Décision Tranchée** : Adoption stricte du modèle d'équipe chirurgicale (Loi de Brooks-Zero). Un seul chirurgien tient le bistouri (écriture code). Sous-agents éphémères en étoile ($O(N)$), lecture seule, notes temporaires dans `.agents/scratchpad/`.

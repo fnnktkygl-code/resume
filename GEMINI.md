@@ -18,6 +18,9 @@
 3. **Boucle d'Élasticité Dynamique** :
    - Par défaut, effectif = 1 (Chirurgien seul).
    - Pas de prolifération de fichiers de rôles markdown. L'instanciation est régie par la politique de scale-up/scale-down de `.agents/rules/surgical_rules.md` (max 2 sous-agents simultanés).
+4. **Zéro-Polling & Réveil Réactif Événementiel (Anti-Astra Loop)** :
+   - Interdiction formelle du polling actif (vérifications répétitives `status` ou timers courts < 15 min pour sonder l'avancement d'un travailleur).
+   - Exploitation native du **Réveil Réactif (Push Event Bus)** : le parent cède la main sans rappeler d'outil (`stop`) et attend l'événement système de terminaison, préservant ainsi le cache de prompt et évitant le syndrome Astra (7M tokens gaspillés pour 47 sondages à vide).
 
 ---
 
